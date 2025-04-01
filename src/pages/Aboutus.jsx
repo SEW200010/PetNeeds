@@ -1,14 +1,15 @@
-import Footer from "../components/Footer";
-import Header from "../components/Header";
+import React from 'react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const Aboutus = () => {
-    return (
-        <div className="bg-gray-100 pt-[75px]">
-          <Header />
-          <h1>About US</h1>
-          <Footer />
-        </div>
-    )
-};
+  return (
+    <div className="bg-gray-50">
+      <Header />
+      About us
+      <Footer />
+    </div>
+  );
+}
 
 export default Aboutus;
