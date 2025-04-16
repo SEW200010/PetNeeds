@@ -18,48 +18,70 @@ const Services = () => {
       </div>
       <main className="bg-gray-100 pt-[75px]">
         <section
-          className="relative h-[500px] bg-cover bg-center flex flex-col items-center justify-center text-center"
-          style={{ backgroundImage: `url(${HeroImage})`, transition: "background-image 1s ease-in-out" }}
+          className="relative h-[500px] md:h-[600px] lg:h-[700px] bg-cover bg-center flex flex-col items-center justify-center text-center px-4"
+          style={{
+            backgroundImage: `url(${HeroImage})`,
+            transition: "background-image 1s ease-in-out",
+          }}
         >
           <div className="absolute inset-0 bg-black opacity-50"></div>
-          <div className="relative z-10">
-            <h1 className="text-5xl text-white font-bold">Services</h1>
-            <p className="mt-4 text-3xl text-[#27987A]">Empower. Lead. Transform.</p>
-            <p className="text-white mt-4 text-center mx-auto max-w-6xl">At the 'வார்ப்பு' (Varppu) Life Skills Development Programme, we are committed to providing impactful services that empower Sri Lankan youth, particularly in the Northern Province. Our services include comprehensive life skills training, mental health support through the 'Manohari' module, leadership development, and educational workshops focused on resilience, problem-solving, and emotional intelligence. We tailor our services to address pressing issues like peer pressure, substance abuse, and stress management, offering a safe space for youth to grow, learn, and become leaders in their communities. By fostering self-awareness and empowering individuals, we aim to create a lasting impact on youth, society, and the future of Sri Lanka.</p>
-            <button className="mt-6 bg-black text-white px-6 py-3 flex rounded-full hover:bg-green-600 hover:scale-110 mx-auto">
+          <div className="relative z-10 max-w-7xl w-full">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-bold">
+              Services
+            </h1>
+            <p className="mt-4 text-xl sm:text-2xl md:text-3xl text-[#27987A]">
+              Empower. Lead. Transform.
+            </p>
+            <p className="text-white mt-4 text-sm sm:text-base md:text-lg lg:text-xl text-left mx-auto max-w-6xl px-2">
+              At the 'வார்ப்பு' (Varppu) Life Skills Development Programme, we are committed to
+              providing impactful services that empower Sri Lankan youth, particularly in the
+              Northern Province. Our services include comprehensive life skills training, mental
+              health support through the 'Manohari' module, leadership development, and
+              educational workshops focused on resilience, problem-solving, and emotional
+              intelligence. We tailor our services to address pressing issues like peer pressure,
+              substance abuse, and stress management, offering a safe space for youth to grow,
+              learn, and become leaders in their communities. By fostering self-awareness and
+              empowering individuals, we aim to create a lasting impact on youth, society, and the
+              future of Sri Lanka.
+            </p>
+            <button className="mt-6 bg-black text-white px-6 py-3 text-sm sm:text-base md:text-lg flex rounded-full hover:bg-green-600 hover:scale-110 transition duration-300 mx-auto">
               Explore about Us →
             </button>
           </div>
         </section>
 
+        <section className="px-4 py-10 flex flex-col lg:flex-row items-center max-w-7xl mx-auto">
+          <img
+            src="src/assets/Services_page/women.png"
+            alt="About"
+            className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] rounded-lg mb-8 lg:mb-0 lg:mr-30"
+          />
 
-
-        <section className="p-15 flex mx-auto">
-
-          <img src="src\assets\Services_page\women.png" alt="About" className="w-150 rounded-lg mx-20 my-20" />
-          <div className="w-1/2 my-20 mx-10">
-
-            <h2 className="text-3xl font-bold">
+          <div className="w-full lg:w-1/2">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center lg:text-left">
               Empowering{" "}
               <span className="text-[#27987A]">Growth Through Learning</span>
             </h2>
 
-            <p className="mt-4 text-xl">
-              We are dedicated to empowering individuals through<br />skill-based learning and personal
-              development. Our<br /> services include interactive workshops.
+            <p className="mt-4 text-base sm:text-lg lg:text-xl text-center lg:text-left">
+              We are dedicated to empowering individuals through<br className="hidden sm:block" />
+              skill-based learning and personal development. Our<br className="hidden sm:block" />
+              services include interactive workshops.
             </p>
 
-            <p className="mt-4 text-xl">
-              From resilience and decision-making to mental health<br /> support and problem-solving,
-              we provide the tools<br /> needed to navigate challenges and grow with<br /> confidence.
+            <p className="mt-4 text-base sm:text-lg lg:text-xl text-center lg:text-left">
+              From resilience and decision-making to mental health<br className="hidden sm:block" />
+              support and problem-solving, we provide the tools<br className="hidden sm:block" />
+              needed to navigate challenges and grow with<br className="hidden sm:block" />
+              confidence.
             </p>
 
-            <p className="mt-4 font-semibold text-xl text-[#27987A]">
+            <p className="mt-4 font-semibold text-base sm:text-lg lg:text-xl text-[#27987A] text-center lg:text-left">
               Empower. Lead. Transform.
             </p>
-
           </div>
         </section>
+
 
         <section className="bg-[url('src/assets/Services_page/background2.png')] bg-cover bg-center py-16">
           <h2 className="text-center text-3xl font-bold text-gray-800">
@@ -125,64 +147,54 @@ const Services = () => {
           </div>
         </section>
 
-
-        <section className="p-8">
-          <h2 className="text-center text-4xl font-bold underline decoration-gray-500 underline-offset-8 decoration-3 p-6">
-            Our <span className="text-[#27987A]">Services</span>
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4 mx-50">
-            {[
-              {
-                title: (<>Life Skills<br /> Development</>),
-                icon: lifeSkillIcon,
-                description: (<>Training on decision-making,<br /> problem-solving, and emotional<br /> intelligence.</>)
-              },
-              {
-                title: (<>Leadership & <br />Mentorship</>),
-                icon: mentorshipIcon,
-                description: (<>Guidance and mentorship<br /> programs to develop confident<br /> future leaders.</>)
-              },
-              {
-                title: (<>Mental Health & <br /> Well-being</>),
-                icon: healthIcon,
-                description: (<>Support sessions focusing on<br /> stress management, peer<br /> pressure, and resilience.</>)
-              },
-              {
-                title: (<>Community<br /> Engagement</>),
-                icon: communityIcon,
-                description: (<>Outreach programs aimed at<br /> fostering social responsibility and<br /> positive change.</>)
-              },
-              {
-                title: (<>Interactive<br /> Workshops</>),
-                icon: workshopIcon,
-                description: (<>Engaging, hands-on sessions<br /> designed to enhance practical<br /> skills and personal growth.</>)
-              },
-              {
-                title: (<>Career & Personal<br /> Development</>),
-                icon: careerIcon,
-                description: (<>Sessions on goal setting,<br /> communication, and preparing for<br /> future challenges.</>)
-              },
-            ].map(({ title, icon, description }) => (
-              <div key={title} className="bg-[#CFE8DF] rounded-3xl shadow-md p-10 text-center transition hover:scale-105 duration-300 w-[350px] h-[380px] mx-auto">
-                <h3 className="text-[#27987A] font-semibold text-3xl">
-                  {title}
-                </h3>
-                <div className="w-6 h-[2px] bg-gray-400 mx-auto my-2 rounded-full"></div>
-                <div className="flex justify-center my-4">
-                  <img src={icon} alt={title} className="w-15 h-15 object-contain" />
-                </div>
-                <p className="text-lg text-gray-700 leading-relaxed">{description}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto py-10">
+          {[
+            {
+              title: (<>Life Skills<br /> Development</>),
+              icon: lifeSkillIcon,
+              description: "Training on decision-making, problem-solving, and emotional intelligence."
+            },
+            {
+              title: (<>Leadership &<br /> Mentorship</>),
+              icon: mentorshipIcon,
+              description: "Guidance and mentorship programs to develop confident future leaders."
+            },
+            {
+              title: (<>Mental Health &<br /> Well-being</>),
+              icon: healthIcon,
+              description: "Support sessions focusing on stress management, peer pressure, and resilience."
+            },
+            {
+              title: (<>Community<br /> Engagement</>),
+              icon: communityIcon,
+              description: "Outreach programs aimed at fostering social responsibility and positive change."
+            },
+            {
+              title: (<>Interactive<br /> Workshops</>),
+              icon: workshopIcon,
+              description: "Engaging, hands-on sessions designed to enhance practical skills and personal growth."
+            },
+            {
+              title: (<>Career & Personal<br /> Development</>),
+              icon: careerIcon,
+              description: "Sessions on goal setting, communication, and preparing for future challenges."
+            },
+          ].map(({ title, icon, description }, index) => (
+            <div
+              key={index}
+              className="bg-[#eaf6f2] rounded-2xl shadow-md px-6 py-8 text-center w-full max-w-xs mx-auto hover:shadow-lg transition duration-300"
+            >
+              <h3 className="text-[#27987A] font-semibold text-xl sm:text-2xl mb-1">
+                {title}
+              </h3>
+              <div className="w-8 h-[2px] bg-gray-400 mx-auto my-2 rounded-full" />
+              <div className="flex justify-center my-4">
+                <img src={icon} alt="icon" className="w-15 h-15 object-contain" />
               </div>
-            ))}
-          </div>
-
-
-
-        </section>
-
-
-
+              <p className="text-m text-gray-700 leading-relaxed">{description}</p>
+            </div>
+          ))}
+        </div>
 
       </main>
       <Footer />
