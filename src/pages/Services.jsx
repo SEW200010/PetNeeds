@@ -18,22 +18,22 @@ const Services = () => {
       </div>
       <main className="bg-gray-100 pt-[75px]">
         <section
-          className="relative h-[500px] md:h-[600px] lg:h-[700px] bg-cover bg-center flex flex-col items-center justify-center text-center px-4"
-          style={{
-            backgroundImage: `url(${HeroImage})`,
-            transition: "background-image 1s ease-in-out",
-          }}
-        >
-          <div className="absolute inset-0 bg-black opacity-50"></div>
-          <div className="relative z-10 max-w-7xl w-full">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-bold">
-              Services
-            </h1>
-            <p className="mt-4 text-xl sm:text-2xl md:text-3xl text-[#27987A]">
-              Empower. Lead. Transform.
-            </p>
-            <p className="text-white mt-4 text-sm sm:text-base md:text-lg lg:text-xl text-left mx-auto max-w-6xl px-2">
-              At the 'வார்ப்பு' (Varppu) Life Skills Development Programme, we are committed to
+  style={{
+    backgroundImage: `url(${HeroImage})`,
+    transition: "background-image 1s ease-in-out",
+  }}
+>
+  <div className="relative w-full h-[500px] flex flex-col items-center justify-center text-center overflow-hidden pt-30">
+    <div className="absolute inset-0 bg-black opacity-50"></div>
+    <div className="relative z-10 max-w-7xl w-full">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-bold">
+        Services
+      </h1>
+      <p className="mt-4 text-xl sm:text-2xl md:text-3xl text-[#27987A]">
+        Empower. Lead. Transform.
+      </p>
+      <p className="text-white mt-4 text-sm sm:text-base md:text-lg lg:text-xl text-left mx-auto max-w-6xl px-2">
+        At the 'வார்ப்பு' (Varppu) Life Skills Development Programme, we are committed to
               providing impactful services that empower Sri Lankan youth, particularly in the
               Northern Province. Our services include comprehensive life skills training, mental
               health support through the 'Manohari' module, leadership development, and
@@ -43,12 +43,14 @@ const Services = () => {
               learn, and become leaders in their communities. By fostering self-awareness and
               empowering individuals, we aim to create a lasting impact on youth, society, and the
               future of Sri Lanka.
-            </p>
-            <button className="mt-6 bg-black text-white px-6 py-3 text-sm sm:text-base md:text-lg flex rounded-full hover:bg-green-600 hover:scale-110 transition duration-300 mx-auto">
-              Explore about Us →
-            </button>
-          </div>
-        </section>
+      </p>
+      <button className="mt-6 bg-black text-white px-6 py-3 text-sm sm:text-base md:text-lg flex rounded-full hover:bg-green-600 hover:scale-110 transition duration-300 mx-auto">
+        Explore about Us →
+      </button>
+    </div>
+  </div>
+</section>
+
 
         <section className="px-4 py-10 flex flex-col lg:flex-row items-center max-w-7xl mx-auto">
           <img

@@ -5,11 +5,12 @@ import UpcomingEvents from "../components/UpcomingEvents";
 import { FaArrowRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import MovingGallery from "../components/MovingGallery";
+import img1 from "../assets/Home_images/image1.jpg";
+import img2 from "../assets/Home_images/image2.jpg";
+import img3 from "../assets/Home_images/image3.png";
 
 const images = [
-  "/Home_images/image1.jpg",
-  "/Home_images/image2.jpg",
-  "/Home_images/image3.jpg",
+  img1,img2,img3,
 ];
 
 const Home = () => {
@@ -26,7 +27,7 @@ const Home = () => {
   return (
     <div>
       <Header />
-      <main className="bg-gray-100 pt-[72px]">
+      <main className="bg-gray-100 pt-[75px]">
         
         {/* Hero Section */}
         <section
@@ -36,10 +37,10 @@ const Home = () => {
             transition: "background-image 1s ease-in-out",
           }}
         >
-          <h1 className="text-3xl md:text-5xl text-white font-bold">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-bold">
             Your Journey Begins Here
           </h1>
-          <p className="mt-2 md:mt-4 text-xl md:text-3xl text-green-700">
+          <p className="mt-4 text-xl sm:text-2xl md:text-3xl text-green-700">
             Empower. Lead. Transform.
           </p>
           <Link
@@ -56,10 +57,10 @@ const Home = () => {
           
           {/* Text Content */}
           <div className="text-center md:text-left">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">
               Welcome to <span className="text-emerald-600">Varppu Counselling</span>
             </h2>
-            <p className="text-justify text-base md:text-lg leading-relaxed">
+            <p className="mt-4 text-base sm:text-lg lg:text-xl text-center lg:text-left leading:relaxed">
               The "வார்ப்பு" (Varppu) Life Skills Development Programme is a comprehensive initiative 
               launched by the University of Jaffna to address the social challenges faced by Sri Lankan 
               youth, particularly in the Northern Province. This community-centered initiative focuses 
@@ -78,7 +79,7 @@ const Home = () => {
           {/* Image Section */}
           <div className="flex justify-center">
             <img
-              src="/Home_images/image3.jpg"
+              src="../assets/Home_images/imagesec.jpg"
               alt="About Varppu Counselling"
               className="w-full max-w-sm md:max-w-md lg:max-w-lg h-auto rounded-lg shadow-lg"
             />
@@ -92,7 +93,7 @@ const Home = () => {
 
         {/* Featured Events */}
         <section className="p-6 md:p-10 bg-white relative">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-4 md:mb-6">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center underline underline-offset-8 mb-4 md:mb-6">
             Featured <span className="text-emerald-600">Events</span>
           </h2>
           <div>
@@ -102,7 +103,7 @@ const Home = () => {
 
         {/* Impact Section */}
         <section className="p-6 md:p-10 bg-white text-center">
-          <h2 className="text-2xl md:text-3xl font-bold underline underline-offset-8">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center underline underline-offset-8 mb-4 md:mb-6">
             Our <span className="text-emerald-600">Impact at a Glance</span>
           </h2>
 
