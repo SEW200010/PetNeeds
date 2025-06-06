@@ -15,7 +15,7 @@ const Login = () => {
       <div className="absolute inset-0 bg-opacity-50"></div>
       <div className="relative flex flex-col items-start text-white px-12">
         <h1 className="text-5xl font-bold">Welcome Back !</h1>
-        <p className="text-lg text-green-400 mt-2">You can sign in to your access with an existing account</p>
+        <p className="text-lg text-emerald-600 mt-2">You can sign in to your access with an existing account</p>
       </div>
 
       <div className="relative border-5 border-white bg-opacity-50 p-8 rounded-2xl shadow-lg max-w-md w-full">
@@ -58,7 +58,7 @@ const Login = () => {
           </div>
 
           {/* Sign In Button */}
-          <button className="w-full bg-green-500 hover:bg-green-600 hover:scale-105 text-white py-3 rounded-lg font-semibold transition duration-300">
+          <button className="w-full bg-emerald-600 hover:bg-green-600 hover:scale-105 text-white py-3 rounded-lg font-semibold transition duration-300">
             Sign In
           </button>
 

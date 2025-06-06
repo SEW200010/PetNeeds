@@ -44,7 +44,7 @@ const FeaturedEventsSlider = () => {
       {/* Left Button */}
       <button
         onClick={prevSlide}
-        className="absolute left-5 bg-white text-black p-2 rounded-full shadow-md hover:bg-green-700 z-10"
+        className="absolute left-5 bg-white text-black p-2 rounded-full shadow-md hover:bg-emerald-600 z-10"
       >
         <FaChevronLeft size={20} />
       </button>
@@ -52,7 +52,7 @@ const FeaturedEventsSlider = () => {
       {/* Right Button */}
       <button
         onClick={nextSlide}
-        className="absolute right-5 bg-white text-black p-2 rounded-full shadow-md hover:bg-green-700 z-10"
+        className="absolute right-5 bg-white text-black p-2 rounded-full shadow-md hover:bg-emerald-600 z-10"
       >
         <FaChevronRight size={20} />
       </button>
@@ -71,7 +71,7 @@ const FeaturedEventsSlider = () => {
       </div>
       <div className="text-center mb-6">
               <h3 className="mt-4 text-lg">Join us for exciting upcoming events!</h3>
-                <button className="mt-6 bg-black text-white px-6 py-3 flex item-center rounded-md hover:bg-green-600 hover:scale-110">Explore More 
+                <button className="mt-6 bg-emerald-600 text-white px-6 py-3 flex item-center rounded-md hover:bg-green-600 hover:scale-110">Explore More 
                     <FaArrowRight className="w-10 h-5 transform translate-y-1"/>
                 </button>
         </div>

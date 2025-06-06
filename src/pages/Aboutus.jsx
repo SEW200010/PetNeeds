@@ -1,3 +1,4 @@
+
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import heroImage from "../assets/Aboutus/aboutus-image.png";
@@ -128,5 +129,6 @@ const Aboutus = () => {
         </div>
     )
 };
+
 
 export default Aboutus;

@@ -38,7 +38,7 @@ const Header = () => {
           <Link to="/" className="text-white hover:text-black hover:scale-120 hover:font-bold">
             Home
           </Link>
-          <Link to="/about" className="text-white hover:text-black hover:scale-120 hover:font-bold">
+          <Link to="/Aboutus" className="text-white hover:text-black hover:scale-120 hover:font-bold">
             About Us
           </Link>
           <Link to="/services" className="text-white hover:text-black hover:scale-120 hover:font-bold">
@@ -52,7 +52,7 @@ const Header = () => {
         {/* Login Button */}
         <Link
           to="/Login"
-          className="bg-black text-white px-6 py-3 rounded-xl hover:bg-green-600 hover:scale-110 hover:border"
+          className="bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-green-600 hover:scale-110 hover:border"
         >
           Login
         </Link>
@@ -60,7 +60,7 @@ const Header = () => {
 
         {/* Hamburger Icon for Mobile */}
         <button
-          className="md:hidden text-gray-700"
+          className="md:hidden text-white"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           <svg
