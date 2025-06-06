@@ -80,6 +80,8 @@ const Team = () => {
             className="absolute inset-0 bg-cover bg-center brightness-[40%] z-[1]"
             style={{ backgroundImage: "url('/Team_images/man.png')" }}
           ></div>
+                    <div className="absolute inset-0 bg-black opacity-50"></div>
+
           <div className="relative z-10 px-4">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-bold">
               Meet The Team
