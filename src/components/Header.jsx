@@ -22,7 +22,7 @@ const Header = () => {
 
   return (
     <header
-    className={`bg-teal-9c00 shadow-md fixed top-0 left-0 w-full z-50 ${
+    className={`bg-teal-900 shadow-md fixed top-0 left-0 w-full z-50 ${
       hasScrolled ? "bg-green-300 shadow-lg" : ""
     }`}
     >
@@ -118,5 +118,4 @@ const Header = () => {
 };
 
 export default Header;
-
 
