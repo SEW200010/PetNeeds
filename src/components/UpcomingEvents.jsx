@@ -1,13 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import img1 from "../assets/Home_images/flyer1.jpg";
+import img2 from "../assets/Home_images/flyer2.jpg";
+import img3 from "../assets/Home_images/flyer3.jpg";
+import img4 from "../assets/Home_images/flyer4.jpg";
 
 const events = [
-  { id: 1, image: "/event1.jpg", title: "Event One", description: "Brief description of event one." },
-  { id: 2, image: "/event2.jpg", title: "Event Two", description: "Brief description of event two." },
-  { id: 3, image: "/event3.jpg", title: "Event Three", description: "Brief description of event three." },
-  { id: 4, image: "/event4.jpg", title: "Event Four", description: "Brief description of event four." },
-  { id: 5, image: "/event5.jpg", title: "Event Five", description: "Brief description of event five." },
-  { id: 6, image: "/event6.jpg", title: "Event Six", description: "Brief description of event six." },
+  { id: 1, image: img1, title: "Event One", description: "Brief description of event one." },
+  { id: 2, image: img2, title: "Event Two", description: "Brief description of event two." },
+  { id: 3, image: img3, title: "Event Three", description: "Brief description of event three." },
+  { id: 4, image: img4, title: "Event Four", description: "Brief description of event four." },
+  { id: 5, image: img1, title: "Event Five", description: "Brief description of event five." },
+  { id: 6, image: img2, title: "Event Six", description: "Brief description of event six." },
 ];
 
 const UpcomingEvents = () => {
@@ -45,7 +49,7 @@ const UpcomingEvents = () => {
 
   return (
     <section className="p-10 bg-gray-300 relative">
-      <h2 className="text-3xl font-bold text-center mb-6">
+      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center underline underline-offset-8 mb-4 md:mb-6">
         Upcoming <span className="text-emerald-600">Events</span>
       </h2>
       <div className="relative">
@@ -67,7 +71,7 @@ const UpcomingEvents = () => {
               <img
                 src={event.image}
                 alt={event.title}
-                className="w-full h-40 object-cover rounded-md"
+                className="w-full h-70 object-cover rounded-md"
               />
               <h3 className="text-lg font-bold mt-2">{event.title}</h3>
               <p className="text-sm text-gray-600">{event.description}</p>

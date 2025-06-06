@@ -46,7 +46,9 @@ const Team = () => {
   const MemberGrid = ({ members }) => (
     <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
       {members.map((member, i) => (
+
         <div key={i} className="flex flex-col w-full sm:w-50 ml-7">
+
           <div className="h-30 bg-[url('/Team_images/rec2.png')] bg-cover bg-center"></div>
           <div className="bg-[#CFE8DF] p-4 text-center">
             <img
@@ -77,7 +79,9 @@ const Team = () => {
         {/* Hero Section */}
         <section className="relative w-full h-[500px] flex flex-col items-center justify-center text-center overflow-hidden pt-30">
           <div
+
             className="absolute inset-0 bg-cover bg-center brightness-[70%] z-[1]"
+
             style={{ backgroundImage: "url('/Team_images/man.png')" }}
           ></div>
                     <div className="absolute inset-0 bg-black opacity-50"></div>
@@ -147,10 +151,11 @@ const Team = () => {
 
         {/* Specialists Section */}
         <section className="py-12 relative">
+
           <h2 className="text-center text-4xl font-bold">
             Our <span className="text-green-600">Specialists</span>
           </h2>
-          <div className="flex justify-center mt-8 relative">
+
             <button
               onClick={handleSpecialistsSort}
               className="absolute z-20 top-0 bg-black text-white px-8 py-1 text-sm rounded-full shadow-lg hover:bg-green-600 hover:scale-110 transition duration-300"
@@ -163,10 +168,12 @@ const Team = () => {
 
         {/* Trainers Section */}
         <section className="py-12 relative">
+
           <h2 className="text-center text-4xl font-bold">
             Our <span className="text-green-600">Trainers</span>
           </h2>
           <div className="flex justify-center mt-8 relative">
+
             <button
               onClick={handleTrainersSort}
               className="absolute z-20 top-0 bg-black text-white px-8 py-1 text-sm rounded-full shadow-lg hover:bg-green-600 hover:scale-110 transition duration-300"
@@ -179,10 +186,11 @@ const Team = () => {
 
         {/* Mentors Section */}
         <section className="py-12 relative">
+
           <h2 className="text-center text-4xl font-bold">
             Our <span className="text-green-600">Mentors</span>
           </h2>
-          <div className="flex justify-center mt-8 relative">
+
             <button
               onClick={handleMentorsSort}
               className="absolute z-20 top-0 bg-black text-white flex justify-center px-8 py-1 text-sm rounded-full shadow-lg hover:bg-green-600 hover:scale-110 transition duration-300"

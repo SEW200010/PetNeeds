@@ -1,49 +1,44 @@
 import { useState, useEffect } from "react";
+import img1 from "../assets/Home_images/gallery1.jpg";
+import img2 from "../assets/Home_images/gallery2.jpg";
+import img3 from "../assets/Home_images/gallery3.jpg";
+import img4 from "../assets/Home_images/gallery4.jpg";
 
 const featuredImages = [
-  "/Home_images/image1.jpg",
-  "/Home_images/image2.jpg",
-  "/Home_images/image3.jpg",
-  "/Home_images/image1.jpg",
-  "/Home_images/image2.jpg",
-  "/Home_images/image3.jpg",
+  img1, img2, img3, img4,
+  img1, img2, img3, img4,
+  img4, img3, img2, img1,
+  img4, img3, img2, img1,
 ];
 
+const IMAGES_PER_PAGE = 8;
+
 const MovingGallery = () => {
-  const [images, setImages] = useState(featuredImages);  // Set the initial images
-  const [position, setPosition] = useState(0);
+  const [startIndex, setStartIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      // Move the first image to the end to create the circular effect
-      setImages((prevImages) => {
-        const firstImage = prevImages[0];
-        const newImages = prevImages.slice(1);
-        return [...newImages, firstImage];  // Move the first image to the end
-      });
-      
-      // Increment position for smooth transition
-      setPosition((prev) => (prev + 1) % 3);  // We have 3 visible images, so we cycle through 0, 1, 2
-    }, 3000); // Change image every 3 seconds
-
+      setStartIndex((prev) => (prev + IMAGES_PER_PAGE) % featuredImages.length);
+    }, 3000); // Change every 3 seconds
     return () => clearInterval(interval);
   }, []);
 
+  let visibleImages = featuredImages.slice(startIndex, startIndex + IMAGES_PER_PAGE);
+
+  // If we're near the end and don't have 8 left, wrap around to the start
+  if (visibleImages.length < IMAGES_PER_PAGE) {
+    visibleImages = visibleImages.concat(featuredImages.slice(0, IMAGES_PER_PAGE - visibleImages.length));
+  }
+
   return (
-    <div className="overflow-hidden w-full max-w-5xl mx-auto">
-      <div
-        className="grid grid-cols-3 gap-4 transition-transform duration-700"
-        style={{
-          transform: `translateX(-${position * 100}%)`, // Moves the entire grid left to show the next set of images
-        }}
-      >
-        {/* Render the images in a 3-image visible format */}
-        {images.map((img, index) => (
+    <div className="overflow-hidden w-full max-w-6xl mx-auto p-1">
+      <div className="grid grid-cols-4 gap-4 transition-all duration-700">
+        {visibleImages.map((img, index) => (
           <div key={index} className="p-2">
             <img
               src={img}
-              alt={`Event ${index + 1}`}
-              className="w-full h-40 object-cover rounded-lg shadow-lg"
+              alt={`Gallery ${index + 1}`}
+              className="w-full h-40 object-cover rounded-lg shadow-md"
             />
           </div>
         ))}
