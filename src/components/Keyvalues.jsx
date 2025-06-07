@@ -1,3 +1,4 @@
+
 import GoalImage from "../assets/Aboutus/Goal-image.png";
 import MissionImage from "../assets/Aboutus/Mission-image.png";
 import VisionImage from "../assets/Aboutus/Vision-image.png";
@@ -48,5 +49,6 @@ function Keyvalues(){
         </div>
     );
 }
+
 
 export default Keyvalues;
