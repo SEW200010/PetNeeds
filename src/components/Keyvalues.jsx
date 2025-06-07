@@ -1,3 +1,4 @@
+
 import GoalImage from "../assets/Aboutus/Goal-image.png";
 import MissionImage from "../assets/Aboutus/Mission-image.png";
 import VisionImage from "../assets/Aboutus/Vision-image.png";
@@ -34,7 +35,7 @@ function Keyvalues(){
       ];
 
     return(
-        <div className="container mb-18 ml-8 flex px-8 justify-between">
+        <div className="container mb-18 ml-8 flex px-12 justify-between">
             {KeyValues.map((keyvalue)=>{
                 return(
                     <KeyvalueCard
@@ -48,5 +49,6 @@ function Keyvalues(){
         </div>
     );
 }
+
 
 export default Keyvalues;
