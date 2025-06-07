@@ -13,7 +13,7 @@ const Footer = () => {
             <h3 className="text-xl font-semibold">Quick Links</h3>
             <ul className="mt-2 space-y-2">
               <li><Link to="/" className="hover:text-black">Home</Link></li>
-              <li><Link to="/about" className="hover:text-black">About Us</Link></li>
+              <li><Link to="/Aboutus" className="hover:text-black">About Us</Link></li>
               <li><Link to="/services" className="hover:text-black">Services</Link></li>
               <li><Link to="/team" className="hover:text-black hover:font-semibold">Team</Link></li>
 
@@ -27,7 +27,7 @@ const Footer = () => {
                 <p>📧 info@varppucounseling.com</p>
                 <p>📞 (123) 456-7890</p>
                 <p className="mt-2">📍 https/map/abc</p>
-                <button className="mt-6 bg-black px-6 py-3 rounded-xl hover:bg-green-600 hover:scale-110 hover:border">Join the community</button>
+                <button className="mt-6 bg-emerald-600 px-6 py-3 rounded-xl hover:bg-green-600 hover:scale-110 hover:border">Join the community</button>
                 </ul>
           </div>
 
@@ -38,10 +38,10 @@ const Footer = () => {
                 <Subscribe />
                 </div>
                 <div className="grid grid-cols-4 md:flex gap-5">
-                    <BiLogoFacebook size={40} className="border-2 rounded-3xl"/>
-                    <BiLogoWhatsapp size={40} className="border-2 rounded-3xl"/>
-                    <BiLogoTwitter size={40} className="border-2 rounded-3xl"/>
-                    <BiLogoInstagram size={40} className="border-2 rounded-3xl"/>
+                    <BiLogoFacebook size={40} className="border-2 rounded-3xl hover:scale-110"/>
+                    <BiLogoWhatsapp size={40} className="border-2 rounded-3xl hover:scale-110"/>
+                    <BiLogoTwitter size={40} className="border-2 rounded-3xl hover:scale-110"/>
+                    <BiLogoInstagram size={40} className="border-2 rounded-3xl hover:scale-110"/>
                 </div>
           </div>
         </div>

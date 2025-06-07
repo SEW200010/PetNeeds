@@ -19,7 +19,7 @@ const Subscribe = () => {
       {/* Email Input and Subscribe Button */}
       <div className="flex items-center border border-radius-5px rounded-xl overflow-hidden">
         <input type="email"placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white text-black px-3 py-2 outline-none"/>
-        <button onClick={handleSubscribe} className="bg-black text-white px-6 py-2 hover:bg-green-600 hover:scale-110 transition">Subscribe</button>
+        <button onClick={handleSubscribe} className="bg-emerald-600 text-white px-6 py-2 hover:bg-green-600 hover:scale-110 transition">Subscribe</button>
       </div>
     </div>
   );
