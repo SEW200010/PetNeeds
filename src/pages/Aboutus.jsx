@@ -7,6 +7,7 @@ import WhatWeOfferBgImage from "../assets/Aboutus/What-we-offer-bgimage.png";
 import memberImage from "../assets/Aboutus/memberImage.jpeg";
 import correctIcon from "../assets/Aboutus/correct-icon.png";
 import WhatWeOfferImg from "../assets/Aboutus/What-we-offer-image.png";
+import video from "../assets/Aboutus/video.mp4";
 
 const Aboutus = () => {
 
@@ -36,10 +37,10 @@ const Aboutus = () => {
 
             <h1 className="text-5xl font-bold relative z-10">Who We Are</h1>
             <br />
-            <h2 className="text-2xl font-bold mb-8">
-              <span className="text-green-500">Empower. Lead. Transform.</span>
+            <h2 className="text-2xl font-semibold mb-8">
+              <span className="text-green-700 text-3xl">Empower. Lead. Transform.</span>
             </h2>
-            <p className="mt-4 relative z-10">The "வார்ப்பு" (Varppu) Life Skills Development Programme, launched by the University of Jaffna, empowers Sri Lankan youth, especially in the Northern Province, through educational training and activity-based learning. Targeting university and school students, it addresses issues like substance abuse, peer pressure, and mental health struggles using the "Manohari" module, a psychosocial support system. By fostering problem-solving, emotional intelligence, and leadership, Varppu nurtures resilient young leaders, driving sustainable societal development and positive social change.</p>
+            <p className="mt-4 relative z-10 text-justify px-5">The "வார்ப்பு" (Varppu) Life Skills Development Programme, launched by the University of Jaffna, empowers Sri Lankan youth, especially in the Northern Province, through educational training and activity-based learning. Targeting university and school students, it addresses issues like substance abuse, peer pressure, and mental health struggles using the "Manohari" module, a psychosocial support system. By fostering problem-solving, emotional intelligence, and leadership, Varppu nurtures resilient young leaders, driving sustainable societal development and positive social change.</p>
             <button className="mt-6 bg-black text-white align-middle px-6 py-3 flex rounded-md hover:bg-green-600 hover:scale-110 relative z-10">
               Explore about Us
               <FaArrowRight className="w-10 h-5 transform translate-y-1"/>
@@ -48,16 +49,16 @@ const Aboutus = () => {
 
 
           {/* Welcome Section */}
-          <section className="container flex  mx-auto my-12 p-12">
+          <section className="container flex mt-10 py-10 px-40">
             <div className="mt-12  pr-18 flex items-start">
-              <iframe className="w-100 h-60" src="https://youtu.be/eIho2S0ZahI?si=rBzXdraAo7C2bZgK" ><img src="../assets/Aboutus/aboutus-image.png" alt="" /></iframe>
+              <iframe className="w-100 h-60" src={video} ><img src="../assets/Aboutus/aboutus-image.png" alt="" /></iframe>
             </div>
             <div className="mt-6 ml-3 mr-3 text-justify text-base/10">
-              <h2 className="text-4xl font-bold">Welcome to <span className="text-green-500">Varppu counselling</span></h2>
-              <p className="mt-4 text-gray-600 ">The 'வார்ப்பு' (Varppu) Life Skills Development Programme equips Sri Lankan youth with essential skills to navigate challenges like peer pressure,<br/>mental health, and leadership. Through interactive learning and the 'Manohari' module, it fosters resilience and positive social change.</p>
+              <h2 className="text-3xl font-bold">Welcome to <span className="text-emerald-600">Varppu counselling</span></h2>
+              <p className="mt-4 text-justify">The 'வார்ப்பு' (Varppu) Life Skills Development Programme equips Sri Lankan youth with essential skills to navigate challenges like peer pressure,<br/>mental health, and leadership. Through interactive learning and the 'Manohari' module, it fosters resilience and positive social change.</p>
               <h2 className="text-2xl font-semibold mb-8">
                 <br />
-              <span className="text-green-500">Empower. Lead. Transform.</span>
+              <span className="text-emerald-600">Empower. Lead. Transform.</span>
             </h2>
             </div>
       
@@ -86,9 +87,10 @@ const Aboutus = () => {
                     </li>
                   ))}
                 </ul>
-                <button className="mt-6 bg-teal-600 hover:bg-green-600 text-white px-5 py-2 rounded-full transition">
-                  Explore services →
-                </button>
+                <button className="mt-6 bg-black text-white align-middle px-6 py-3 flex rounded-md hover:bg-green-600 hover:scale-110 relative z-10">
+              Explore services
+              <FaArrowRight className="w-10 h-5 transform translate-y-1"/>
+            </button>
               </div>
               <div className="pl-20">
                 <img
@@ -120,8 +122,9 @@ const Aboutus = () => {
               ))}
             </div>
 
-            <button className="mt-6 bg-teal-600 hover:bg-green-600 text-white px-5 py-2 rounded-full transition">
-              Explore the team →
+            <button className="mt-6 bg-black  items-center ml-140 text-white align-middle px-5 py-2 flex rounded-md hover:bg-green-600 hover:scale-110 relative z-10">
+              Explore the team
+              <FaArrowRight className="w-10 h-5 transform translate-y-1"/>
             </button>
           </section>
           <Footer />

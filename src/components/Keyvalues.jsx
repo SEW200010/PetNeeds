@@ -34,7 +34,7 @@ function Keyvalues(){
       ];
 
     return(
-        <div className="container mb-18 ml-8 flex px-8 justify-between">
+        <div className="container mb-18 ml-8 flex px-12 justify-between">
             {KeyValues.map((keyvalue)=>{
                 return(
                     <KeyvalueCard
