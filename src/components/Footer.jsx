@@ -4,7 +4,8 @@ import { BiLogoFacebook, BiLogoInstagram, BiLogoWhatsapp, BiLogoTwitter } from "
 
 const Footer = () => {
   return (
-    <footer className="bg-teal-900 text-white py-6">
+    <footer className="bg-teal-900 text-white py-6" style={{ backgroundColor: "#083636" }}>
+      
       <div className="container mx-auto px-4 md:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 
@@ -27,7 +28,7 @@ const Footer = () => {
                 <p>📧 info@varppucounseling.com</p>
                 <p>📞 (123) 456-7890</p>
                 <p className="mt-2">📍 https/map/abc</p>
-                <button className="mt-6 bg-emerald-600 px-6 py-3 rounded-xl hover:bg-green-600 hover:scale-110 hover:border">Join the community</button>
+                <button className="mt-6 bg-[#27987A] px-6 py-3 rounded-full hover:bg-green-600 hover:scale-110 hover:border">Join the community</button>
                 </ul>
           </div>
 

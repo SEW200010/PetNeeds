@@ -10,56 +10,62 @@ import careerIcon from "../assets/Services_page/career.png";
 import leadershipIcon from "../assets/Services_page/leadership.png";
 import skillIcon from "../assets/Services_page/skill.png";
 import impactIcon from "../assets/Services_page/impact.png";
+import { Link } from "react-router-dom";
+
 const Services = () => {
   return (
     <div>
       <div>
         <Header />
       </div>
-      <main className="bg-gray-100 pt-[75px]">
-        <section
-  style={{
-    backgroundImage: `url(${HeroImage})`,
-    transition: "background-image 1s ease-in-out",
-  }}
->
-  <div className="relative w-full h-[500px] flex flex-col items-center justify-center text-center overflow-hidden pt-30">
-    <div className="absolute inset-0 bg-black opacity-50"></div>
-    <div className="relative z-10 max-w-7xl w-full">
-      <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-bold">
-        Services
-      </h1>
-      <p className="mt-4 text-xl sm:text-2xl md:text-3xl text-[#27987A]">
-        Empower. Lead. Transform.
-      </p>
-      <p className="text-white mt-4 text-sm sm:text-base md:text-lg lg:text-xl text-left mx-auto max-w-6xl px-2">
-        At the 'வார்ப்பு' (Varppu) Life Skills Development Programme, we are committed to
-              providing impactful services that empower Sri Lankan youth, particularly in the
-              Northern Province. Our services include comprehensive life skills training, mental
-              health support through the 'Manohari' module, leadership development, and
-              educational workshops focused on resilience, problem-solving, and emotional
-              intelligence. We tailor our services to address pressing issues like peer pressure,
-              substance abuse, and stress management, offering a safe space for youth to grow,
-              learn, and become leaders in their communities. By fostering self-awareness and
-              empowering individuals, we aim to create a lasting impact on youth, society, and the
-              future of Sri Lanka.
-      </p>
-      <button className="mt-6 bg-black text-white px-6 py-3 text-sm sm:text-base md:text-lg flex rounded-full hover:bg-green-600 hover:scale-110 transition duration-300 mx-auto">
-        Explore about Us →
-      </button>
-    </div>
-  </div>
-</section>
+      <main className="bg-gray-100 pt-[65px]">
 
 
-        <section className="px-4 py-10 flex flex-col lg:flex-row items-center max-w-7xl mx-auto">
-          <img
-            src="src/assets/Services_page/women.png"
-            alt="About"
-            className="w-full sm:w-[80%] md:w-[60%] lg:w-[40%] rounded-lg mb-8 lg:mb-0 lg:mr-30"
-          />
+        <section className="relative h-[600px] bg-cover bg-center text-center text-white flex flex-col items-center justify-center" style={{ backgroundImage: `url(${HeroImage})` }}>
 
-          <div className="w-full lg:w-1/2">
+          <div className="relative w-full h-[600px] flex flex-col items-center justify-center text-center overflow-hidden pt-7">
+            <div className="absolute top-0 left-0 w-full h-full bg-black opacity-60 z-10"></div>
+            <div className="relative z-10 max-w-7xl w-full">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-bold">
+                Services
+              </h1>
+              <p className="mt-4 text-xl sm:text-2xl md:text-3xl text-[#27987A] font-semibold">
+                Empower. Lead. Transform.
+              </p>
+              <p className="text-white mt-3 text-sm sm:text-base md:text-lg lg:text-m text-left mx-auto max-w-6xl px-2">
+                At the 'வார்ப்பு' (Varppu) Life Skills Development Programme, we are committed to
+                providing impactful services that empower Sri Lankan youth, particularly in the
+                Northern Province. Our services include comprehensive life skills training, mental
+                health support through the 'Manohari' module, leadership development, and
+                educational workshops focused on resilience, problem-solving, and emotional
+                intelligence. We tailor our services to address pressing issues like peer pressure,
+                substance abuse, and stress management, offering a safe space for youth to grow,
+                learn, and become leaders in their communities. By fostering self-awareness and
+                empowering individuals, we aim to create a lasting impact on youth, society, and the
+                future of Sri Lanka.
+              </p>
+              <Link to="/Aboutus">
+                <button className="mt-6 inline-flex text-white px-6 py-3 text-sm sm:text-base md:text-lg flex rounded-full hover:bg-green-600 hover:scale-110 transition duration-300 mx-auto" style={{ backgroundColor: "#27987A" }}>
+                  Explore about Us →
+                </button>
+              </Link>
+            </div>
+          </div>
+
+        </section>
+
+
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-10 p-6 md:p-10 lg:p-20 bg-white items-center">
+
+          <div className="flex justify-center">
+            <img
+              src="src/assets/Services_page/women.png"
+              alt="About Varppu Counselling"
+              className="w-full max-w-sm md:max-w-md lg:max-w-lg h-auto rounded-lg shadow-lg"
+            />
+          </div>
+
+          <div className="text-center md:text-left">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center lg:text-left">
               Empowering{" "}
               <span className="text-[#27987A]">Growth Through Learning</span>
@@ -149,7 +155,7 @@ const Services = () => {
           </div>
         </section>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto py-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto py-20">
           {[
             {
               title: (<>Life Skills<br /> Development</>),
@@ -184,7 +190,7 @@ const Services = () => {
           ].map(({ title, icon, description }, index) => (
             <div
               key={index}
-              className="bg-[#eaf6f2] rounded-2xl shadow-md px-6 py-8 text-center w-full max-w-xs mx-auto hover:shadow-lg transition duration-300"
+              className="bg-[#CFE8DF] rounded-2xl shadow-xl px-6 py-8 text-center w-full max-w-xs mx-auto hover:shadow-lg transition duration-300"
             >
               <h3 className="text-[#27987A] font-semibold text-xl sm:text-2xl mb-1">
                 {title}

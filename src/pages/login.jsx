@@ -6,12 +6,13 @@ const Login = () => {
     <div
       className="relative h-screen flex items-center justify-center"
       style={{
-        backgroundImage: "url('/Home_images/login.jpg')", // Correct relative path to public folder
+        backgroundImage: "url('/Home_images/image2copy.jpg')", // Correct relative path to public folder
         backgroundSize: 'cover', // Make the background cover the entire div
         backgroundPosition: 'center', // Center the background image
         backgroundRepeat: 'no-repeat', // Prevent the image from repeating
       }}
-    >
+    ><div className="absolute top-0 left-0 w-full h-full bg-black opacity-70 z-0"></div>
+
       <div className="absolute inset-0 bg-opacity-50"></div>
       <div className="relative flex flex-col items-start text-white px-12">
         <h1 className="text-5xl font-bold">Welcome Back !</h1>

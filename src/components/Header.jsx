@@ -22,9 +22,9 @@ const Header = () => {
 
   return (
     <header
-    className={`bg-teal-900 shadow-md fixed top-0 left-0 w-full z-50 ${
-      hasScrolled ? "bg-green-300 shadow-lg" : ""
-    }`}
+   className={`shadow-md fixed top-0 left-0 w-full z-50 ${hasScrolled ? "bg-green-300 shadow-lg" : ""}`}
+style={{ backgroundColor: "#083636" }}
+
     >
       <div className="container mx-auto flex items-center justify-between p-3">
         {/* Logo */}
@@ -52,7 +52,7 @@ const Header = () => {
         {/* Login Button */}
         <Link
           to="/Login"
-          className="bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-green-600 hover:scale-110 hover:border"
+          className="bg-[#27987A] text-white px-8 py-2 rounded-full hover:bg-green-600 hover:scale-110 hover:border"
         >
           Login
         </Link>
