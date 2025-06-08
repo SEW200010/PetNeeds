@@ -154,7 +154,7 @@ const Team = () => {
               Our <span className="text-[#27987A]">Trainers</span>
             </h2>
             <button
-              onClick={handleSpecialistsSort}
+              onClick={handleTrainersSort}
               className="px-6 py-1 text-sm rounded-full border border-gray-700 text-gray-700 hover:bg-[#27987A] hover:text-white transition duration-300"
               style={{ backgroundColor: "transparent" }}
             >
@@ -172,7 +172,7 @@ const Team = () => {
               Our <span className="text-[#27987A]">Mentors</span>
             </h2>
             <button
-              onClick={handleSpecialistsSort}
+              onClick={handleMentorsSort}
               className="px-6 py-1 text-sm rounded-full border border-gray-700 text-gray-700 hover:bg-[#27987A] hover:text-white transition duration-300"
               style={{ backgroundColor: "transparent" }}
             >
