@@ -1,5 +1,6 @@
 import React from "react";
 import { BiUser, BiLock } from "react-icons/bi";
+import { Link } from "react-router-dom";
 
 const Login = () => {
   return (
@@ -65,7 +66,10 @@ const Login = () => {
 
           {/* Create an Account link */}
           <p className="text-white text-center text-md mt-4">
-            Haven’t Account? <a href="#" className="text-green-400 hover:underline">Create an Account</a>
+            Don't have an account?{' '}
+            <Link to="/Register" className="text-[#27987A] font-semibold hover:underline">
+              Register here
+            </Link>
           </p>
         </form>
       </div>
