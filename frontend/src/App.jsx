@@ -6,6 +6,10 @@ import Aboutus from "./pages/Aboutus";
 import Team from "./pages/Team";
 import Services from "./pages/Services";
 import Register from "./pages/Register";
+import User from "./pages/User/User";
+import Admin from "./pages/Admin/Admin";
+
+
 
 const App = () => {
   return (
@@ -18,6 +22,9 @@ const App = () => {
         <Route path="/Services" element={<Services />}/>
         <Route path="/Aboutus" element={<Aboutus />}/>
         <Route path="/Register" element={<Register />}/>
+        <Route path="/user-dashboard" element={<User />}/>
+        <Route path="/admin-dashboard" element={<Admin />}/>
+        
         {/* Add more routes here for About, Services, etc. */}
       </Routes>
     </Router>

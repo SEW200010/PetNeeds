@@ -16,6 +16,7 @@ const Register = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  /*
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -43,7 +44,32 @@ const Register = () => {
     } catch (err) {
       console.error("Error:", err);
     }
-  };
+  };*/
+
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const res = await fetch("http://localhost:5000/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(formData)
+    });
+
+    if (res.ok) {
+      const result = await res.json();
+      alert(result.message);
+      // Redirect user to login page after successful registration
+      navigate("/login");
+    } else {
+      alert("Registration failed");
+    }
+  } catch (err) {
+    console.error("Error:", err);
+  }
+};
 
   return (
     <>
