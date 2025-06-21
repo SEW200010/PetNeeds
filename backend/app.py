@@ -38,6 +38,21 @@ def register():
         print("Error:", e)
         return jsonify({"error": str(e)}), 500
 
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
+
+    if email == "admin@admin.com" and password == "admin123":
+        return jsonify({"message": "Admin login successful"}), 200
+
+    user = mongo.db.users.find_one({"email": email, "password": password})
+    if user:
+        return jsonify({"message": "User login successful"}), 200
+    else:
+        return jsonify({"message": "Invalid credentials"}), 401
+
 
 if __name__ == "__main__":
     app.run(debug=True)

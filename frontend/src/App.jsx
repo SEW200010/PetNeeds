@@ -18,6 +18,7 @@ const App = () => {
         <Route path="/Services" element={<Services />}/>
         <Route path="/Aboutus" element={<Aboutus />}/>
         <Route path="/Register" element={<Register />}/>
+        <Route path="/admin-dashboard" element={<Team />}/>
         {/* Add more routes here for About, Services, etc. */}
       </Routes>
     </Router>
