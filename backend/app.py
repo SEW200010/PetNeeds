@@ -9,20 +9,34 @@ app.config["MONGO_URI"] = "mongodb://localhost:27017/lifeskill"
 mongo = PyMongo(app)
 @app.route('/register', methods=['POST'])
 def register():
-    data = request.json
+    try:
+        data = request.get_json(force=True)  # Force parsing JSON
 
-    # 🔍 Debug: Print received data
-    print("📥 Received data from frontend:", data)
+        print("Received data:", data)  # Debugging line
 
-    name = data.get("name")
-    email = data.get("email")
-    password = data.get("password")
-    user_type = data.get("user_type")
+        # Extract fields
+        name = data.get("name")
+        email = data.get("email")
+        password = data.get("password")
+        user_type = data.get("user_type")
 
-    # Also print individual fields (optional)
-    print(f"Name: {name}, Email: {email}, Password: {password}, User Type: {user_type}")
+        # Validation
+        if not all([name, email, password, user_type]):
+            return jsonify({"error": "All fields are required"}), 400
 
-    return jsonify({"message": "Data received"}), 200
+        # Insert into DB
+        mongo.db.users.insert_one({
+            "name": name,
+            "email": email,
+            "password": password,
+            "user_type": user_type
+        })
+
+        return jsonify({"message": "User registered successfully"}), 201
+
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
