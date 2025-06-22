@@ -4,8 +4,21 @@ import eventIcon from "../../assets/Admin/image2.png";
 import monitorIcon from "../../assets/Admin/image1.png";
 import modelIcon from "../../assets/Admin/image4.png";
 import Header from "../../components/Admin/Header";
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+import React, { useState } from 'react'; // ✅ Make sure this is at the top if not already
+
+
+
 
 const AdminDashboard = () => {
+    const [date, setDate] = useState(new Date());
+
+    // Example event dates (you can later fetch or generate these)
+    const eventDates = [
+        new Date(2025, 5, 25),
+        new Date(2025, 5, 30)
+    ];
     return (
         <div>
             <Header />
@@ -13,11 +26,73 @@ const AdminDashboard = () => {
                 {/* Main 2-column layout */}
                 <div className="flex">
 
-                    {/* Left Panel */}
-                    <div className="w-1/4 bg-white m- 10 p-4 shadow-md">
-                        <h2 className="text-xl font-semibold mb-4">Left Panel</h2>
-                        <p>Add your new content here.</p>
+                    {/* Left Panel (Sidebar with profile and menu) */}
+                    <div className="w-1/4 bg-white p-6 shadow-md min-h-screen">
+
+                        {/* Profile Box */}
+                        <div className="bg-gray-100 p-4 rounded-lg shadow mb-6 flex items-center">
+                            <img
+                                src="https://via.placeholder.com/48"
+                                alt="Profile"
+                                className="w-12 h-12 rounded-full mr-4"
+                            />
+                            <div>
+                                <p className="text-lg font-semibold text-gray-800">John Doe</p>
+                                <p className="text-sm text-gray-500">Admin</p>
+                            </div>
+                        </div>
+
+                        {/* Sidebar Menu */}
+                        <h2 className="text-xl font-bold mb-4 text-gray-800">Admin Menu</h2>
+                        <div className="bg-white border border-gray-300 rounded-lg p-4">
+                            <nav className="space-y-4">
+                                <a href="/admin-dashboard" className="block px-4 py-2 rounded-md text-gray-700 bg-gray-100 border border-gray-300 hover:bg-[#5CBFA0] hover:border-green-400 font-medium">
+                                    🏠 Dashboard
+                                </a>
+                                <a href="/user-management" className="block px-4 py-2 rounded-md text-gray-700 bg-gray-100 border border-gray-300 hover:bg-[#5CBFA0] hover:border-green-400 font-medium">
+                                    👤 User Management
+                                </a>
+                                <a href="/event-management" className="block px-4 py-2 rounded-md text-gray-700 bg-gray-100 border border-gray-300 hover:bg-[#5CBFA0] hover:border-green-400 font-medium">
+                                    📅 Event Management
+                                </a>
+                                <a href="/monitor-students" className="block px-4 py-2 rounded-md text-gray-700 bg-gray-100 border border-gray-300 hover:bg-[#5CBFA0] hover:border-green-400 font-medium">
+                                    🎓 Monitor Students
+                                </a>
+                                <a href="/explore-model" className="block px-4 py-2 rounded-md text-gray-700 bg-gray-100 border border-gray-300 hover:bg-[#5CBFA0] hover:border-green-400 font-medium">
+                                    🤖 Explore Model
+                                </a>
+                                <a href="/fundraising" className="block px-4 py-2 rounded-md text-gray-700 bg-gray-100 border border-gray-300 hover:bg-[#5CBFA0] hover:border-green-400 font-medium">
+                                    💰 Manage Fundraising
+                                </a>
+                                <a href="/monitor-sessions" className="block px-4 py-2 rounded-md text-gray-700 bg-gray-100 border border-gray-300 hover:bg-[#5CBFA0] hover:border-green-400 font-medium">
+                                    📊 Monitor Sessions
+                                </a>
+                                <a href="/settings" className="block px-4 py-2 rounded-md text-gray-700 bg-gray-100 border border-gray-300 hover:bg-[#5CBFA0] hover:border-green-400 font-medium">
+                                    📝 Create Forms
+                                </a>
+                                <a href="/settings" className="block px-4 py-2 rounded-md text-gray-700 bg-gray-100 border border-gray-300 hover:bg-[#5CBFA0] hover:border-green-400 font-medium">
+                                    ⚙️ Settings
+                                </a>
+                            </nav>
+                        </div>
+
+                        {/* Calendar Section */}
+                        <div className="mt-6 bg-white border border-gray-300 rounded-lg p-4">
+                            <h2 className="text-lg font-bold text-gray-800 mb-3">📆 Upcoming Events</h2>
+
+                            <Calendar
+                                onChange={setDate}
+                                value={date}
+                                tileClassName={({ date, view }) =>
+                                    view === 'month' && eventDates.find(d => d.toDateString() === date.toDateString())
+                                        ? 'highlighted-day'
+                                        : null
+                                }
+                            />
+                        </div>
+
                     </div>
+
 
                     {/* Right Panel */}
 
