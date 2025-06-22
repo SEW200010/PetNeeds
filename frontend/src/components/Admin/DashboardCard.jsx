@@ -10,12 +10,12 @@ const DashboardCard = ({ to, icon, title, gradientColors }) => {
   };
 
   return (
-    <Link to={to} className="flex flex-col items-center w-40 m-4">
+    <Link to={to} className="flex flex-col items-center m-10 w-40 m-4">
       <div
         style={gradientStyle}
-        className="w-20 h-20 rounded-full flex justify-center items-center"
+        className="w-40 h-40 rounded-full flex justify-center items-center"
       >
-        <img src={icon} alt={title} className="w-10 h-10" />
+        <img src={icon} alt={title} className="w-20 h-20" />
       </div>
       <p className="mt-2 font-medium text-black">{title}</p>
     </Link>
