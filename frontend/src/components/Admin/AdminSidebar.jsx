@@ -31,7 +31,7 @@ const AdminSidebar = ({ date, setDate, eventDates }) => {
           { label: "🤖 Explore Model", href: "/explore-model" },
           { label: "💰 Manage Fundraising", href: "/fundraising" },
           { label: "📊 Monitor Sessions", href: "/monitor-sessions" },
-          { label: "📝 Create Forms", href: "/settings" },
+          { label: "📝 Create Forms", href: "/create-forms" },
           { label: "⚙️ Settings", href: "/settings" },
         ].map((item) => (
           <a
@@ -52,6 +52,7 @@ const AdminSidebar = ({ date, setDate, eventDates }) => {
           value={date}
           tileClassName={({ date: day, view }) =>
             view === "month" &&
+            Array.isArray(eventDates) &&
             eventDates.find((d) => d.toDateString() === day.toDateString())
               ? "highlighted-day"
               : null
