@@ -2,6 +2,7 @@
 import React from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import img from "../../assets/Admin/image.png";
 
 const AdminSidebar = ({ date, setDate, eventDates }) => {
   return (
@@ -9,7 +10,7 @@ const AdminSidebar = ({ date, setDate, eventDates }) => {
       {/* Profile */}
       <div className="bg-gray-100 p-4 rounded-lg shadow mb-6 flex items-center">
         <img
-          src="https://via.placeholder.com/48"
+          src={img}
           alt="Profile"
           className="w-12 h-12 rounded-full mr-4"
         />
