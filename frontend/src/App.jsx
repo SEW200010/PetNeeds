@@ -8,7 +8,7 @@ import Services from "./pages/Services";
 import Register from "./pages/Register";
 import User from "./pages/User/User";
 import Admin from "./pages/Admin/Admin";
-
+import MonitoreSession from "./pages/Admin/MonitorSession";
 
 
 const App = () => {
@@ -24,6 +24,7 @@ const App = () => {
         <Route path="/Register" element={<Register />}/>
         <Route path="/user-dashboard" element={<User />}/>
         <Route path="/admin-dashboard" element={<Admin />}/>
+        <Route path="/monitor-sessions" element={<MonitoreSession />}/>
         
         {/* Add more routes here for About, Services, etc. */}
       </Routes>
