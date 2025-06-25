@@ -40,10 +40,7 @@ const MonitoreSession = () => {
             .catch(err => {
                 console.error('Failed to fetch sessions:', err);
             });
-    }, []);
-
-
-
+    }, [])
 
     return (
         <div>
@@ -60,11 +57,6 @@ const MonitoreSession = () => {
                         <p className="mb-4">Overview of contributions and engagement metrics.</p>
 
                         <MonitorSessionTable columns={columns} rows={sessionData} />
-
-
-
-
-
 
                     </div>
                 </div>
