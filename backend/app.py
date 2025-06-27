@@ -49,6 +49,7 @@ def login():
         return jsonify({"message": "User login successful"}), 200
     else:
         return jsonify({"message": "Invalid credentials"}), 401
+    
 @app.route('/sessions', methods=['GET'])
 def get_sessions():
     try:
@@ -63,11 +64,14 @@ def get_sessions():
                 "attendees": session.get("attendees"),
                 "lecturer": session.get("lecturer"),
                 "location": session.get("location"),
-                "time": session.get("time"),  # safe handling
+                "time": session.get("time"),
                 "details": session.get("details")
             })
 
         return jsonify(output), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # === Add Transaction ===
 @app.route('/api/transactions', methods=['POST'])
