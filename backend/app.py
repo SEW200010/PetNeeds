@@ -49,6 +49,25 @@ def login():
         return jsonify({"message": "User login successful"}), 200
     else:
         return jsonify({"message": "Invalid credentials"}), 401
+@app.route('/sessions', methods=['GET'])
+def get_sessions():
+    try:
+        sessions = mongo.db.sessions.find()
+        output = []
+
+        for session in sessions:
+            output.append({
+                "id": str(session["_id"]),
+                "courseCode": session.get("courseCode"),
+                "lectureTitle": session.get("lectureTitle"),
+                "attendees": session.get("attendees"),
+                "lecturer": session.get("lecturer"),
+                "location": session.get("location"),
+                "time": session.get("time"),  # safe handling
+                "details": session.get("details")
+            })
+
+        return jsonify(output), 200
 
 # === Add Transaction ===
 @app.route('/api/transactions', methods=['POST'])
@@ -221,6 +240,7 @@ def get_chart_data():
         'incomeBreakdown': income_breakdown,
         'expenseBreakdown': expense_breakdown
     })
+
 
 if __name__ == "__main__":
     app.run(debug=True)

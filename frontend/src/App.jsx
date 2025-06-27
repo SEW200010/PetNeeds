@@ -9,6 +9,7 @@ import Register from "./pages/Register";
 import User from "./pages/User/User";
 import Admin from "./pages/Admin/Admin";
 import FundRaising from "./pages/Admin/FundRaising";
+import MonitoreSession from "./pages/Admin/MonitorSession";
 
 const App = () => {
   return (
@@ -24,7 +25,8 @@ const App = () => {
         <Route path="/user-dashboard" element={<User />}/>
         <Route path="/admin-dashboard" element={<Admin />}/>
         <Route path="/FundRaising" element={<FundRaising />}/>
-
+        <Route path="/monitor-sessions" element={<MonitoreSession />}/>
+        
         {/* Add more routes here for About, Services, etc. */}
       </Routes>
     </Router>
