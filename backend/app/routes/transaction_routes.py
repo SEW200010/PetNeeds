@@ -1,81 +1,14 @@
-from flask import Flask, request, jsonify, send_file
-from flask_pymongo import PyMongo
-from flask_cors import CORS
+from flask import Blueprint, request, jsonify, send_file
 from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
-from io import BytesIO
 from bson import ObjectId
+from io import BytesIO
+from app import mongo
 
-app = Flask(__name__)
-CORS(app)
+transaction_bp = Blueprint('transaction_bp', __name__)
 
-app.config["MONGO_URI"] = "mongodb://localhost:27017/lifeskill"
-mongo = PyMongo(app)
-
-# === User Registration ===
-@app.route('/register', methods=['POST'])
-def register():
-    data = request.get_json()
-    name = data.get("name")
-    email = data.get("email")
-    password = data.get("password")
-    user_type = data.get("user_type")
-
-    if not all([name, email, password, user_type]):
-        return jsonify({"error": "All fields are required"}), 400
-
-    hashed_password = generate_password_hash(password)
-    mongo.db.users.insert_one({
-        "name": name,
-        "email": email,
-        "password": hashed_password,
-        "user_type": user_type
-    })
-
-    return jsonify({"message": "User registered successfully"}), 201
-
-# === User Login ===
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    email = data.get("email")
-    password = data.get("password")
-
-    if email == "admin@admin.com" and password == "admin123":
-        return jsonify({"message": "Admin login successful"}), 200
-
-    user = mongo.db.users.find_one({"email": email})
-    if user and check_password_hash(user['password'], password):
-        return jsonify({"message": "User login successful"}), 200
-    else:
-        return jsonify({"message": "Invalid credentials"}), 401
-    
-@app.route('/sessions', methods=['GET'])
-def get_sessions():
-    try:
-        sessions = mongo.db.sessions.find()
-        output = []
-
-        for session in sessions:
-            output.append({
-                "id": str(session["_id"]),
-                "courseCode": session.get("courseCode"),
-                "lectureTitle": session.get("lectureTitle"),
-                "attendees": session.get("attendees"),
-                "lecturer": session.get("lecturer"),
-                "location": session.get("location"),
-                "time": session.get("time"),
-                "details": session.get("details")
-            })
-
-        return jsonify(output), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# === Add Transaction ===
-@app.route('/api/transactions', methods=['POST'])
+@transaction_bp.route('/api/transactions', methods=['POST'])
 def add_transaction():
+    
     desc = request.form.get('description')
     amount = request.form.get('amount')
     ttype = request.form.get('type')
@@ -130,8 +63,8 @@ def add_transaction():
 
     return jsonify(transaction), 201
 
-# === Get All Transactions ===
-@app.route('/api/transactions', methods=['GET'])
+
+@transaction_bp.route('/api/transactions', methods=['GET'])
 def get_all_transactions():
     transactions = []
     cursor = mongo.db.transactions.find().sort('timestamp', -1)
@@ -148,8 +81,9 @@ def get_all_transactions():
         transactions.append(t)
     return jsonify(transactions)
 
-# === Get Paginated Transactions ===
-@app.route('/api/transactions/paginated', methods=['GET'])
+
+@transaction_bp.route('/api/transactions/paginated', methods=['GET'])
+
 def get_transactions_paginated():
     ttype = request.args.get('type')
     page = int(request.args.get('page', 1))
@@ -184,8 +118,8 @@ def get_transactions_paginated():
         'total_count': total_count
     })
 
-# === Download File ===
-@app.route('/api/file/<transaction_id>', methods=['GET'])
+
+@transaction_bp.route('/api/file/<transaction_id>', methods=['GET'])
 def get_transaction_file(transaction_id):
     try:
         transaction = mongo.db.transactions.find_one({"_id": ObjectId(transaction_id)})
@@ -200,8 +134,9 @@ def get_transaction_file(transaction_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# === Summary API ===
-@app.route('/api/summary', methods=['GET'])
+
+
+@transaction_bp.route('/api/summary', methods=['GET'])
 def get_summary():
     pipeline = [
         {"$group": {"_id": "$type", "total": {"$sum": "$amount"}}}
@@ -215,9 +150,7 @@ def get_summary():
         'expense': expense,
         'balance': balance
     })
-
-# === Chart Data API ===
-@app.route('/api/chart-data', methods=['GET'])
+@transaction_bp.route('/api/chart-data', methods=['GET'])
 def get_chart_data():
     total_pipeline = [{"$group": {"_id": "$type", "total": {"$sum": "$amount"}}}]
     totals = list(mongo.db.transactions.aggregate(total_pipeline))
@@ -245,6 +178,3 @@ def get_chart_data():
         'expenseBreakdown': expense_breakdown
     })
 
-
-if __name__ == "__main__":
-    app.run(debug=True)
