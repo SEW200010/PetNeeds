@@ -14,9 +14,11 @@ def create_app():
     from app.routes.auth_routes import auth_bp
     from app.routes.transaction_routes import transaction_bp
     from app.routes.session_routes import session_bp
+    from app.routes.event_routes import event_bp  # New event Blueprint
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(transaction_bp)
     app.register_blueprint(session_bp)
+    app.register_blueprint(event_bp)
 
     return app
