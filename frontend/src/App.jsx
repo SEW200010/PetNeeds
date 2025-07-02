@@ -11,6 +11,7 @@ import Admin from "./pages/Admin/Admin";
 import FundRaising from "./pages/Admin/FundRaising";
 import MonitoreSession from "./pages/Admin/MonitorSession";
 import EventManagement from "./pages/Admin/EventManagement";
+import ViewEvent from "./pages/Admin/ViewEvent";
 
 const App = () => {
   return (
@@ -28,6 +29,8 @@ const App = () => {
         <Route path="/FundRaising" element={<FundRaising />}/>
         <Route path="/monitor-sessions" element={<MonitoreSession />}/>
         <Route path="/event-management" element={<EventManagement />} />
+        <Route path="/admin/EventManagement" element={<EventManagement />} />
+        <Route path="/admin/ViewEvent/:id" element={<ViewEvent />} />
         {/* Add more routes here for About, Services, etc. */}
       </Routes>
     </Router>

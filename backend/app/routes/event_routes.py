@@ -4,9 +4,7 @@ from app import mongo
 
 event_bp = Blueprint('event_bp', __name__)
 
-# ==========================
-# 🆕 Create Event
-# ==========================
+# Create Event
 @event_bp.route('/events', methods=['POST'])
 def create_event():
     try:
@@ -16,8 +14,9 @@ def create_event():
         time = data.get("time")
         description = data.get("description")
         status = data.get("status", "Drafted")
-
-        if not all([name, date, time, description]):
+        venue = data.get("venue")
+        schedule = data.get("schedule","Not Schedule")
+        if not all([name, date, time, description,venue,schedule,status]):
             return jsonify({"error": "All fields are required"}), 400
 
         mongo.db.events.insert_one({
@@ -25,7 +24,9 @@ def create_event():
             "date": date,
             "time": time,
             "description": description,
-            "status": status
+            "status": status,
+            "venue": venue,
+            "schedule":schedule
         })
 
         return jsonify({"message": "Event created successfully"}), 201
@@ -33,11 +34,9 @@ def create_event():
         return jsonify({"error": str(e)}), 500
 
 
-# ==========================
-# 🆕 Get All Events
-# ==========================
+# Get All Events
 @event_bp.route('/events', methods=['GET'])
-def get_events():
+def get_all_events():
     try:
         events = list(mongo.db.events.find())
         for event in events:
@@ -47,9 +46,20 @@ def get_events():
         return jsonify({"error": str(e)}), 500
 
 
-# ==========================
-# 🆕 Update Event
-# ==========================
+# Get Event by ID
+@event_bp.route('/events/<event_id>', methods=['GET'])
+def get_event_by_id(event_id):
+    try:
+        event = mongo.db.events.find_one({"_id": ObjectId(event_id)})
+        if not event:
+            return jsonify({"error": "Event not found"}), 404
+        event["_id"] = str(event["_id"])
+        return jsonify(event), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# Update Event
 @event_bp.route('/events/<event_id>', methods=['PUT'])
 def update_event(event_id):
     try:
@@ -59,8 +69,10 @@ def update_event(event_id):
         time = data.get("time")
         description = data.get("description")
         status = data.get("status")
+        venue = data.get("venue")
+        schedule = data.get("schedule","Not Schedule")
 
-        if not all([name, date, time, description]):
+        if not all([name, date, time, description , venue,schedule,status]):
             return jsonify({"error": "All fields are required"}), 400
 
         result = mongo.db.events.update_one(
@@ -70,7 +82,9 @@ def update_event(event_id):
                 "date": date,
                 "time": time,
                 "description": description,
-                "status": status
+                "status": status,
+                "venue": venue,
+                "schedule":schedule
             }}
         )
 
@@ -83,9 +97,7 @@ def update_event(event_id):
         return jsonify({"error": str(e)}), 500
 
 
-# ==========================
-# 🆕 Search Events
-# ==========================
+# Search Events
 @event_bp.route('/events/search', methods=['GET'])
 def search_events():
     try:
@@ -94,5 +106,16 @@ def search_events():
         for event in events:
             event["_id"] = str(event["_id"])
         return jsonify(events), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@event_bp.route('/events/<event_id>', methods=['DELETE'])
+def delete_event(event_id):
+    try:
+        result = mongo.db.events.delete_one({"_id": ObjectId(event_id)})
+        if result.deleted_count == 1:
+            return jsonify({"message": "Event deleted successfully"}), 200
+        else:
+            return jsonify({"error": "Event not found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
