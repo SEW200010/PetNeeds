@@ -1,6 +1,11 @@
 from flask import Flask
 from flask_pymongo import PyMongo
 from flask_cors import CORS
+#from dotenv import load_dotenv
+#import os
+
+# Load variables from .env file
+# load_dotenv()
 
 mongo = PyMongo()
 
@@ -8,6 +13,7 @@ def create_app():
     app = Flask(__name__)
     CORS(app)
 
+    # app.config["MONGO_URI"] = os.getenv("DB_URI")
     app.config["MONGO_URI"] = "mongodb://localhost:27017/lifeskill"
     mongo.init_app(app)
 

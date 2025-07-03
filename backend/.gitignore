@@ -9,4 +9,4 @@ venv/
 instance/
 
 # Environment config files
-.env
+#.env
