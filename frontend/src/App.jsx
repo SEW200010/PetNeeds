@@ -10,7 +10,7 @@ import User from "./pages/User/User";
 import Admin from "./pages/Admin/Admin";
 import FundRaising from "./pages/Admin/FundRaising";
 import MonitoreSession from "./pages/Admin/MonitorSession";
-import UserManagementDashboard from "./pages/Admin/UserManagment/UserManagementDashboard";
+import UserManagementDashboard from "./pages/Admin/UserManagementDashboard";
 
 const App = () => {
   return (
