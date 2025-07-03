@@ -63,12 +63,9 @@ const StickyHeadTable = ({ columns, rows }) => {
                         align={column.align || 'left'}
                         sx={{ borderBottom: '1px solid #eee', color: '#444' }}
                       >
-                        {column.render
-                          ? column.render(value, row)
-                          : column.format && typeof value === 'number'
+                        {column.format && typeof value === 'number'
                           ? column.format(value)
                           : value}
-
                       </TableCell>
                     );
                   })}
