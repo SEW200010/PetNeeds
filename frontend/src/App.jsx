@@ -10,6 +10,8 @@ import User from "./pages/User/User";
 import Admin from "./pages/Admin/Admin";
 import FundRaising from "./pages/Admin/FundRaising";
 import MonitoreSession from "./pages/Admin/MonitorSession";
+import EventManagement from "./pages/Admin/EventManagement";
+import ViewEvent from "./pages/Admin/ViewEvent";
 import UserManagementDashboard from "./pages/Admin/UserManagementDashboard";
 import MonitorStudent from "./pages/Admin/MonitorStudent";
 import ExploreModel from "./pages/Admin/ExploreModel";
@@ -29,6 +31,9 @@ const App = () => {
         <Route path="/admin-dashboard" element={<Admin />}/>
         <Route path="/FundRaising" element={<FundRaising />}/>
         <Route path="/monitor-sessions" element={<MonitoreSession />}/>
+        <Route path="/event-management" element={<EventManagement />} />
+        <Route path="/admin/EventManagement" element={<EventManagement />} />
+        <Route path="/admin/ViewEvent/:id" element={<ViewEvent />} />
         <Route path="/user-management" element={<UserManagementDashboard/>}/>
         <Route path="/monitor-students" element={<MonitorStudent />}/>
         <Route path="/explore-model" element={<ExploreModel />}/>
