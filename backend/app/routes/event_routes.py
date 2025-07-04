@@ -15,9 +15,20 @@ def create_event():
         description = data.get("description")
         status = data.get("status", "Drafted")
         venue = data.get("venue")
-        schedule = data.get("schedule","Not Schedule")
-        if not all([name, date, time, description,venue,schedule,status]):
-            return jsonify({"error": "All fields are required"}), 400
+        schedule = data.get("schedule", [])
+        speakers = data.get("speakers", [])
+        registered = data.get("registered", 0)
+        confirmed = data.get("confirmed", 0)
+
+        # Basic validation
+        if not all([name, date, time, description, venue, status]):
+            return jsonify({"error": "All required fields must be provided"}), 400
+        if not isinstance(schedule, list) or not isinstance(speakers, list):
+            return jsonify({"error": "'schedule' and 'speakers' must be arrays"}), 400
+        if not all(isinstance(s, str) for s in speakers):
+            return jsonify({"error": "Speakers must be a list of strings"}), 400
+        if not isinstance(registered, int) or not isinstance(confirmed, int):
+            return jsonify({"error": "'registered' and 'confirmed' must be integer values"}), 400
 
         mongo.db.events.insert_one({
             "name": name,
@@ -26,13 +37,15 @@ def create_event():
             "description": description,
             "status": status,
             "venue": venue,
-            "schedule":schedule
+            "schedule": schedule,
+            "speakers": speakers,
+            "registered": registered,
+            "confirmed": confirmed
         })
 
         return jsonify({"message": "Event created successfully"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 # Get All Events
 @event_bp.route('/events', methods=['GET'])
@@ -45,18 +58,25 @@ def get_all_events():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 # Get Event by ID
-@event_bp.route('/events/<event_id>', methods=['GET'])
-def get_event_by_id(event_id):
+@event_bp.route("/events/<id>", methods=["GET"])
+def get_event(id):
     try:
-        event = mongo.db.events.find_one({"_id": ObjectId(event_id)})
+        event = mongo.db.events.find_one({"_id": ObjectId(id)})
         if not event:
             return jsonify({"error": "Event not found"}), 404
+
         event["_id"] = str(event["_id"])
-        return jsonify(event), 200
+
+        # Ensure 'participants' field exists
+        if "participants" not in event:
+            event["participants"] = { "registered": 0, "confirmed": 0 }
+
+        return jsonify(event)
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error fetching event: {e}")
+        return jsonify({"error": "Internal Server Error"}), 500
 
 
 # Update Event
@@ -70,10 +90,20 @@ def update_event(event_id):
         description = data.get("description")
         status = data.get("status")
         venue = data.get("venue")
-        schedule = data.get("schedule","Not Schedule")
+        schedule = data.get("schedule", [])
+        speakers = data.get("speakers", [])
+        registered = data.get("registered", 0)
+        confirmed = data.get("confirmed", 0)
 
-        if not all([name, date, time, description , venue,schedule,status]):
-            return jsonify({"error": "All fields are required"}), 400
+        # Basic validation
+        if not all([name, date, time, description, venue, status]):
+            return jsonify({"error": "All required fields must be provided"}), 400
+        if not isinstance(schedule, list) or not isinstance(speakers, list):
+            return jsonify({"error": "'schedule' and 'speakers' must be arrays"}), 400
+        if not all(isinstance(s, str) for s in speakers):
+            return jsonify({"error": "Speakers must be a list of strings"}), 400
+        if not isinstance(registered, int) or not isinstance(confirmed, int):
+            return jsonify({"error": "'registered' and 'confirmed' must be integer values"}), 400
 
         result = mongo.db.events.update_one(
             {"_id": ObjectId(event_id)},
@@ -84,7 +114,10 @@ def update_event(event_id):
                 "description": description,
                 "status": status,
                 "venue": venue,
-                "schedule":schedule
+                "schedule": schedule,
+                "speakers": speakers,
+                "registered": registered,
+                "confirmed": confirmed
             }}
         )
 
@@ -95,7 +128,6 @@ def update_event(event_id):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 # Search Events
 @event_bp.route('/events/search', methods=['GET'])
@@ -109,6 +141,7 @@ def search_events():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Delete Event
 @event_bp.route('/events/<event_id>', methods=['DELETE'])
 def delete_event(event_id):
     try:

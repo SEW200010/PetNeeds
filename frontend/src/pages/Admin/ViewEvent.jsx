@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Header from "../../components/Admin/Header";
 import AdminSidebar from "../../components/Admin/AdminSidebar";
-import { useNavigate } from "react-router-dom";
 
 const getStatusColor = (status) => {
   switch (status) {
-    case "Upcoming": return "text-green-600";
-    case "Ongoing": return "text-blue-600";
-    case "Completed": return "text-gray-600";
-    case "Drafted": return "text-yellow-600";
-    default: return "text-black";
+    case "Upcoming":
+      return "text-green-600";
+    case "Ongoing":
+      return "text-blue-600";
+    case "Completed":
+      return "text-gray-600";
+    case "Drafted":
+      return "text-yellow-600";
+    default:
+      return "text-black";
   }
 };
 
@@ -94,17 +98,21 @@ const ViewEvent = () => {
               {/* Speakers */}
               <section className="bg-gray-100 p-4 rounded-md">
                 <h3 className="text-lg font-semibold text-teal-800 mb-2">Speakers / Trainers</h3>
-                <ul className="list-disc pl-5">
-                  {(event.speakers || []).map((s, i) => (
-                    <li key={i}>{s}</li>
-                  ))}
-                </ul>
+                {Array.isArray(event.speakers) && event.speakers.length > 0 ? (
+                  <ul className="list-disc ml-5">
+                    {event.speakers.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No speakers listed.</p>
+                )}
               </section>
 
               {/* Schedule */}
               <section className="bg-gray-100 p-4 rounded-md">
                 <h3 className="text-lg font-semibold text-teal-800 mb-2">Schedule</h3>
-                {event.schedule && event.schedule.length > 0 ? (
+                {Array.isArray(event.schedule) && event.schedule.length > 0 ? (
                   <ul className="list-disc pl-5">
                     {event.schedule.map((item, i) => (
                       <li key={i}>
@@ -120,8 +128,9 @@ const ViewEvent = () => {
               {/* Participants */}
               <section className="bg-gray-100 p-4 rounded-md">
                 <h3 className="text-lg font-semibold text-teal-800 mb-2">Participants</h3>
-                <p><strong>Registered:</strong> {event.registered ?? 85}</p>
-                <p><strong>Confirmed:</strong> {event.confirmed ?? 70}</p>
+                <p><strong>Total:</strong> {event.participants?.total ?? "N/A"}</p>
+                <p><strong>Registered:</strong> {event.participants?.registered ?? 0}</p>
+                <p><strong>Confirmed:</strong> {event.participants?.confirmed ?? 0}</p>
                 <a
                   href={`/admin/events/${id}/participants`}
                   className="text-blue-600 hover:underline mt-1 inline-block"
@@ -129,6 +138,7 @@ const ViewEvent = () => {
                   View Full Participant List
                 </a>
               </section>
+
 
               {/* Feedback */}
               <section className="bg-gray-100 p-4 rounded-md">
@@ -144,13 +154,13 @@ const ViewEvent = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 mt-6 justify-end">
-               {event.status !== "Completed" && (
-                <button
+                {event.status !== "Completed" && (
+                  <button
                     onClick={() => navigate(`/admin/EventManagement?edit=${event._id}`)}
                     className="w-40 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 text-center"
-                >
+                  >
                     Edit Event
-                </button>
+                  </button>
                 )}
 
                 <button
@@ -184,7 +194,6 @@ const ViewEvent = () => {
                   Send Notification
                 </button>
               </div>
-
             </div>
           </div>
         </div>

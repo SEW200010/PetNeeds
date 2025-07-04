@@ -73,6 +73,7 @@ const EventManagement = () => {
   const [editingEventId, setEditingEventId] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const [speakers, setSpeakers] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -82,9 +83,13 @@ const EventManagement = () => {
     venue: "",
     schedule: [{ startTime: "", endTime: "", activity: "" }],
     status: "Drafted",
+    speakers: [],
+    participants: {
+      registered: "",
+      confirmed: "",
+    },
   });
 
-  // Fetch all events from backend
   const fetchEvents = () => {
     fetch("http://localhost:5000/events")
       .then((res) => res.json())
@@ -95,30 +100,29 @@ const EventManagement = () => {
       .catch((err) => console.error("Error fetching events:", err));
   };
 
-  // Handle pre-filling form if editing via URL query param
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const editId = params.get("edit");
 
-    if (editId && events.length > 0) {
-      const eventToEdit = events.find((e) => e._id === editId);
-      if (eventToEdit) {
-        handleEditClick(eventToEdit);
+    if (editId) {
+      if (events.length > 0) {
+        const eventToEdit = events.find((e) => e._id === editId);
+        if (eventToEdit) {
+          handleEditClick(eventToEdit);
+        }
       }
     }
   }, [location.search, events]);
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  // Filter events by search query
-  useEffect(() => {
     const query = searchQuery.toLowerCase();
     setFilteredEvents(events.filter((e) => e.name.toLowerCase().includes(query)));
   }, [searchQuery, events]);
 
-  // Submit form for create or update
   const handleAddOrUpdateEvent = (e) => {
     e.preventDefault();
     const method = isEditMode ? "PUT" : "POST";
@@ -126,10 +130,15 @@ const EventManagement = () => {
       ? `http://localhost:5000/events/${editingEventId}`
       : "http://localhost:5000/events";
 
+    const speakersArray = speakers
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
     fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
+      body: JSON.stringify({ ...formData, speakers: speakersArray }),
     })
       .then((res) => res.json())
       .then(() => {
@@ -144,7 +153,6 @@ const EventManagement = () => {
       .catch((err) => console.error("Error saving event:", err));
   };
 
-  // Prepare form for editing existing event
   const handleEditClick = (event) => {
     setFormData({
       name: event.name,
@@ -156,18 +164,38 @@ const EventManagement = () => {
         ? event.schedule
         : [{ startTime: "", endTime: "", activity: "" }],
       status: event.status,
+      speakers: Array.isArray(event.speakers) ? event.speakers : [],
+      participants: event.participants || { registered: "", confirmed: "" },
     });
+    setSpeakers(
+      Array.isArray(event.speakers)
+        ? event.speakers.join(", ")
+        : typeof event.speakers === "string"
+        ? event.speakers
+        : ""
+    );
     setEditingEventId(event._id);
     setIsEditMode(true);
     setShowForm(true);
   };
 
-  // Handle generic form input changes (non-schedule)
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const { name, value } = e.target;
+  if (["registered", "confirmed"].includes(name)) {
+    setFormData((prev) => ({
+      ...prev,
+      participants: {
+        ...prev.participants,
+        [name]: value
+      }
+    }));
+  } else {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }
+};
 
-  // Reset form data to initial empty state
+
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -177,17 +205,18 @@ const EventManagement = () => {
       venue: "",
       schedule: [{ startTime: "", endTime: "", activity: "" }],
       status: "Drafted",
+      speakers: [],
+      participants: { registered: "", confirmed: "" },
     });
+    setSpeakers("");
   };
 
-  // Update schedule item fields
   const handleScheduleChange = (index, field, value) => {
     const newSchedule = [...formData.schedule];
     newSchedule[index] = { ...newSchedule[index], [field]: value };
     setFormData({ ...formData, schedule: newSchedule });
   };
 
-  // Add a new empty schedule item
   const addScheduleItem = () => {
     setFormData({
       ...formData,
@@ -195,13 +224,11 @@ const EventManagement = () => {
     });
   };
 
-  // Remove a schedule item by index
   const removeScheduleItem = (index) => {
-    if (formData.schedule.length === 1) return; // Prevent removing last item
+    if (formData.schedule.length === 1) return;
     const updatedSchedule = formData.schedule.filter((_, i) => i !== index);
     setFormData({ ...formData, schedule: updatedSchedule });
   };
-
   return (
     <div>
       <Header />
@@ -244,7 +271,8 @@ const EventManagement = () => {
                 setIsEditMode(false);
                 resetForm();
               }}
-              TransitionComponent={Transition}
+              // Temporarily remove TransitionComponent to test dialog visibility issue
+              // TransitionComponent={Transition}
               maxWidth="sm"
               fullWidth
             >
@@ -293,6 +321,43 @@ const EventManagement = () => {
                     value={formData.description}
                     onChange={handleInputChange}
                   />
+                  {/* Participants Section */}
+                  <div className="flex gap-4 my-4">
+                <TextField
+                  margin="dense"
+                  label="Registered Participants"
+                  name="registered"
+                  type="number"
+                  fullWidth
+                  required
+                  value={formData.participants.registered}
+onChange={(e) => handleInputChange({ target: { name: "registered", value: e.target.value } })}
+
+                />
+                <TextField
+                  margin="dense"
+                  label="Confirmed Participants"
+                  name="confirmed"
+                  type="number"
+                  fullWidth
+                  required
+                  value={formData.participants.confirmed}
+onChange={(e) => handleInputChange({ target: { name: "confirmed", value: e.target.value } })}
+
+                />
+              </div>
+
+
+                  <TextField
+                    label="Speakers"
+                    name="speakers"
+                    multiline
+                    rows={3}
+                    value={speakers}
+                    onChange={(e) => setSpeakers(e.target.value)}
+                    placeholder="Enter speakers separated by commas"
+                  />
+
                   <TextField
                     margin="dense"
                     label="Venue"
@@ -462,26 +527,25 @@ const EventManagement = () => {
                           <span className={getStatusColor(event.status)}>{event.status}</span>
                         </StyledTableCell>
                         <StyledTableCell>
-                          <button
-                            onClick={() => navigate(`/admin/ViewEvent/${event._id}`)}
-                            className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded mr-2"
-                          >
-                            View
-                          </button>
-
-                          <button
-                            onClick={() => handleEditClick(event)}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
-                          >
-                            Edit
-                          </button>
-                        </StyledTableCell>
-                      </StyledTableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                           <button
+                          onClick={() => navigate(`/admin/ViewEvent/${event._id}`)}
+                          className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded mr-2"
+                        >
+                          View
+                        </button>
+                        <button
+                          onClick={() => handleEditClick(event)}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+                        >
+                          Edit
+                        </button>
+                      </StyledTableCell>
+                    </StyledTableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
           </div>
         </div>
       </main>
