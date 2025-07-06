@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from "react";
 import Header from "../../components/Admin/Header";
 import AdminSidebar from "../../components/Admin/AdminSidebar";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  Legend,
+  Cell,
+} from "recharts";
 
 const ExploreModel = () => {
   const [date, setDate] = useState(new Date());
@@ -8,6 +19,10 @@ const ExploreModel = () => {
   const [droppedFile, setDroppedFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const [showFileOptions, setShowFileOptions] = useState(false);
+
+  const [modelOutput, setModelOutput] = useState([]);
+  const [showChart, setShowChart] = useState(false);
+
 
   const eventDates = [
     new Date(2025, 5, 25),
@@ -157,10 +172,47 @@ const ExploreModel = () => {
 
             {/* Run Button */}
             <div className="flex justify-center">
-              <button className="bg-green-700 text-white px-8 py-2 rounded hover:bg-green-800">
+              <button
+                className="bg-green-700 text-white px-8 py-2 rounded hover:bg-green-800"
+                onClick={() => {
+                  // Simulated output — replace this with real model output later
+                  const output = [
+                    { condition: "Anxiety", count: 12 },
+                    { condition: "Depression", count: 18 },
+                    { condition: "Normal", count: 7 }
+                  ];
+                  setModelOutput(output);
+                  setShowChart(true);
+                }}
+              >
                 Run
               </button>
+
             </div>
+            {showChart && (
+              <div className="bg-white mt-10 p-4 rounded shadow">
+                <h2 className="text-lg font-semibold text-green-600 mb-4">Model Output: Patient Mental Health Summary</h2>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={modelOutput}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="condition" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="count">
+                      {modelOutput.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={["#3B82F6", "#EF4444", "#10B981", "#EF4444", "#8B5CF6"][index % 5]} // Add more colors as needed
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+
           </div>
         </div>
       </main>
