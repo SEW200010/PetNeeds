@@ -2,47 +2,25 @@ import React, { useState, useEffect, forwardRef } from "react";
 import Header from "../../components/Admin/Header";
 import AdminSidebar from "../../components/Admin/AdminSidebar";
 import { FaUsers, FaBookmark, FaPlay, FaStar } from "react-icons/fa";
-import { FiSearch } from "react-icons/fi";
+import { Search } from "lucide-react";
+import StickyHeadTable from "../../components/Admin/StickyHeadTable";
+import { Add, Remove } from "@mui/icons-material";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   Button,
-  Slide,
-  TableContainer,
-  Paper,
-  Select,
-  MenuItem,
-  InputLabel,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
+  Slide,
+  TextField,
+  InputAdornment,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell, { tableCellClasses } from "@mui/material/TableCell";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Add, Remove } from "@mui/icons-material";
-
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  [`&.${tableCellClasses.head}`]: {
-    backgroundColor: `#00695c`,
-    color: theme.palette.common.white,
-  },
-  [`&.${tableCellClasses.body}`]: {
-    fontSize: 13,
-  },
-}));
-
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  "&:last-child td, &:last-child th": {
-    border: 0,
-  },
-}));
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -71,9 +49,9 @@ const EventManagement = () => {
   const [showForm, setShowForm] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingEventId, setEditingEventId] = useState(null);
+  const [speakers, setSpeakers] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-  const [speakers, setSpeakers] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -107,21 +85,71 @@ const EventManagement = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const editId = params.get("edit");
-
-    if (editId) {
-      if (events.length > 0) {
-        const eventToEdit = events.find((e) => e._id === editId);
-        if (eventToEdit) {
-          handleEditClick(eventToEdit);
-        }
-      }
+    if (editId && events.length > 0) {
+      const eventToEdit = events.find((e) => e._id === editId);
+      if (eventToEdit) handleEditClick(eventToEdit);
     }
   }, [location.search, events]);
 
   useEffect(() => {
     const query = searchQuery.toLowerCase();
-    setFilteredEvents(events.filter((e) => e.name.toLowerCase().includes(query)));
+    setFilteredEvents(
+      events.filter(
+        (e) =>
+          e.name.toLowerCase().includes(query) ||
+          e.description.toLowerCase().includes(query) ||
+          e.venue.toLowerCase().includes(query)
+      )
+    );
   }, [searchQuery, events]);
+
+  const handleEditClick = (event) => {
+    setFormData({
+      name: event.name,
+      date: event.date,
+      time: event.time,
+      description: event.description,
+      venue: event.venue || "",
+      schedule: event.schedule || [{ startTime: "", endTime: "", activity: "" }],
+      status: event.status,
+      speakers: event.speakers || [],
+      participants: event.participants || { registered: "", confirmed: "" },
+    });
+    setSpeakers(event.speakers?.join(", ") || "");
+    setEditingEventId(event._id);
+    setIsEditMode(true);
+    setShowForm(true);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (["registered", "confirmed"].includes(name)) {
+      setFormData((prev) => ({
+        ...prev,
+        participants: {
+          ...prev.participants,
+          [name]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      date: "",
+      time: "",
+      description: "",
+      venue: "",
+      schedule: [{ startTime: "", endTime: "", activity: "" }],
+      status: "Drafted",
+      speakers: [],
+      participants: { registered: "", confirmed: "" },
+    });
+    setSpeakers("");
+  };
 
   const handleAddOrUpdateEvent = (e) => {
     e.preventDefault();
@@ -143,7 +171,6 @@ const EventManagement = () => {
       .then((res) => res.json())
       .then(() => {
         fetchEvents();
-        setSearchQuery("");
         setShowForm(false);
         setIsEditMode(false);
         setEditingEventId(null);
@@ -152,118 +179,153 @@ const EventManagement = () => {
       })
       .catch((err) => console.error("Error saving event:", err));
   };
+const handleScheduleChange = (index, field, value) => {
+  const updatedSchedule = [...formData.schedule];
+  updatedSchedule[index][field] = value;
+  setFormData(prev => ({ ...prev, schedule: updatedSchedule }));
+};
 
-  const handleEditClick = (event) => {
-    setFormData({
-      name: event.name,
-      date: event.date,
-      time: event.time,
-      description: event.description,
-      venue: event.venue || "",
-      schedule: Array.isArray(event.schedule)
-        ? event.schedule
-        : [{ startTime: "", endTime: "", activity: "" }],
-      status: event.status,
-      speakers: Array.isArray(event.speakers) ? event.speakers : [],
-      participants: event.participants || { registered: "", confirmed: "" },
-    });
-    setSpeakers(
-      Array.isArray(event.speakers)
-        ? event.speakers.join(", ")
-        : typeof event.speakers === "string"
-        ? event.speakers
-        : ""
-    );
-    setEditingEventId(event._id);
-    setIsEditMode(true);
-    setShowForm(true);
-  };
+const addScheduleItem = () => {
+  setFormData(prev => ({
+    ...prev,
+    schedule: [...prev.schedule, { startTime: "", endTime: "", activity: "" }],
+  }));
+};
 
-  const handleInputChange = (e) => {
-  const { name, value } = e.target;
-  if (["registered", "confirmed"].includes(name)) {
-    setFormData((prev) => ({
-      ...prev,
-      participants: {
-        ...prev.participants,
-        [name]: value
-      }
-    }));
-  } else {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+const removeScheduleItem = (index) => {
+  const updatedSchedule = [...formData.schedule];
+  if (updatedSchedule.length > 1) {
+    updatedSchedule.splice(index, 1);
+    setFormData(prev => ({ ...prev, schedule: updatedSchedule }));
   }
 };
 
-
-
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      date: "",
-      time: "",
-      description: "",
-      venue: "",
-      schedule: [{ startTime: "", endTime: "", activity: "" }],
-      status: "Drafted",
-      speakers: [],
-      participants: { registered: "", confirmed: "" },
-    });
-    setSpeakers("");
-  };
-
-  const handleScheduleChange = (index, field, value) => {
-    const newSchedule = [...formData.schedule];
-    newSchedule[index] = { ...newSchedule[index], [field]: value };
-    setFormData({ ...formData, schedule: newSchedule });
-  };
-
-  const addScheduleItem = () => {
-    setFormData({
-      ...formData,
-      schedule: [...formData.schedule, { startTime: "", endTime: "", activity: "" }],
-    });
-  };
-
-  const removeScheduleItem = (index) => {
-    if (formData.schedule.length === 1) return;
-    const updatedSchedule = formData.schedule.filter((_, i) => i !== index);
-    setFormData({ ...formData, schedule: updatedSchedule });
-  };
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <Header />
-      <main className="bg-gray-100 pt-[65px] min-h-screen">
-        <div className="flex flex-col md:flex-row">
-          <AdminSidebar date={date} setDate={setDate} eventDates={[]} />
-          <div className="w-full md:w-3/4 px-4 py-6">
-            <div className="flex justify-between items-center mb-16">
-              <h1 className="text-3xl font-extrabold text-gray-800 mb-2">Event Management</h1>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                  setShowForm(true);
-                  setIsEditMode(false);
-                  resetForm();
-                }}
-              >
-                Create New Event
-              </Button>
-            </div>
+      <div className="pt-16 flex">
+        <AdminSidebar date={date} setDate={setDate} eventDates={[]} />
+        <main className="flex-1 p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Event Management</h2>
+            <Button
+                  onClick={() => { setShowForm(true); setIsEditMode(false); resetForm(); }}
+                  sx={{
+                    backgroundColor: 'green',
+                    '&:hover': {
+                      backgroundColor: 'darkgreen',
+                    },
+                    color: 'white',
+                  }}
+                >
+                  Create New Event
+                </Button>
 
-            <div className="flex justify-center items-center mb-6 px-8">
-              <div className="flex items-center w-full max-w-md bg-white border border-gray-300 rounded-full px-4 py-2 shadow-sm">
-                <FiSearch className="text-gray-500 mr-2" />
-                <input
-                  type="text"
-                  placeholder="Search events"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full focus:outline-none"
-                />
+          </div>
+
+           <div className="mb-6 flex justify-center w-full">
+            <div className="relative max-w-md w-full">
+              <TextField
+  placeholder="Search events"
+  value={searchQuery}
+  onChange={(e) => setSearchQuery(e.target.value)}
+  fullWidth
+  size="small"
+  sx={{
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "8px",
+      height: "40px", // Reduce height here
+    },
+    "& .MuiOutlinedInput-root.Mui-focused": {
+      "& fieldset": {
+        borderColor: "black", // Border color on focus
+     },
+    },
+  }}
+ InputProps={{
+        startAdornment: (
+          <InputAdornment position="start">
+            <Search className="text-gray-400 w-4 h-4" />
+          </InputAdornment>
+        ),
+      }}
+/>
+
+            </div>
+          </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8 px-8 mr-5">
+              <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
+                <FaUsers className="text-2xl mx-auto" />
+                <div className="text-green-700 text-xl">230</div>
+                <div>Registered Participants</div>
+              </div>
+              <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
+                <FaBookmark className="text-2xl mx-auto" />
+                <div className="text-green-700 text-xl">{events.length}</div>
+                <div>Total Events</div>
+              </div>
+              <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
+                <FaPlay className="text-2xl mx-auto" />
+                <div className="text-green-700 text-xl">
+                  {events.filter((e) => e.status === "Upcoming").length}
+                </div>
+                <div>Upcoming Events</div>
+              </div>
+              <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
+                <div className="flex justify-center gap-1 mb-1">
+                  {[1, 2, 3, 4].map((i) => (
+                    <FaStar key={i} className="text-yellow-500 text-xl" />
+                  ))}
+                  <FaStar className="text-white text-xl mb-7" />
+                </div>
+                <div className="text-base">Overview Ratings</div>
               </div>
             </div>
 
+            
+          <div className="bg-white p-4 rounded-xl shadow">
+            <StickyHeadTable
+              columns={[
+                { id: 'no', label: '#' },
+                { id: 'name', label: 'Event Name' },
+                { id: 'date', label: 'Date' },
+                { id: 'status', label: 'Status' },
+                {
+                  id: 'actions',
+                  label: 'Actions',
+                  render: (_, row) => (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => navigate(`/admin/ViewEvent/${row._id}`)}
+                        className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded text-sm"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() => handleEditClick(row)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  ),
+                },
+              ]}
+              rows={filteredEvents.map((event, index) => ({
+                no: index + 1,
+                name: event.name,
+                date: event.date,
+                status: (
+                  <span className={`font-semibold ${getStatusColor(event.status)}`}>
+                    {event.status}
+                  </span>
+                ),
+                _id: event._id,
+              }))}
+            />
+
+            {/* Event Form Dialog */}
             <Dialog
               open={showForm}
               onClose={() => {
@@ -271,8 +333,6 @@ const EventManagement = () => {
                 setIsEditMode(false);
                 resetForm();
               }}
-              // Temporarily remove TransitionComponent to test dialog visibility issue
-              // TransitionComponent={Transition}
               maxWidth="sm"
               fullWidth
             >
@@ -321,32 +381,33 @@ const EventManagement = () => {
                     value={formData.description}
                     onChange={handleInputChange}
                   />
-                  {/* Participants Section */}
+
                   <div className="flex gap-4 my-4">
-                <TextField
-                  margin="dense"
-                  label="Registered Participants"
-                  name="registered"
-                  type="number"
-                  fullWidth
-                  required
-                  value={formData.participants.registered}
-onChange={(e) => handleInputChange({ target: { name: "registered", value: e.target.value } })}
-
-                />
-                <TextField
-                  margin="dense"
-                  label="Confirmed Participants"
-                  name="confirmed"
-                  type="number"
-                  fullWidth
-                  required
-                  value={formData.participants.confirmed}
-onChange={(e) => handleInputChange({ target: { name: "confirmed", value: e.target.value } })}
-
-                />
-              </div>
-
+                    <TextField
+                      margin="dense"
+                      label="Registered Participants"
+                      name="registered"
+                      type="number"
+                      fullWidth
+                      required
+                      value={formData.participants.registered}
+                      onChange={(e) =>
+                        handleInputChange({ target: { name: "registered", value: e.target.value } })
+                      }
+                    />
+                    <TextField
+                      margin="dense"
+                      label="Confirmed Participants"
+                      name="confirmed"
+                      type="number"
+                      fullWidth
+                      required
+                      value={formData.participants.confirmed}
+                      onChange={(e) =>
+                        handleInputChange({ target: { name: "confirmed", value: e.target.value } })
+                      }
+                    />
+                  </div>
 
                   <TextField
                     label="Speakers"
@@ -368,7 +429,6 @@ onChange={(e) => handleInputChange({ target: { name: "confirmed", value: e.targe
                     onChange={handleInputChange}
                   />
 
-                  {/* Schedule Section */}
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Schedule (Start Time – End Time – Activity)
@@ -418,10 +478,7 @@ onChange={(e) => handleInputChange({ target: { name: "confirmed", value: e.targe
                             <Remove sx={{ fontSize: 15, color: "red" }} />
                           </IconButton>
                           {index === formData.schedule.length - 1 && (
-                            <IconButton
-                              aria-label="add"
-                              onClick={addScheduleItem}
-                            >
+                            <IconButton aria-label="add" onClick={addScheduleItem}>
                               <Add sx={{ fontSize: 15, color: "red" }} />
                             </IconButton>
                           )}
@@ -464,92 +521,10 @@ onChange={(e) => handleInputChange({ target: { name: "confirmed", value: e.targe
                 </DialogActions>
               </form>
             </Dialog>
-
-            {/* Summary Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8 px-8 mr-5">
-              <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
-                <FaUsers className="text-2xl mx-auto" />
-                <div className="text-green-700 text-xl">230</div>
-                <div>Registered Participants</div>
-              </div>
-              <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
-                <FaBookmark className="text-2xl mx-auto" />
-                <div className="text-green-700 text-xl">{events.length}</div>
-                <div>Total Events</div>
-              </div>
-              <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
-                <FaPlay className="text-2xl mx-auto" />
-                <div className="text-green-700 text-xl">
-                  {events.filter((e) => e.status === "Upcoming").length}
-                </div>
-                <div>Upcoming Events</div>
-              </div>
-              <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
-                <div className="flex justify-center gap-1 mb-1">
-                  {[1, 2, 3, 4].map((i) => (
-                    <FaStar key={i} className="text-yellow-500 text-xl" />
-                  ))}
-                  <FaStar className="text-white text-xl mb-7" />
-                </div>
-                <div className="text-base">Overview Ratings</div>
-              </div>
             </div>
-
-            {/* Events Table */}
-            <TableContainer
-              component={Paper}
-              sx={{ maxHeight: 400, width: "90%", margin: "0 auto" }}
-            >
-              <Table stickyHeader size="small">
-                <TableHead>
-                  <TableRow>
-                    <StyledTableCell>No</StyledTableCell>
-                    <StyledTableCell>Event Name</StyledTableCell>
-                    <StyledTableCell>Date</StyledTableCell>
-                    <StyledTableCell>Status</StyledTableCell>
-                    <StyledTableCell>Actions</StyledTableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredEvents.length === 0 ? (
-                    <StyledTableRow>
-                      <StyledTableCell colSpan={5} align="center">
-                        No events found.
-                      </StyledTableCell>
-                    </StyledTableRow>
-                  ) : (
-                    filteredEvents.map((event, index) => (
-                      <StyledTableRow key={event._id || index}>
-                        <StyledTableCell>{index + 1}</StyledTableCell>
-                        <StyledTableCell>{event.name}</StyledTableCell>
-                        <StyledTableCell>{event.date}</StyledTableCell>
-                        <StyledTableCell>
-                          <span className={getStatusColor(event.status)}>{event.status}</span>
-                        </StyledTableCell>
-                        <StyledTableCell>
-                           <button
-                          onClick={() => navigate(`/admin/ViewEvent/${event._id}`)}
-                          className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded mr-2"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => handleEditClick(event)}
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
-                        >
-                          Edit
-                        </button>
-                      </StyledTableCell>
-                    </StyledTableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          </div>
-        </div>
-      </main>
-    </div>
+         </main>
+       </div>
+       </div>
   );
 };
 
