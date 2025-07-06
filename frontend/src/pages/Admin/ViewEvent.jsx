@@ -63,7 +63,7 @@ const ViewEvent = () => {
 
             <div>
               <h2 className="text-2xl font-bold font-semibold text-teal-800 mb-10">
-                View Event: {event.name || "Unnamed Event"}
+              {event.name || "Unnamed Event"}
               </h2>
             </div>
 
@@ -128,9 +128,19 @@ const ViewEvent = () => {
               {/* Participants */}
               <section className="bg-gray-100 p-4 rounded-md">
                 <h3 className="text-lg font-semibold text-teal-800 mb-2">Participants</h3>
-                <p><strong>Total:</strong> {event.participants?.total ?? "N/A"}</p>
-                <p><strong>Registered:</strong> {event.participants?.registered ?? 0}</p>
+                
+                <p><strong>Registered</strong> {event.participants?.registered ?? 0}</p>
                 <p><strong>Confirmed:</strong> {event.participants?.confirmed ?? 0}</p>
+               <p>
+                <strong>Total</strong>
+                <span className="ml-10">
+                <strong>:</strong>
+                <span className="ml-1">
+                  {(event.participants?.registered ?? 0) + (event.participants?.confirmed ?? 0)}
+                </span>
+                </span>
+              </p>
+
                 <a
                   href={`/admin/events/${id}/participants`}
                   className="text-blue-600 hover:underline mt-1 inline-block"

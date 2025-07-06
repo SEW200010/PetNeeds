@@ -50,6 +50,8 @@ const EventManagement = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingEventId, setEditingEventId] = useState(null);
   const [speakers, setSpeakers] = useState("");
+  const [filterStatus, setFilterStatus] = useState("All");
+  const [sortOrder, setSortOrder] = useState("asc");
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -103,38 +105,53 @@ const EventManagement = () => {
     );
   }, [searchQuery, events]);
 
-  const handleEditClick = (event) => {
-    setFormData({
-      name: event.name,
-      date: event.date,
-      time: event.time,
-      description: event.description,
-      venue: event.venue || "",
-      schedule: event.schedule || [{ startTime: "", endTime: "", activity: "" }],
-      status: event.status,
-      speakers: event.speakers || [],
-      participants: event.participants || { registered: "", confirmed: "" },
-    });
-    setSpeakers(event.speakers?.join(", ") || "");
-    setEditingEventId(event._id);
-    setIsEditMode(true);
-    setShowForm(true);
-  };
+const handleEditClick = (event) => {
+  const participants = event.participants || {};
+
+  setFormData({
+    name: event.name || "",
+    date: event.date || "",
+    time: event.time || "",
+    description: event.description || "",
+    venue: event.venue || "",
+    schedule: Array.isArray(event.schedule) && event.schedule.length > 0
+      ? event.schedule
+      : [{ startTime: "", endTime: "", activity: "" }],
+    status: event.status || "Drafted",
+    speakers: event.speakers || [],
+    participants: {
+      registered: participants.registered ?? "",
+      confirmed: participants.confirmed ?? "",
+    },
+  });
+
+  setSpeakers((event.speakers || []).join(", "));
+  setEditingEventId(event._id);
+  setIsEditMode(true);
+  setShowForm(true);
+};
+
+
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    if (["registered", "confirmed"].includes(name)) {
-      setFormData((prev) => ({
-        ...prev,
-        participants: {
-          ...prev.participants,
-          [name]: value,
-        },
-      }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
+  const { name, value } = e.target;
+
+  if (["registered", "confirmed"].includes(name)) {
+    setFormData((prev) => ({
+      ...prev,
+      participants: {
+        ...(prev.participants || {}),
+        [name]: value,
+      },
+    }));
+  } else {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+};
+
 
   const resetForm = () => {
     setFormData({
@@ -163,6 +180,11 @@ const EventManagement = () => {
       .map((s) => s.trim())
       .filter((s) => s.length > 0);
 
+       console.log("Sending data:", {
+    ...formData,
+    speakers: speakersArray,
+  });
+
     fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
@@ -179,26 +201,63 @@ const EventManagement = () => {
       })
       .catch((err) => console.error("Error saving event:", err));
   };
-const handleScheduleChange = (index, field, value) => {
-  const updatedSchedule = [...formData.schedule];
-  updatedSchedule[index][field] = value;
-  setFormData(prev => ({ ...prev, schedule: updatedSchedule }));
-};
 
-const addScheduleItem = () => {
-  setFormData(prev => ({
-    ...prev,
-    schedule: [...prev.schedule, { startTime: "", endTime: "", activity: "" }],
-  }));
-};
+  const handleScheduleChange = (index, field, value) => {
+    const updatedSchedule = [...formData.schedule];
+    updatedSchedule[index][field] = value;
+    setFormData((prev) => ({ ...prev, schedule: updatedSchedule }));
+  };
 
-const removeScheduleItem = (index) => {
-  const updatedSchedule = [...formData.schedule];
-  if (updatedSchedule.length > 1) {
-    updatedSchedule.splice(index, 1);
-    setFormData(prev => ({ ...prev, schedule: updatedSchedule }));
-  }
+  const addScheduleItem = () => {
+    setFormData((prev) => ({
+      ...prev,
+      schedule: [...prev.schedule, { startTime: "", endTime: "", activity: "" }],
+    }));
+  };
+
+  const removeScheduleItem = (index) => {
+    const updatedSchedule = [...formData.schedule];
+    if (updatedSchedule.length > 1) {
+      updatedSchedule.splice(index, 1);
+      setFormData((prev) => ({ ...prev, schedule: updatedSchedule }));
+    }
+  };
+
+  const handleFilterChange = (status) => {
+    setFilterStatus(status);
+  };
+
+ const handleSortToggle = () => {
+  const newSortOrder = sortOrder === "asc" ? "desc" : "asc";
+  setSortOrder(newSortOrder);
+
+  const sortedEvents = [...filteredEvents].sort((a, b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    return newSortOrder === "asc" ? dateA - dateB : dateB - dateA;
+  });
+
+  setFilteredEvents(sortedEvents);
 };
+function parseDate(str) {
+  // Assuming date format is "DD/MM/YYYY", parse accordingly
+  const [day, month, year] = str.split("/");
+  return new Date(year, month - 1, day);
+}
+
+  const processedEvents = filteredEvents
+  .filter((event) => (filterStatus === "All" ? true : event.status === filterStatus))
+  .sort((a, b) => {
+    const dateA = parseDate(a.date);
+    const dateB = parseDate(b.date);
+    return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+  })
+    .sort((a, b) => {
+  const dateA = new Date(a.date);
+  const dateB = new Date(b.date);
+  return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+});
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -209,96 +268,146 @@ const removeScheduleItem = (index) => {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Event Management</h2>
             <Button
-                  onClick={() => { setShowForm(true); setIsEditMode(false); resetForm(); }}
-                  sx={{
-                    backgroundColor: 'green',
-                    '&:hover': {
-                      backgroundColor: 'darkgreen',
-                    },
-                    color: 'white',
-                  }}
-                >
-                  Create New Event
-                </Button>
-
+              onClick={() => {
+                setShowForm(true);
+                setIsEditMode(false);
+                resetForm();
+              }}
+              sx={{
+                backgroundColor: "green",
+                "&:hover": { backgroundColor: "darkgreen" },
+                color: "white",
+              }}
+            >
+              Create New Event
+            </Button>
           </div>
 
-           <div className="mb-6 flex justify-center w-full">
+          
+          {/* Search */}
+          <div className="mb-6 flex justify-center w-full">
             <div className="relative max-w-md w-full">
               <TextField
-  placeholder="Search events"
-  value={searchQuery}
-  onChange={(e) => setSearchQuery(e.target.value)}
-  fullWidth
-  size="small"
-  sx={{
-    "& .MuiOutlinedInput-root": {
-      borderRadius: "8px",
-      height: "40px", // Reduce height here
-    },
-    "& .MuiOutlinedInput-root.Mui-focused": {
-      "& fieldset": {
-        borderColor: "black", // Border color on focus
-     },
-    },
-  }}
- InputProps={{
-        startAdornment: (
-          <InputAdornment position="start">
-            <Search className="text-gray-400 w-4 h-4" />
-          </InputAdornment>
-        ),
-      }}
-/>
-
+                placeholder="Search events"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                fullWidth
+                size="small"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "8px",
+                    height: "40px",
+                  },
+                  "& .MuiOutlinedInput-root.Mui-focused": {
+                    "& fieldset": {
+                      borderColor: "black",
+                    },
+                  },
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search className="text-gray-400 w-4 h-4" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
             </div>
           </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8 px-8 mr-5">
-              <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
-                <FaUsers className="text-2xl mx-auto" />
-                <div className="text-green-700 text-xl">230</div>
-                <div>Registered Participants</div>
-              </div>
-              <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
-                <FaBookmark className="text-2xl mx-auto" />
-                <div className="text-green-700 text-xl">{events.length}</div>
-                <div>Total Events</div>
-              </div>
-              <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
-                <FaPlay className="text-2xl mx-auto" />
-                <div className="text-green-700 text-xl">
-                  {events.filter((e) => e.status === "Upcoming").length}
-                </div>
-                <div>Upcoming Events</div>
-              </div>
-              <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
-                <div className="flex justify-center gap-1 mb-1">
-                  {[1, 2, 3, 4].map((i) => (
-                    <FaStar key={i} className="text-yellow-500 text-xl" />
-                  ))}
-                  <FaStar className="text-white text-xl mb-7" />
-                </div>
-                <div className="text-base">Overview Ratings</div>
-              </div>
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-15 px-8 mr-5">
+            <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
+              <FaUsers className="text-2xl mx-auto" />
+              <div className="text-green-700 text-xl">230</div>
+              <div>Registered Participants</div>
             </div>
+            <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
+              <FaBookmark className="text-2xl mx-auto" />
+              <div className="text-green-700 text-xl">{events.length}</div>
+              <div>Total Events</div>
+            </div>
+            <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
+              <FaPlay className="text-2xl mx-auto" />
+              <div className="text-green-700 text-xl">
+                {events.filter((e) => e.status === "Upcoming").length}
+              </div>
+              <div>Upcoming Events</div>
+            </div>
+            <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
+              <div className="flex justify-center gap-1 mb-1">
+                {[1, 2, 3, 4].map((i) => (
+                  <FaStar key={i} className="text-yellow-500 text-xl" />
+                ))}
+                <FaStar className="text-white text-xl mb-7" />
+              </div>
+              <div className="text-base">Overview Ratings</div>
+            </div>
+          </div>
 
-            
-          <div className="bg-white p-4 rounded-xl shadow">
+  <div className="flex justify-end gap-4 mb-1 px-8">
+  {/* Sort Button */}
+<Button
+  onClick={handleSortToggle}
+  variant="contained"
+  sx={{
+    backgroundColor: '#4B9E8B',
+    color: '#ffffff',
+    '&:hover': {
+      backgroundColor: '#004830',
+    },
+  }}
+>
+  Sort {sortOrder === "asc" ? "Oldest" : "Newest"}
+</Button>
+
+
+
+  {/* Filter Dropdown */}
+  <FormControl size="small">
+    <Select
+      displayEmpty
+      value={filterStatus}
+      onChange={(e) => handleFilterChange(e.target.value)}
+            renderValue={(selected) => selected || "Filter"}
+      sx={{
+      minWidth: 90,
+      backgroundColor: '#4B9E8B', // green-700
+      color: '#ffffff',
+      borderRadius: '6px',
+      '& .MuiSelect-icon': {color: '#ffffff'},
+      '&:hover': {backgroundColor: '#004830'},
+    }}
+    >
+      
+      <MenuItem value="All">All</MenuItem>
+      <MenuItem value="Upcoming">Upcoming</MenuItem>
+      <MenuItem value="Ongoing">Ongoing</MenuItem>
+      <MenuItem value="Completed">Completed</MenuItem>
+      <MenuItem value="Drafted">Drafted</MenuItem>
+    </Select>
+  </FormControl>
+</div>
+
+
+
+
+          {/* Event Table */}
+          <div className="bg-white p-6 rounded-xl shadow">
             <StickyHeadTable
               columns={[
-                { id: 'no', label: '#' },
-                { id: 'name', label: 'Event Name' },
-                { id: 'date', label: 'Date' },
-                { id: 'status', label: 'Status' },
+                { id: "no", label: "#" },
+                { id: "name", label: "Event Name" },
+                { id: "date", label: "Date" },
+                { id: "status", label: "Status" },
                 {
-                  id: 'actions',
-                  label: 'Actions',
+                  id: "actions",
+                  label: "Actions",
                   render: (_, row) => (
                     <div className="flex gap-2">
                       <button
                         onClick={() => navigate(`/admin/ViewEvent/${row._id}`)}
-                        className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded text-sm"
+                        className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded text-xs"
                       >
                         View
                       </button>
@@ -312,17 +421,16 @@ const removeScheduleItem = (index) => {
                   ),
                 },
               ]}
-              rows={filteredEvents.map((event, index) => ({
-                no: index + 1,
-                name: event.name,
-                date: event.date,
-                status: (
-                  <span className={`font-semibold ${getStatusColor(event.status)}`}>
-                    {event.status}
-                  </span>
-                ),
-                _id: event._id,
-              }))}
+             rows={processedEvents.map((event, index) => ({
+  ...event, // <-- this adds the full event data
+  no: index + 1,
+  status: (
+    <span className={`font-semibold ${getStatusColor(event.status)}`}>
+      {event.status}
+    </span>
+  ),
+}))}
+
             />
 
             {/* Event Form Dialog */}
