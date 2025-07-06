@@ -11,16 +11,28 @@ def register():
     email = data.get("email")
     password = data.get("password")
     user_type = data.get("user_type")
+    location = data.get("location")
+    school = data.get("school")
+    contact = data.get("contact")
+    status = "Pending"
+    joinDate = "2025-01-01"
+       
 
     if not all([name, email, password, user_type]):
         return jsonify({"error": "All fields are required"}), 400
 
     hashed_password = generate_password_hash(password)
     mongo.db.users.insert_one({
-        "name": name,
+        "fullName": name,
         "email": email,
         "password": hashed_password,
-        "user_type": user_type
+        "role": user_type,
+        "status" : status,
+        "joinedDate" : joinDate,
+        "location" : location,
+        "school" : school,
+        "contact" : contact
+
     })
 
     return jsonify({"message": "User registered successfully"}), 201
