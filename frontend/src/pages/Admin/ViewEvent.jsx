@@ -19,13 +19,16 @@ const getStatusColor = (status) => {
 };
 
 const ViewEvent = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // Event ID from URL
   const [date, setDate] = useState(new Date());
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [participants, setParticipants] = useState([]);
+  const [showParticipants, setShowParticipants] = useState(false);
   const navigate = useNavigate();
 
+  // Fetch Event Details
   useEffect(() => {
     const fetchEvent = async () => {
       setLoading(true);
@@ -48,6 +51,22 @@ const ViewEvent = () => {
     fetchEvent();
   }, [id]);
 
+  // Fetch Participants for the specific event_id
+  const fetchParticipants = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/participants?event_id=${id}`);
+      if (!res.ok) {
+        throw new Error(`Error fetching participants: ${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      setParticipants(data);
+      setShowParticipants(true);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load participants.");
+    }
+  };
+
   if (loading) return <div className="p-6">Loading event details...</div>;
   if (error) return <div className="p-6 text-red-600">Error: {error}</div>;
   if (!event) return <div className="p-6">No event data available.</div>;
@@ -62,13 +81,13 @@ const ViewEvent = () => {
             <h1 className="text-3xl font-extrabold text-gray-800 mb-10">Event Management</h1>
 
             <div>
-              <h2 className="text-2xl font-bold font-semibold text-teal-800 mb-10">
-              {event.name || "Unnamed Event"}
+              <h2 className="text-2xl font-bold text-teal-800 mb-10">
+                {event.name || "Unnamed Event"}
               </h2>
             </div>
 
             <div className="bg-white p-6 rounded-xl shadow space-y-6 text-[15px] text-gray-700">
-              {/* Basic Info + Poster */}
+              {/* Basic Info */}
               <section className="bg-gray-100 p-4 rounded-md flex flex-col lg:flex-row justify-between gap-4">
                 <div>
                   <h3 className="text-lg font-semibold text-teal-800 mb-2">Basic Information</h3>
@@ -128,27 +147,54 @@ const ViewEvent = () => {
               {/* Participants */}
               <section className="bg-gray-100 p-4 rounded-md">
                 <h3 className="text-lg font-semibold text-teal-800 mb-2">Participants</h3>
-                
-                <p><strong>Registered</strong> {event.participants?.registered ?? 0}</p>
-                <p><strong>Confirmed:</strong> {event.participants?.confirmed ?? 0}</p>
-               <p>
-                <strong>Total</strong>
-                <span className="ml-10">
-                <strong>:</strong>
-                <span className="ml-1">
-                  {(event.participants?.registered ?? 0) + (event.participants?.confirmed ?? 0)}
-                </span>
-                </span>
-              </p>
 
-                <a
-                  href={`/admin/events/${id}/participants`}
+                <p><strong>Registered:</strong> {event.participants?.registered ?? 0}</p>
+                <p><strong>Confirmed:</strong> {event.participants?.confirmed ?? 0}</p>
+                <p>
+                  <strong>Total:</strong>{" "}
+                  {(event.participants?.registered ?? 0) + (event.participants?.confirmed ?? 0)}
+                </p>
+
+                <button
+                  onClick={fetchParticipants}
                   className="text-blue-600 hover:underline mt-1 inline-block"
                 >
-                  View Full Participant List
-                </a>
-              </section>
+                  View Participant List
+                </button>
 
+                {showParticipants && (
+                  <table className="min-w-full bg-white mt-4 rounded-md shadow">
+                    <thead>
+                      <tr>
+                        <th className="py-2 px-4 border-b">ID</th>
+                        <th className="py-2 px-4 border-b">Name</th>
+                        <th className="py-2 px-4 border-b">UserID</th>
+                        <th className="py-2 px-4 border-b">Email</th>
+                        <th className="py-2 px-4 border-b">Submitted Date</th>
+                        <th className="py-2 px-4 border-b">Feedback</th>
+                        <th className="py-2 px-4 border-b">Suggestions</th>
+                        <th className="py-2 px-4 border-b">Rating</th>
+                        <th className="py-2 px-4 border-b">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {participants.map((participant, index) => (
+                        <tr key={index}>
+                          <td className="py-2 px-4 border-b">{participant.id}</td>
+                          <td className="py-2 px-4 border-b">{participant.Name}</td>
+                          <td className="py-2 px-4 border-b">{participant.UserID}</td>
+                          <td className="py-2 px-4 border-b">{participant.Email}</td>
+                          <td className="py-2 px-4 border-b">{participant["submitted date"]}</td>
+                          <td className="py-2 px-4 border-b">{participant.feedback}</td>
+                          <td className="py-2 px-4 border-b">{participant.suggestions}</td>
+                          <td className="py-2 px-4 border-b">{participant.rating}</td>
+                          <td className="py-2 px-4 border-b">{participant.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </section>
 
               {/* Feedback */}
               <section className="bg-gray-100 p-4 rounded-md">
@@ -197,6 +243,7 @@ const ViewEvent = () => {
                 >
                   Delete Event
                 </button>
+
                 <button
                   onClick={() => alert("Send Notification functionality coming soon!")}
                   className="w-40 bg-teal-600 text-white px-2 py-2 rounded-md hover:bg-teal-700 text-center"

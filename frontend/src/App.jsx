@@ -15,6 +15,8 @@ import ViewEvent from "./pages/Admin/ViewEvent";
 import UserManagementDashboard from "./pages/Admin/UserManagementDashboard";
 import MonitorStudent from "./pages/Admin/MonitorStudent";
 import ExploreModel from "./pages/Admin/ExploreModel";
+import CSVTableFromMongo from "./pages/Admin/CSVTableFromMongo";
+import ParticipantsTable from "./pages/Admin/ParticipantsTable"; // adjust path accordingly
 
 const App = () => {
   return (
@@ -36,8 +38,10 @@ const App = () => {
         <Route path="/admin/ViewEvent/:id" element={<ViewEvent />} />
         <Route path="/user-management" element={<UserManagementDashboard/>}/>
         <Route path="/monitor-students" element={<MonitorStudent />}/>
+        <Route path="/admin/events/:id/participants" element={<CSVTableFromMongo />} />
         <Route path="/explore-model" element={<ExploreModel />}/>
-        {/* Add more routes here for About, Services, etc. */}
+        <Route path="/events/:eventId/participants" element={<ParticipantsTable />} />
+
       </Routes>
     </Router>
   );
