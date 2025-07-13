@@ -19,7 +19,7 @@ const getStatusColor = (status) => {
 };
 
 const ViewEvent = () => {
-  const { id } = useParams(); // Event ID from URL
+  const { id } = useParams();
   const [date, setDate] = useState(new Date());
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,16 +28,13 @@ const ViewEvent = () => {
   const [showParticipants, setShowParticipants] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch Event Details
   useEffect(() => {
     const fetchEvent = async () => {
       setLoading(true);
       setError(null);
       try {
         const res = await fetch(`http://localhost:5000/events/${id}`);
-        if (!res.ok) {
-          throw new Error(`Error fetching event: ${res.status} ${res.statusText}`);
-        }
+        if (!res.ok) throw new Error(`Error fetching event: ${res.status} ${res.statusText}`);
         const data = await res.json();
         setEvent(data);
       } catch (err) {
@@ -51,13 +48,10 @@ const ViewEvent = () => {
     fetchEvent();
   }, [id]);
 
-  // Fetch Participants for the specific event_id
   const fetchParticipants = async () => {
     try {
       const res = await fetch(`http://localhost:5000/participants?event_id=${id}`);
-      if (!res.ok) {
-        throw new Error(`Error fetching participants: ${res.status} ${res.statusText}`);
-      }
+      if (!res.ok) throw new Error(`Error fetching participants: ${res.status} ${res.statusText}`);
       const data = await res.json();
       setParticipants(data);
       setShowParticipants(true);
@@ -75,18 +69,14 @@ const ViewEvent = () => {
     <div>
       <Header />
       <main className="bg-gray-100 pt-[65px] min-h-screen">
-        <div className="flex flex-col md:flex-row ">
+        <div className="flex flex-col md:flex-row">
           <AdminSidebar date={date} setDate={setDate} eventDates={[]} />
           <div className="w-full md:w-3/4 px-6 py-8">
             <h1 className="text-3xl font-extrabold text-gray-800 mb-10">Event Management</h1>
-
-            <div>
-              <h2 className="text-2xl font-bold text-teal-800 mb-10">
-                {event.name || "Unnamed Event"}
-              </h2>
-            </div>
+            <h2 className="text-2xl font-bold text-teal-800 mb-10">{event.name || "Unnamed Event"}</h2>
 
             <div className="bg-white p-6 rounded-xl shadow space-y-6 text-[15px] text-gray-700">
+
               {/* Basic Info */}
               <section className="bg-gray-100 p-4 rounded-md flex flex-col lg:flex-row justify-between gap-4">
                 <div>
@@ -94,17 +84,12 @@ const ViewEvent = () => {
                   <p><strong>Date:</strong> {event.date || "N/A"}</p>
                   <p><strong>Time:</strong> {event.time || "N/A"}</p>
                   <p><strong>Venue:</strong> {event.venue || "N/A"}</p>
-                  <p>
-                    <strong>Status:</strong>{" "}
+                  <p><strong>Status:</strong>{" "}
                     <span className={getStatusColor(event.status)}>{event.status || "N/A"}</span>
                   </p>
                 </div>
                 {event.poster && (
-                  <img
-                    src={event.poster}
-                    alt="Event Poster"
-                    className="w-64 h-auto rounded-lg object-cover"
-                  />
+                  <img src={event.poster} alt="Event Poster" className="w-64 h-auto rounded-lg object-cover" />
                 )}
               </section>
 
@@ -119,9 +104,7 @@ const ViewEvent = () => {
                 <h3 className="text-lg font-semibold text-teal-800 mb-2">Speakers / Trainers</h3>
                 {Array.isArray(event.speakers) && event.speakers.length > 0 ? (
                   <ul className="list-disc ml-5">
-                    {event.speakers.map((item, i) => (
-                      <li key={i}>{item}</li>
-                    ))}
+                    {event.speakers.map((item, i) => <li key={i}>{item}</li>)}
                   </ul>
                 ) : (
                   <p>No speakers listed.</p>
@@ -134,9 +117,7 @@ const ViewEvent = () => {
                 {Array.isArray(event.schedule) && event.schedule.length > 0 ? (
                   <ul className="list-disc pl-5">
                     {event.schedule.map((item, i) => (
-                      <li key={i}>
-                        {item.startTime} - {item.endTime}: {item.activity}
-                      </li>
+                      <li key={i}>{item.startTime} - {item.endTime}: {item.activity}</li>
                     ))}
                   </ul>
                 ) : (
@@ -144,59 +125,24 @@ const ViewEvent = () => {
                 )}
               </section>
 
-              {/* Participants */}
+              {/* Participants Summary + Button */}
               <section className="bg-gray-100 p-4 rounded-md">
                 <h3 className="text-lg font-semibold text-teal-800 mb-2">Participants</h3>
-
                 <p><strong>Registered:</strong> {event.participants?.registered ?? 0}</p>
                 <p><strong>Confirmed:</strong> {event.participants?.confirmed ?? 0}</p>
-                <p>
-                  <strong>Total:</strong>{" "}
+                <p><strong>Total:</strong>{" "}
                   {(event.participants?.registered ?? 0) + (event.participants?.confirmed ?? 0)}
                 </p>
 
-                <button
-                  onClick={fetchParticipants}
+                <a
+                  href={`/admin/events/${id}/basic`}
                   className="text-blue-600 hover:underline mt-1 inline-block"
                 >
-                  View Participant List
-                </button>
-
-                {showParticipants && (
-                  <table className="min-w-full bg-white mt-4 rounded-md shadow">
-                    <thead>
-                      <tr>
-                        <th className="py-2 px-4 border-b">ID</th>
-                        <th className="py-2 px-4 border-b">Name</th>
-                        <th className="py-2 px-4 border-b">UserID</th>
-                        <th className="py-2 px-4 border-b">Email</th>
-                        <th className="py-2 px-4 border-b">Submitted Date</th>
-                        <th className="py-2 px-4 border-b">Feedback</th>
-                        <th className="py-2 px-4 border-b">Suggestions</th>
-                        <th className="py-2 px-4 border-b">Rating</th>
-                        <th className="py-2 px-4 border-b">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {participants.map((participant, index) => (
-                        <tr key={index}>
-                          <td className="py-2 px-4 border-b">{participant.id}</td>
-                          <td className="py-2 px-4 border-b">{participant.Name}</td>
-                          <td className="py-2 px-4 border-b">{participant.UserID}</td>
-                          <td className="py-2 px-4 border-b">{participant.Email}</td>
-                          <td className="py-2 px-4 border-b">{participant["submitted date"]}</td>
-                          <td className="py-2 px-4 border-b">{participant.feedback}</td>
-                          <td className="py-2 px-4 border-b">{participant.suggestions}</td>
-                          <td className="py-2 px-4 border-b">{participant.rating}</td>
-                          <td className="py-2 px-4 border-b">{participant.status}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
+                  View Participants List
+                </a>
               </section>
 
-              {/* Feedback */}
+              {/* Feedback Summary + Link */}
               <section className="bg-gray-100 p-4 rounded-md">
                 <h3 className="text-lg font-semibold text-teal-800 mb-2">Feedback Summary</h3>
                 <p><strong>Avg Rating:</strong> {event.rating ?? "4.5 / 5"}</p>
@@ -218,7 +164,6 @@ const ViewEvent = () => {
                     Edit Event
                   </button>
                 )}
-
                 <button
                   onClick={async () => {
                     if (window.confirm("Are you sure you want to delete this event?")) {
@@ -243,7 +188,6 @@ const ViewEvent = () => {
                 >
                   Delete Event
                 </button>
-
                 <button
                   onClick={() => alert("Send Notification functionality coming soon!")}
                   className="w-40 bg-teal-600 text-white px-2 py-2 rounded-md hover:bg-teal-700 text-center"
@@ -251,6 +195,7 @@ const ViewEvent = () => {
                   Send Notification
                 </button>
               </div>
+
             </div>
           </div>
         </div>

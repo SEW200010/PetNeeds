@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, forwardRef } from "react";
 import Header from "../../components/Admin/Header";
 import AdminSidebar from "../../components/Admin/AdminSidebar";
@@ -21,6 +22,7 @@ import {
   TextField,
   InputAdornment,
 } from "@mui/material";
+import { v4 as uuidv4 } from "uuid";
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -52,10 +54,12 @@ const EventManagement = () => {
   const [speakers, setSpeakers] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [isMinimized, setIsMinimized] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   const [formData, setFormData] = useState({
+    event_id: "",
     name: "",
     date: "",
     time: "",
@@ -64,10 +68,7 @@ const EventManagement = () => {
     schedule: [{ startTime: "", endTime: "", activity: "" }],
     status: "Drafted",
     speakers: [],
-    participants: {
-      registered: "",
-      confirmed: "",
-    },
+    participants: { registered: "", confirmed: "" },
   });
 
   const fetchEvents = () => {
@@ -87,11 +88,11 @@ const EventManagement = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const editId = params.get("edit");
-    if (editId && events.length > 0) {
+    if (editId && events.length > 0 && !showForm) {
       const eventToEdit = events.find((e) => e._id === editId);
       if (eventToEdit) handleEditClick(eventToEdit);
     }
-  }, [location.search, events]);
+  }, [location.search, events, showForm]);
 
   useEffect(() => {
     const query = searchQuery.toLowerCase();
@@ -105,56 +106,56 @@ const EventManagement = () => {
     );
   }, [searchQuery, events]);
 
-const handleEditClick = (event) => {
-  const participants = event.participants || {};
+  const handleEditClick = (event) => {
+    const participants = event.participants || {};
 
-  setFormData({
-    name: event.name || "",
-    date: event.date || "",
-    time: event.time || "",
-    description: event.description || "",
-    venue: event.venue || "",
-    schedule: Array.isArray(event.schedule) && event.schedule.length > 0
-      ? event.schedule
-      : [{ startTime: "", endTime: "", activity: "" }],
-    status: event.status || "Drafted",
-    speakers: event.speakers || [],
-    participants: {
-      registered: participants.registered ?? "",
-      confirmed: participants.confirmed ?? "",
-    },
-  });
+    setFormData({
+      event_id: event.event_id || uuidv4(),
+      name: event.name || "",
+      date: event.date || "",
+      time: event.time || "",
+      description: event.description || "",
+      venue: event.venue || "",
+      schedule:
+        Array.isArray(event.schedule) && event.schedule.length > 0
+          ? event.schedule
+          : [{ startTime: "", endTime: "", activity: "" }],
+      status: event.status || "Drafted",
+      speakers: event.speakers || [],
+      participants: {
+        registered: participants.registered ?? "",
+        confirmed: participants.confirmed ?? "",
+      },
+    });
 
-  setSpeakers((event.speakers || []).join(", "));
-  setEditingEventId(event._id);
-  setIsEditMode(true);
-  setShowForm(true);
-};
-
-
+    setSpeakers((event.speakers || []).join(", "));
+    setEditingEventId(event._id);
+    setIsEditMode(true);
+    setShowForm(true);
+  };
 
   const handleInputChange = (e) => {
-  const { name, value } = e.target;
+    const { name, value } = e.target;
 
-  if (["registered", "confirmed"].includes(name)) {
-    setFormData((prev) => ({
-      ...prev,
-      participants: {
-        ...(prev.participants || {}),
+    if (["registered", "confirmed"].includes(name)) {
+      setFormData((prev) => ({
+        ...prev,
+        participants: {
+          ...(prev.participants || {}),
+          [name]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
         [name]: value,
-      },
-    }));
-  } else {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  }
-};
-
+      }));
+    }
+  };
 
   const resetForm = () => {
     setFormData({
+      event_id: uuidv4(),
       name: "",
       date: "",
       time: "",
@@ -170,6 +171,19 @@ const handleEditClick = (event) => {
 
   const handleAddOrUpdateEvent = (e) => {
     e.preventDefault();
+
+    if (
+      !formData.name ||
+      !formData.date ||
+      !formData.time ||
+      !formData.description ||
+      !formData.venue ||
+      !formData.status
+    ) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
     const method = isEditMode ? "PUT" : "POST";
     const url = isEditMode
       ? `http://localhost:5000/events/${editingEventId}`
@@ -180,26 +194,36 @@ const handleEditClick = (event) => {
       .map((s) => s.trim())
       .filter((s) => s.length > 0);
 
-       console.log("Sending data:", {
-    ...formData,
-    speakers: speakersArray,
-  });
+    const payload = {
+      ...formData,
+      event_id: formData.event_id || uuidv4(),
+      speakers: speakersArray,
+    };
 
     fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...formData, speakers: speakersArray }),
+      body: JSON.stringify(payload),
     })
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || "Failed to save event");
+        }
+        return res.json();
+      })
       .then(() => {
         fetchEvents();
         setShowForm(false);
         setIsEditMode(false);
         setEditingEventId(null);
         resetForm();
-        window.history.replaceState({}, document.title, "/admin/EventManagement");
+        navigate("/admin/EventManagement", { replace: true });
       })
-      .catch((err) => console.error("Error saving event:", err));
+      .catch((err) => {
+        console.error("Error saving event:", err);
+        alert(`Error saving event: ${err.message}`);
+      });
   };
 
   const handleScheduleChange = (index, field, value) => {
@@ -396,7 +420,7 @@ function parseDate(str) {
           <div className="bg-white p-6 rounded-xl shadow">
             <StickyHeadTable
               columns={[
-                { id: "no", label: "#" },
+                { id: "event_id", label: "Event ID" },
                 { id: "name", label: "Event Name" },
                 { id: "date", label: "Date" },
                 { id: "status", label: "Status" },
@@ -423,6 +447,7 @@ function parseDate(str) {
               ]}
              rows={processedEvents.map((event, index) => ({
   ...event, // <-- this adds the full event data
+  event_id: index + 1,
   no: index + 1,
   status: (
     <span className={`font-semibold ${getStatusColor(event.status)}`}>
@@ -430,7 +455,6 @@ function parseDate(str) {
     </span>
   ),
 }))}
-
             />
 
             {/* Event Form Dialog */}
@@ -444,8 +468,18 @@ function parseDate(str) {
               maxWidth="sm"
               fullWidth
             >
-              <DialogTitle>{isEditMode ? "Edit Event" : "Create New Event"}</DialogTitle>
-              <form onSubmit={handleAddOrUpdateEvent}>
+            <DialogTitle>
+              {isEditMode ? "Edit Event" : "Create New Event"}
+              <Button
+                size="small"
+                onClick={() => setIsMinimized(!isMinimized)}
+                sx={{ float: "right", minWidth: "auto", padding: "4px 8px" }}
+              >
+                {isMinimized ? "Maximize" : "Minimize"}
+              </Button>
+            </DialogTitle>
+            <form onSubmit={handleAddOrUpdateEvent}>
+              {!isMinimized && (
                 <DialogContent dividers>
                   <TextField
                     margin="dense"
@@ -489,7 +523,6 @@ function parseDate(str) {
                     value={formData.description}
                     onChange={handleInputChange}
                   />
-
                   <div className="flex gap-4 my-4">
                     <TextField
                       margin="dense"
@@ -516,7 +549,6 @@ function parseDate(str) {
                       }
                     />
                   </div>
-
                   <TextField
                     label="Speakers"
                     name="speakers"
@@ -526,7 +558,6 @@ function parseDate(str) {
                     onChange={(e) => setSpeakers(e.target.value)}
                     placeholder="Enter speakers separated by commas"
                   />
-
                   <TextField
                     margin="dense"
                     label="Venue"
@@ -536,7 +567,6 @@ function parseDate(str) {
                     value={formData.venue}
                     onChange={handleInputChange}
                   />
-
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Schedule (Start Time – End Time – Activity)
@@ -594,7 +624,6 @@ function parseDate(str) {
                       </div>
                     ))}
                   </div>
-
                   <FormControl fullWidth margin="dense">
                     <InputLabel id="status-label">Status</InputLabel>
                     <Select
@@ -612,23 +641,25 @@ function parseDate(str) {
                     </Select>
                   </FormControl>
                 </DialogContent>
-                <DialogActions>
-                  <Button
-                    onClick={() => {
-                      setShowForm(false);
-                      setIsEditMode(false);
-                      resetForm();
-                    }}
-                    color="secondary"
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" variant="contained" color="success">
-                    {isEditMode ? "Save Changes" : "Submit"}
-                  </Button>
-                </DialogActions>
-              </form>
-            </Dialog>
+              )}
+              <DialogActions>
+                <Button
+                  onClick={() => {
+                    setShowForm(false);
+                    setIsEditMode(false);
+                    setIsMinimized(false);
+                    resetForm();
+                  }}
+                  color="secondary"
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" variant="contained" color="success">
+                  {isEditMode ? "Save Changes" : "Submit"}
+                </Button>
+              </DialogActions>
+            </form>
+          </Dialog>
             </div>
          </main>
        </div>

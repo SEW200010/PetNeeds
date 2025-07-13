@@ -1,8 +1,0 @@
-id,submitted date,feedback,suggestions,rating
-1,12-Jun-25,A,P,2
-2,13-Jun-25,B,,3
-3,14-Jun-25,C,R
-4,15-Jun-25,D,S,3
-,16-Jun-25,E,T,1
-6,17-Jun-25,F,U,3
-7,invalid_date,G,V,4

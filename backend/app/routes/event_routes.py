@@ -9,6 +9,7 @@ event_bp = Blueprint('event_bp', __name__)
 def create_event():
     try:
         data = request.get_json(force=True)
+        event_id = data.get("event_id")
         name = data.get("name")
         date = data.get("date")
         time = data.get("time")
@@ -26,14 +27,15 @@ def create_event():
             return jsonify({"error": "'registered' and 'confirmed' must be integers"}), 400
 
         # Validation
-        if not all([name, date, time, description, venue, status]):
-            return jsonify({"error": "All required fields must be provided"}), 400
+        if not all([event_id, name, date, time, description, venue, status]):
+            return jsonify({"error": "All required fields including 'event_id' must be provided"}), 400
         if not isinstance(schedule, list) or not isinstance(speakers, list):
             return jsonify({"error": "'schedule' and 'speakers' must be arrays"}), 400
         if not all(isinstance(s, str) for s in speakers):
             return jsonify({"error": "Speakers must be a list of strings"}), 400
 
         mongo.db.events.insert_one({
+            "event_id": event_id,
             "name": name,
             "date": date,
             "time": time,
@@ -75,14 +77,12 @@ def get_event(id):
 
         event["_id"] = str(event["_id"])
 
-        # Ensure 'participants' field exists
         if "participants" not in event:
             event["participants"] = {"registered": 0, "confirmed": 0}
 
         return jsonify(event), 200
 
     except Exception as e:
-        print(f"Error fetching event: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
 
 
