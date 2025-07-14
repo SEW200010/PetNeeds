@@ -15,6 +15,7 @@ import ViewEvent from "./pages/Admin/ViewEvent";
 import UserManagementDashboard from "./pages/Admin/UserManagementDashboard";
 import MonitorStudent from "./pages/Admin/MonitorStudent";
 import ExploreModel from "./pages/Admin/ExploreModel";
+import Profile from "./pages/User/Profile";
 
 const App = () => {
   return (
@@ -37,6 +38,8 @@ const App = () => {
         <Route path="/user-management" element={<UserManagementDashboard/>}/>
         <Route path="/monitor-students" element={<MonitorStudent />}/>
         <Route path="/explore-model" element={<ExploreModel />}/>
+        <Route path="/explore-model" element={<ExploreModel />}/>
+        <Route path="/profile" element={<Profile />}/>
         {/* Add more routes here for About, Services, etc. */}
       </Routes>
     </Router>
