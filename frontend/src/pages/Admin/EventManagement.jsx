@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, forwardRef } from "react";
 import Header from "../../components/Admin/Header";
 import AdminSidebar from "../../components/Admin/AdminSidebar";
@@ -7,6 +6,8 @@ import { Search } from "lucide-react";
 import StickyHeadTable from "../../components/Admin/StickyHeadTable";
 import { Add, Remove } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
+import EventForm from "../../components/Admin/EventForm";
+
 import {
   Button,
   Dialog,
@@ -71,6 +72,7 @@ const EventManagement = () => {
     participants: { registered: "", confirmed: "" },
   });
 
+  // Fetch events from backend
   const fetchEvents = () => {
     fetch("http://localhost:5000/events")
       .then((res) => res.json())
@@ -86,6 +88,7 @@ const EventManagement = () => {
   }, []);
 
   useEffect(() => {
+    // If URL contains edit param, open edit form for that event
     const params = new URLSearchParams(location.search);
     const editId = params.get("edit");
     if (editId && events.length > 0 && !showForm) {
@@ -106,34 +109,34 @@ const EventManagement = () => {
     );
   }, [searchQuery, events]);
 
-  const handleEditClick = (event) => {
-    const participants = event.participants || {};
+  // Open edit form with event data
+const handleEditClick = (event) => {
+  setFormData({
+    event_id: event.event_id || uuidv4(),
+    name: event.name || "",
+    date: event.date || "",
+    time: event.time || "",
+    description: event.description || "",
+    venue: event.venue || "",
+    schedule: Array.isArray(event.schedule)
+      ? event.schedule.map((item) => ({
+          startTime: item.startTime || "",
+          endTime: item.endTime || "",
+          activity: item.activity || "",
+        }))
+      : [{ startTime: "", endTime: "", activity: "" }],
+    status: typeof event.status === "string" ? event.status : "Drafted",
+    speakers: Array.isArray(event.speakers) ? event.speakers : [],
+    participants: event.participants || { registered: "", confirmed: "" },
+  });
+  setEditingEventId(event._id); // ✅ Save MongoDB _id for PUT request
+  setSpeakers((event.speakers || []).join(", "));
+  setIsEditMode(true);
+  setShowForm(true);
+};
 
-    setFormData({
-      event_id: event.event_id || uuidv4(),
-      name: event.name || "",
-      date: event.date || "",
-      time: event.time || "",
-      description: event.description || "",
-      venue: event.venue || "",
-      schedule:
-        Array.isArray(event.schedule) && event.schedule.length > 0
-          ? event.schedule
-          : [{ startTime: "", endTime: "", activity: "" }],
-      status: event.status || "Drafted",
-      speakers: event.speakers || [],
-      participants: {
-        registered: participants.registered ?? "",
-        confirmed: participants.confirmed ?? "",
-      },
-    });
 
-    setSpeakers((event.speakers || []).join(", "));
-    setEditingEventId(event._id);
-    setIsEditMode(true);
-    setShowForm(true);
-  };
-
+  // Handle changes in text inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -153,6 +156,7 @@ const EventManagement = () => {
     }
   };
 
+  // Reset form to empty defaults
   const resetForm = () => {
     setFormData({
       event_id: uuidv4(),
@@ -169,6 +173,7 @@ const EventManagement = () => {
     setSpeakers("");
   };
 
+  // Handle form submit for add/update event
   const handleAddOrUpdateEvent = (e) => {
     e.preventDefault();
 
@@ -184,6 +189,11 @@ const EventManagement = () => {
       return;
     }
 
+    if (isEditMode && !editingEventId) {
+      alert("Invalid event ID. Cannot update event.");
+      return;
+    }
+
     const method = isEditMode ? "PUT" : "POST";
     const url = isEditMode
       ? `http://localhost:5000/events/${editingEventId}`
@@ -195,9 +205,19 @@ const EventManagement = () => {
       .filter((s) => s.length > 0);
 
     const payload = {
-      ...formData,
       event_id: formData.event_id || uuidv4(),
+      name: formData.name,
+      date: formData.date,
+      time: formData.time,
+      description: formData.description,
+      venue: formData.venue,
+      schedule: formData.schedule,
+      status: formData.status,
       speakers: speakersArray,
+      participants: {
+        registered: parseInt(formData.participants.registered) || 0,
+        confirmed: parseInt(formData.participants.confirmed) || 0,
+      },
     };
 
     fetch(url, {
@@ -221,11 +241,11 @@ const EventManagement = () => {
         navigate("/admin/EventManagement", { replace: true });
       })
       .catch((err) => {
-        console.error("Error saving event:", err);
-        alert(`Error saving event: ${err.message}`);
+        alert(err.message);
       });
   };
 
+  // Update schedule array on input change
   const handleScheduleChange = (index, field, value) => {
     const updatedSchedule = [...formData.schedule];
     updatedSchedule[index][field] = value;
@@ -251,37 +271,33 @@ const EventManagement = () => {
     setFilterStatus(status);
   };
 
- const handleSortToggle = () => {
-  const newSortOrder = sortOrder === "asc" ? "desc" : "asc";
-  setSortOrder(newSortOrder);
+  const handleSortToggle = () => {
+    const newSortOrder = sortOrder === "asc" ? "desc" : "asc";
+    setSortOrder(newSortOrder);
 
-  const sortedEvents = [...filteredEvents].sort((a, b) => {
-    const dateA = new Date(a.date);
-    const dateB = new Date(b.date);
-    return newSortOrder === "asc" ? dateA - dateB : dateB - dateA;
-  });
+    const sortedEvents = [...filteredEvents].sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return newSortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
 
-  setFilteredEvents(sortedEvents);
-};
-function parseDate(str) {
-  // Assuming date format is "DD/MM/YYYY", parse accordingly
-  const [day, month, year] = str.split("/");
-  return new Date(year, month - 1, day);
-}
+    setFilteredEvents(sortedEvents);
+  };
 
+  // Helper to parse date strings "DD/MM/YYYY"
+  function parseDate(str) {
+    const [day, month, year] = str.split("/");
+    return new Date(year, month - 1, day);
+  }
+
+  // Filter and sort events before display
   const processedEvents = filteredEvents
-  .filter((event) => (filterStatus === "All" ? true : event.status === filterStatus))
-  .sort((a, b) => {
-    const dateA = parseDate(a.date);
-    const dateB = parseDate(b.date);
-    return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-  })
+    .filter((event) => (filterStatus === "All" ? true : event.status === filterStatus))
     .sort((a, b) => {
-  const dateA = new Date(a.date);
-  const dateB = new Date(b.date);
-  return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-});
-
+      const dateA = parseDate(a.date);
+      const dateB = parseDate(b.date);
+      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -307,7 +323,6 @@ function parseDate(str) {
             </Button>
           </div>
 
-          
           {/* Search */}
           <div className="mb-6 flex justify-center w-full">
             <div className="relative max-w-md w-full">
@@ -369,52 +384,46 @@ function parseDate(str) {
             </div>
           </div>
 
-  <div className="flex justify-end gap-4 mb-1 px-8">
-  {/* Sort Button */}
-<Button
-  onClick={handleSortToggle}
-  variant="contained"
-  sx={{
-    backgroundColor: '#4B9E8B',
-    color: '#ffffff',
-    '&:hover': {
-      backgroundColor: '#004830',
-    },
-  }}
->
-  Sort {sortOrder === "asc" ? "Oldest" : "Newest"}
-</Button>
+          <div className="flex justify-end gap-4 mb-1 px-8">
+            {/* Sort Button */}
+            <Button
+              onClick={handleSortToggle}
+              variant="contained"
+              sx={{
+                backgroundColor: "#4B9E8B",
+                color: "#ffffff",
+                "&:hover": {
+                  backgroundColor: "#004830",
+                },
+              }}
+            >
+              Sort {sortOrder === "asc" ? "Oldest" : "Newest"}
+            </Button>
 
-
-
-  {/* Filter Dropdown */}
-  <FormControl size="small">
-    <Select
-      displayEmpty
-      value={filterStatus}
-      onChange={(e) => handleFilterChange(e.target.value)}
-            renderValue={(selected) => selected || "Filter"}
-      sx={{
-      minWidth: 90,
-      backgroundColor: '#4B9E8B', // green-700
-      color: '#ffffff',
-      borderRadius: '6px',
-      '& .MuiSelect-icon': {color: '#ffffff'},
-      '&:hover': {backgroundColor: '#004830'},
-    }}
-    >
-      
-      <MenuItem value="All">All</MenuItem>
-      <MenuItem value="Upcoming">Upcoming</MenuItem>
-      <MenuItem value="Ongoing">Ongoing</MenuItem>
-      <MenuItem value="Completed">Completed</MenuItem>
-      <MenuItem value="Drafted">Drafted</MenuItem>
-    </Select>
-  </FormControl>
-</div>
-
-
-
+            {/* Filter Dropdown */}
+            <FormControl size="small">
+              <Select
+                displayEmpty
+                value={filterStatus}
+                onChange={(e) => handleFilterChange(e.target.value)}
+                renderValue={(selected) => selected || "Filter"}
+                sx={{
+                  minWidth: 90,
+                  backgroundColor: "#4B9E8B",
+                  color: "#ffffff",
+                  borderRadius: "6px",
+                  "& .MuiSelect-icon": { color: "#ffffff" },
+                  "&:hover": { backgroundColor: "#004830" },
+                }}
+              >
+                <MenuItem value="All">All</MenuItem>
+                <MenuItem value="Upcoming">Upcoming</MenuItem>
+                <MenuItem value="Ongoing">Ongoing</MenuItem>
+                <MenuItem value="Completed">Completed</MenuItem>
+                <MenuItem value="Drafted">Drafted</MenuItem>
+              </Select>
+            </FormControl>
+          </div>
 
           {/* Event Table */}
           <div className="bg-white p-6 rounded-xl shadow">
@@ -445,16 +454,16 @@ function parseDate(str) {
                   ),
                 },
               ]}
-             rows={processedEvents.map((event, index) => ({
-  ...event, // <-- this adds the full event data
-  event_id: index + 1,
-  no: index + 1,
-  status: (
-    <span className={`font-semibold ${getStatusColor(event.status)}`}>
-      {event.status}
-    </span>
-  ),
-}))}
+              rows={processedEvents.map((event, index) => ({
+                ...event,
+                event_id: index + 1,
+                no: index + 1,
+                status: (
+                  <span className={`font-semibold ${getStatusColor(event.status)}`}>
+                    {event.status}
+                  </span>
+                ),
+              }))}
             />
 
             {/* Event Form Dialog */}
@@ -467,203 +476,193 @@ function parseDate(str) {
               }}
               maxWidth="sm"
               fullWidth
+              TransitionComponent={Transition}
             >
-            <DialogTitle>
-              {isEditMode ? "Edit Event" : "Create New Event"}
-              <Button
-                size="small"
-                onClick={() => setIsMinimized(!isMinimized)}
-                sx={{ float: "right", minWidth: "auto", padding: "4px 8px" }}
-              >
-                {isMinimized ? "Maximize" : "Minimize"}
-              </Button>
-            </DialogTitle>
-            <form onSubmit={handleAddOrUpdateEvent}>
-              {!isMinimized && (
-                <DialogContent dividers>
-                  <TextField
-                    margin="dense"
-                    label="Event Title"
-                    name="name"
-                    fullWidth
-                    required
-                    value={formData.name}
-                    onChange={handleInputChange}
-                  />
-                  <TextField
-                    margin="dense"
-                    type="date"
-                    label="Date"
-                    name="date"
-                    fullWidth
-                    required
-                    InputLabelProps={{ shrink: true }}
-                    value={formData.date}
-                    onChange={handleInputChange}
-                  />
-                  <TextField
-                    margin="dense"
-                    type="time"
-                    label="Time"
-                    name="time"
-                    fullWidth
-                    required
-                    InputLabelProps={{ shrink: true }}
-                    value={formData.time}
-                    onChange={handleInputChange}
-                  />
-                  <TextField
-                    margin="dense"
-                    label="Description"
-                    name="description"
-                    fullWidth
-                    required
-                    multiline
-                    rows={3}
-                    value={formData.description}
-                    onChange={handleInputChange}
-                  />
-                  <div className="flex gap-4 my-4">
-                    <TextField
-                      margin="dense"
-                      label="Registered Participants"
-                      name="registered"
-                      type="number"
-                      fullWidth
-                      required
-                      value={formData.participants.registered}
-                      onChange={(e) =>
-                        handleInputChange({ target: { name: "registered", value: e.target.value } })
-                      }
-                    />
-                    <TextField
-                      margin="dense"
-                      label="Confirmed Participants"
-                      name="confirmed"
-                      type="number"
-                      fullWidth
-                      required
-                      value={formData.participants.confirmed}
-                      onChange={(e) =>
-                        handleInputChange({ target: { name: "confirmed", value: e.target.value } })
-                      }
-                    />
-                  </div>
-                  <TextField
-                    label="Speakers"
-                    name="speakers"
-                    multiline
-                    rows={3}
-                    value={speakers}
-                    onChange={(e) => setSpeakers(e.target.value)}
-                    placeholder="Enter speakers separated by commas"
-                  />
-                  <TextField
-                    margin="dense"
-                    label="Venue"
-                    name="venue"
-                    fullWidth
-                    required
-                    value={formData.venue}
-                    onChange={handleInputChange}
-                  />
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Schedule (Start Time – End Time – Activity)
-                    </label>
-                    {formData.schedule.map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex flex-col md:flex-row gap-1 items-start md:items-center mb-3"
-                      >
-                        <TextField
-                          type="time"
-                          label="Start"
-                          value={item.startTime}
-                          InputLabelProps={{ shrink: true }}
-                          onChange={(e) =>
-                            handleScheduleChange(index, "startTime", e.target.value)
-                          }
-                          size="small"
-                          className="w-full md:w-35"
-                        />
-                        <TextField
-                          type="time"
-                          label="End"
-                          value={item.endTime}
-                          InputLabelProps={{ shrink: true }}
-                          onChange={(e) =>
-                            handleScheduleChange(index, "endTime", e.target.value)
-                          }
-                          size="small"
-                          className="w-full md:w-35"
-                        />
-                        <TextField
-                          label="Activity"
-                          value={item.activity}
-                          onChange={(e) =>
-                            handleScheduleChange(index, "activity", e.target.value)
-                          }
-                          size="small"
-                          className="w-full md:flex-1"
-                        />
-                        <div className="flex gap-2 mt-1 md:mt-0">
-                          <IconButton
-                            aria-label="remove"
-                            onClick={() => removeScheduleItem(index)}
-                            disabled={formData.schedule.length === 1}
-                          >
-                            <Remove sx={{ fontSize: 15, color: "red" }} />
-                          </IconButton>
-                          {index === formData.schedule.length - 1 && (
-                            <IconButton aria-label="add" onClick={addScheduleItem}>
-                              <Add sx={{ fontSize: 15, color: "red" }} />
-                            </IconButton>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <FormControl fullWidth margin="dense">
-                    <InputLabel id="status-label">Status</InputLabel>
-                    <Select
-                      labelId="status-label"
-                      name="status"
-                      value={formData.status}
-                      label="Status"
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <MenuItem value="Upcoming">Upcoming</MenuItem>
-                      <MenuItem value="Ongoing">Ongoing</MenuItem>
-                      <MenuItem value="Completed">Completed</MenuItem>
-                      <MenuItem value="Drafted">Drafted</MenuItem>
-                    </Select>
-                  </FormControl>
-                </DialogContent>
-              )}
-              <DialogActions>
+              <DialogTitle>
+                {isEditMode ? "Edit Event" : "Create New Event"}
                 <Button
-                  onClick={() => {
-                    setShowForm(false);
-                    setIsEditMode(false);
-                    setIsMinimized(false);
-                    resetForm();
-                  }}
-                  color="secondary"
+                  size="small"
+                  onClick={() => setIsMinimized(!isMinimized)}
+                  sx={{ float: "right", minWidth: "auto", padding: "4px 8px" }}
                 >
-                  Cancel
+                  {isMinimized ? "Maximize" : "Minimize"}
                 </Button>
-                <Button type="submit" variant="contained" color="success">
-                  {isEditMode ? "Save Changes" : "Submit"}
-                </Button>
-              </DialogActions>
-            </form>
-          </Dialog>
-            </div>
-         </main>
-       </div>
-       </div>
+              </DialogTitle>
+              <form onSubmit={handleAddOrUpdateEvent}>
+                {!isMinimized && (
+                  <DialogContent dividers>
+                    <TextField
+                      margin="dense"
+                      label="Event Title"
+                      name="name"
+                      fullWidth
+                      required
+                      value={formData.name}
+                      onChange={handleInputChange}
+                    />
+                    <TextField
+                      margin="dense"
+                      type="date"
+                      label="Date"
+                      name="date"
+                      fullWidth
+                      required
+                      InputLabelProps={{ shrink: true }}
+                      value={formData.date}
+                      onChange={handleInputChange}
+                    />
+                    <TextField
+                      margin="dense"
+                      type="time"
+                      label="Time"
+                      name="time"
+                      fullWidth
+                      required
+                      InputLabelProps={{ shrink: true }}
+                      value={formData.time}
+                      onChange={handleInputChange}
+                    />
+                    <TextField
+                      margin="dense"
+                      label="Description"
+                      name="description"
+                      fullWidth
+                      required
+                      multiline
+                      rows={3}
+                      value={formData.description}
+                      onChange={handleInputChange}
+                    />
+                    <div className="flex gap-4 my-4">
+                      <TextField
+                        margin="dense"
+                        label="Registered Participants"
+                        name="registered"
+                        type="number"
+                        fullWidth
+                        required
+                        value={formData.participants.registered}
+                        onChange={(e) =>
+                          handleInputChange({
+                            target: { name: "registered", value: e.target.value },
+                          })
+                        }
+                      />
+                      <TextField
+                        margin="dense"
+                        label="Confirmed Participants"
+                        name="confirmed"
+                        type="number"
+                        fullWidth
+                        required
+                        value={formData.participants.confirmed}
+                        onChange={(e) =>
+                          handleInputChange({
+                            target: { name: "confirmed", value: e.target.value },
+                          })
+                        }
+                      />
+                    </div>
+
+                    <TextField
+                      margin="dense"
+                      label="Venue"
+                      name="venue"
+                      fullWidth
+                      required
+                      value={formData.venue}
+                      onChange={handleInputChange}
+                    />
+
+                    <TextField
+                      margin="dense"
+                      label="Speakers (comma separated)"
+                      name="speakers"
+                      fullWidth
+                      value={speakers}
+                      onChange={(e) => setSpeakers(e.target.value)}
+                    />
+
+                    {/* Schedule Inputs */}
+                    <div className="my-4">
+                      <label className="block font-semibold mb-2">Schedule</label>
+                      {formData.schedule.map((item, idx) => (
+                        <div key={idx} className="flex gap-3 mb-2">
+                          <TextField
+                            label="Start Time"
+                            type="time"
+                            required
+                            value={item.startTime}
+                            onChange={(e) =>
+                              handleScheduleChange(idx, "startTime", e.target.value)
+                            }
+                          />
+                          <TextField
+                            label="End Time"
+                            type="time"
+                            required
+                            value={item.endTime}
+                            onChange={(e) =>
+                              handleScheduleChange(idx, "endTime", e.target.value)
+                            }
+                          />
+                          <TextField
+                            label="Activity"
+                            required
+                            value={item.activity}
+                            onChange={(e) =>
+                              handleScheduleChange(idx, "activity", e.target.value)
+                            }
+                            sx={{ flex: 1 }}
+                          />
+                          <IconButton onClick={() => removeScheduleItem(idx)}>
+                            <Remove />
+                          </IconButton>
+                        </div>
+                      ))}
+                      <Button onClick={addScheduleItem} startIcon={<Add />}>
+                        Add Schedule Item
+                      </Button>
+                    </div>
+
+                    {/* Status Select */}
+                    <FormControl fullWidth margin="dense" required>
+                      <InputLabel>Status</InputLabel>
+                      <Select
+                        label="Status"
+                        name="status"
+                        value={formData.status}
+                        onChange={handleInputChange}
+                      >
+                        <MenuItem value="Drafted">Drafted</MenuItem>
+                        <MenuItem value="Upcoming">Upcoming</MenuItem>
+                        <MenuItem value="Ongoing">Ongoing</MenuItem>
+                        <MenuItem value="Completed">Completed</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </DialogContent>
+                )}
+
+                <DialogActions>
+                  <Button
+                    onClick={() => {
+                      setShowForm(false);
+                      setIsEditMode(false);
+                      resetForm();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" variant="contained" sx={{ backgroundColor: "#4B9E8B" }}>
+                    {isEditMode ? "Update Event" : "Create Event"}
+                  </Button>
+                </DialogActions>
+              </form>
+            </Dialog>
+          </div>
+        </main>
+      </div>
+    </div>
   );
 };
 

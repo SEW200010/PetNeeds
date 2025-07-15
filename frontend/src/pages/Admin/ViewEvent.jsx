@@ -29,6 +29,12 @@ const ViewEvent = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!id || id === "null") {
+      // Redirect to event management page if invalid ID
+      navigate("/admin/EventManagement", { replace: true });
+      return;
+    }
+
     const fetchEvent = async () => {
       setLoading(true);
       setError(null);
@@ -157,12 +163,13 @@ const ViewEvent = () => {
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 mt-6 justify-end">
                 {event.status !== "Completed" && (
-                  <button
-                    onClick={() => navigate(`/admin/EventManagement?edit=${event._id}`)}
-                    className="w-40 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 text-center"
-                  >
-                    Edit Event
-                  </button>
+                 <button
+                  onClick={() => navigate("/admin/EventManagement", { state: { event } })}
+                  className="w-40 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 text-center"
+                >
+                  Edit Event
+                </button>
+
                 )}
                 <button
                   onClick={async () => {
