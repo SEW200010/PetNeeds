@@ -6,8 +6,6 @@ import { Search } from "lucide-react";
 import StickyHeadTable from "../../components/Admin/StickyHeadTable";
 import { Add, Remove } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
-import EventForm from "../../components/Admin/EventForm";
-
 import {
   Button,
   Dialog,
