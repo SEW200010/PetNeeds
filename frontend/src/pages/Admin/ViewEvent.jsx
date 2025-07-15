@@ -27,7 +27,7 @@ const ViewEvent = () => {
   const [participants, setParticipants] = useState([]);
   const [showParticipants, setShowParticipants] = useState(false);
   const navigate = useNavigate();
-
+  
   useEffect(() => {
     if (!id || id === "null") {
       // Redirect to event management page if invalid ID
@@ -151,7 +151,6 @@ const ViewEvent = () => {
               {/* Feedback Summary + Link */}
               <section className="bg-gray-100 p-4 rounded-md">
                 <h3 className="text-lg font-semibold text-teal-800 mb-2">Feedback Summary</h3>
-                <p><strong>Avg Rating:</strong> {event.rating ?? "4.5 / 5"}</p>
                 <a
                   href={`/admin/events/${id}/feedback`}
                   className="text-blue-600 hover:underline mt-1 inline-block"
@@ -195,12 +194,29 @@ const ViewEvent = () => {
                 >
                   Delete Event
                 </button>
-                <button
-                  onClick={() => alert("Send Notification functionality coming soon!")}
-                  className="w-40 bg-teal-600 text-white px-2 py-2 rounded-md hover:bg-teal-700 text-center"
-                >
-                  Send Notification
-                </button>
+                           <button
+  onClick={async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/notify/${event._id}`, {
+        method: "POST",
+      });
+      const result = await res.json();
+      if (res.ok) {
+        alert(result.message || "Notification emails sent successfully!");
+      } else {
+        alert(result.error || "Failed to send emails.");
+      }
+    } catch (err) {
+      console.error("Email error:", err);
+      alert("An error occurred while sending emails.");
+    }
+  }}
+  className="w-40 bg-teal-600 text-white px-2 py-2 rounded-md hover:bg-teal-700 text-center"
+>
+  Send Notification
+</button>
+
+
               </div>
 
             </div>

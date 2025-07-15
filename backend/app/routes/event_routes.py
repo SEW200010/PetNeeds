@@ -176,3 +176,5 @@ def delete_event(id):
         return jsonify({"error": "Invalid ObjectId format"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+

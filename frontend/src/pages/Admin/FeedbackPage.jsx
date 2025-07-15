@@ -7,20 +7,32 @@ import StickyHeadTable from "../../components/Admin/StickyHeadTable";
 const FeedbackPage = () => {
   const { id } = useParams(); // event ID
   const [feedbackData, setFeedbackData] = useState([]);
+  const [avgRating, setAvgRating] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [date, setDate] = useState(new Date());
 
   useEffect(() => {
-  fetch(`http://localhost:5000/participants?event_id=${id}`)
-    .then((res) => res.json())
-    .then((data) => setFeedbackData(data))  // <-- Only participants for this event
-    .catch((err) => {
-      console.error("Error fetching feedback:", err);
-      alert("Failed to load feedback.");
-    })
-    .finally(() => setLoading(false));
-}, [id]);
+    fetch(`http://localhost:5000/participants?event_id=${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setFeedbackData(data);
+        calculateAverageRating(data); // 👈 calculate after data is loaded
+      })
+      .catch((err) => {
+        console.error("Error fetching feedback:", err);
+        alert("Failed to load feedback.");
+        setError("Failed to fetch feedback.");
+      })
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  const calculateAverageRating = (data) => {
+    const ratings = data.map((item) => Number(item.rating)).filter((r) => !isNaN(r));
+    const total = ratings.reduce((sum, r) => sum + r, 0);
+    const average = ratings.length ? (total / ratings.length).toFixed(2) : null;
+    setAvgRating(average);
+  };
 
   return (
     <div>
@@ -38,6 +50,9 @@ const FeedbackPage = () => {
               <p className="text-red-600 font-semibold">{error}</p>
             ) : (
               <div className="bg-white rounded-md shadow p-4 overflow-x-auto">
+                <p className="text-lg font-semibold mb-4">
+                  Average Rating: {avgRating !== null ? `${avgRating}` : "Not available"}
+                </p>
                 <StickyHeadTable
                   columns={[
                     { id: "id", label: "ID" },
@@ -48,7 +63,7 @@ const FeedbackPage = () => {
                     { id: "rating", label: "Rating" },
                   ]}
                   rows={feedbackData.map((item, index) => ({
-                    id: item.id,
+                    id: item.id || index + 1,
                     name: item.Name,
                     submitted_date: item["submitted date"] || item.submitted_date,
                     feedback: item.feedback,
