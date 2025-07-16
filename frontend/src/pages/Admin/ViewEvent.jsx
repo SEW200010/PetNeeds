@@ -130,10 +130,25 @@ const ViewEvent = () => {
                   <p>No schedule provided.</p>
                 )}
               </section>
+                {/* Media Section */}
+              <section className="bg-gray-100 p-4 rounded-md">
+                <h3 className="text-lg font-semibold text-teal-800 mb-2">Event Media</h3>
+                {Array.isArray(event.eventMedia) && event.eventMedia.filter(m => m && m.trim() !== "").length > 0 ? (
+                  <ul className="list-disc ml-5">
+                    {event.eventMedia.filter(m => m && m.trim() !== "").map((media, index) => (
+                      <li key={index}>{media}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No media types selected for this event.</p>
+                )}
+              </section>
 
               {/* Participants Summary + Button */}
               <section className="bg-gray-100 p-4 rounded-md">
                 <h3 className="text-lg font-semibold text-teal-800 mb-2">Participants</h3>
+                {/* Number of Slots */}
+                <p><strong>Total Number of Slots:</strong> {event.numberOfSlots ?? "N/A"}</p>
                 <p><strong>Registered:</strong> {event.participants?.registered ?? 0}</p>
                 <p><strong>Confirmed:</strong> {event.participants?.confirmed ?? 0}</p>
                 <p><strong>Total:</strong>{" "}

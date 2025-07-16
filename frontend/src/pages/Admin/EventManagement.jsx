@@ -16,6 +16,8 @@ import {
   IconButton,
   InputLabel,
   MenuItem,
+  Radio,
+  ListItemText,
   Select,
   Slide,
   TextField,
@@ -58,27 +60,29 @@ const EventManagement = () => {
   const location = useLocation();
 
   const [formData, setFormData] = useState({
-    event_id: "",
-    name: "",
-    date: "",
-    time: "",
-    description: "",
-    venue: "",
-    schedule: [{ startTime: "", endTime: "", activity: "" }],
-    status: "Drafted",
-    speakers: [],
-    participants: { registered: "", confirmed: "" },
-    numberOfSlots: "",     // ✅ NEW FIELD
-    agenda: "",            // ✅ NEW FIELD
-    eventMedia: "",        // ✅ NEW FIELD
-  });
+  event_id: 0,
+  name: "",
+  date: "",
+  time: "",
+  description: "",
+  venue: "",
+  schedule: [{ startTime: "", endTime: "", activity: "" }],
+  status: "Drafted",
+  speakers: [],
+  participants: { registered: "", confirmed: "" },
+  numberOfSlots: "",
+  eventMedia: [],  // ✅ now initialized as array
+});
+
 
   const fetchEvents = () => {
     fetch("http://localhost:5000/events")
       .then((res) => res.json())
       .then((data) => {
-        setEvents(data);
-        setFilteredEvents(data);
+        // Filter out events without valid _id
+        const validEvents = data.filter((e) => e._id && typeof e._id === "string" && e._id.length === 24);
+        setEvents(validEvents);
+        setFilteredEvents(validEvents);
       })
       .catch((err) => console.error("Error fetching events:", err));
   };
@@ -109,42 +113,49 @@ const EventManagement = () => {
   }, [searchQuery, events]);
 
   const handleEditClick = (event) => {
-    setFormData({
-      event_id: event.event_id || uuidv4(),
-      name: event.name || "",
-      date: event.date || "",
-      time: event.time || "",
-      description: event.description || "",
-      venue: event.venue || "",
-      schedule: Array.isArray(event.schedule)
-        ? event.schedule.map((item) => ({
-            startTime: item.startTime || "",
-            endTime: item.endTime || "",
-            activity: item.activity || "",
-          }))
-        : [{ startTime: "", endTime: "", activity: "" }],
-      status: typeof event.status === "string" ? event.status : "Drafted",
-      speakers: Array.isArray(event.speakers) ? event.speakers : [],
-      participants: event.participants || { registered: "", confirmed: "" },
-      numberOfSlots: event.numberOfSlots || "",   // ✅ NEW
-      agenda: event.agenda || "",                 // ✅ NEW
-      eventMedia: event.eventMedia || "",         // ✅ NEW
-    });
-    setEditingEventId(event._id);
-    setSpeakers((event.speakers || []).join(", "));
-    setIsEditMode(true);
-    setShowForm(true);
-  };
+  setFormData({
+    event_id: event.event_id || 0,
+    name: event.name || "",
+    date: event.date || "",
+    time: event.time || "",
+    description: event.description || "",
+    venue: event.venue || "",
+    schedule: Array.isArray(event.schedule)
+      ? event.schedule.map((item) => ({
+          startTime: item.startTime || "",
+          endTime: item.endTime || "",
+          activity: item.activity || "",
+        }))
+      : [{ startTime: "", endTime: "", activity: "" }],
+    status: typeof event.status === "string" ? event.status : "Drafted",
+    speakers: Array.isArray(event.speakers) ? event.speakers : [],
+    participants: event.participants || { registered: "", confirmed: "" },
+    numberOfSlots: event.numberOfSlots || "",
+    eventMedia: Array.isArray(event.eventMedia)
+      ? event.eventMedia
+      : typeof event.eventMedia === "string"
+      ? event.eventMedia.split(",").map((m) => m.trim())
+      : [], // ✅ handles backward compatibility
+  });
+  setEditingEventId(event._id);
+  setSpeakers((event.speakers || []).join(", "));
+  setIsEditMode(true);
+  setShowForm(true);
+};
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
     if (["registered", "confirmed"].includes(name)) {
+      // Parse value as integer or empty string, prevent off-by-one errors
+      let numericValue = value === "" ? "" : parseInt(value, 10);
+      if (isNaN(numericValue)) numericValue = "";
       setFormData((prev) => ({
         ...prev,
         participants: {
           ...(prev.participants || {}),
-          [name]: value,
+          [name]: numericValue,
         },
       }));
     } else {
@@ -157,7 +168,7 @@ const EventManagement = () => {
 
   const resetForm = () => {
     setFormData({
-      event_id: uuidv4(),
+      event_id: 0,
       name: "",
       date: "",
       time: "",
@@ -168,8 +179,7 @@ const EventManagement = () => {
       speakers: [],
       participants: { registered: "", confirmed: "" },
       numberOfSlots: "",   // ✅ NEW
-      agenda: "",          // ✅ NEW
-      eventMedia: "",      // ✅ NEW
+      eventMedia: [],      // Changed from empty string to empty array
     });
     setSpeakers("");
   };
@@ -218,9 +228,8 @@ const EventManagement = () => {
         registered: parseInt(formData.participants.registered) || 0,
         confirmed: parseInt(formData.participants.confirmed) || 0,
       },
-      numberOfSlots: parseInt(formData.numberOfSlots) || 0,  // ✅
-      agenda: formData.agenda,                                // ✅
-      eventMedia: formData.eventMedia,                        // ✅
+      numberOfSlots: parseInt(formData.numberOfSlots) || 0,
+      eventMedia: formData.eventMedia,
     };
 
     fetch(url, {
@@ -253,6 +262,9 @@ const EventManagement = () => {
     updatedSchedule[index][field] = value;
     setFormData((prev) => ({ ...prev, schedule: updatedSchedule }));
   };
+const totalRegistered = events.reduce((sum, e) => {
+  return sum + (e.participants?.registered || 0);
+}, 0);
 
   const addScheduleItem = () => {
     setFormData((prev) => ({
@@ -361,7 +373,7 @@ const EventManagement = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-15 px-8 mr-5">
             <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
               <FaUsers className="text-2xl mx-auto" />
-              <div className="text-green-700 text-xl">230</div>
+              <div className="text-green-700 text-xl">{totalRegistered}</div>
               <div>Registered Participants</div>
             </div>
             <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
@@ -441,12 +453,18 @@ const EventManagement = () => {
                   label: "Actions",
                   render: (_, row) => (
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => navigate(`/admin/ViewEvent/${row._id}`)}
-                        className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded text-xs"
-                      >
-                        View
-                      </button>
+                    <button
+                      onClick={() => {
+                        if (row._id && row._id.length === 24) {
+                          navigate(`/admin/ViewEvent/${row._id}`);
+                        } else {
+                          alert("Invalid event ID. Cannot view event.");
+                        }
+                      }}
+                      className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded text-xs"
+                    >
+                      View
+                    </button>
                       <button
                         onClick={() => handleEditClick(row)}
                         className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
@@ -537,32 +555,69 @@ const EventManagement = () => {
                       onChange={handleInputChange}
                     />
                      <TextField
-        margin="dense"
-        label="Number of Slots"
-        name="numberOfSlots"
-        type="number"
-        fullWidth
-        value={formData.numberOfSlots}
-        onChange={handleInputChange}
+                      margin="dense"
+                      label="Number of Slots"
+                      name="numberOfSlots"
+                      type="number"
+                      fullWidth
+                      value={formData.numberOfSlots}
+                      onChange={handleInputChange}
+                    />
+<FormControl fullWidth margin="dense" required>
+  <InputLabel>Event Media</InputLabel>
+  <Select
+    label="Event Media"
+    name="eventMedia"
+    multiple
+    value={formData.eventMedia}
+    onChange={(e) => {
+      const selected = e.target.value;
+
+      if (selected.includes("None of the above")) {
+        setFormData((prev) => ({
+          ...prev,
+          eventMedia: ["None of the above"],
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          eventMedia: selected.filter((item) => item !== "None of the above"),
+        }));
+      }
+    }}
+                              renderValue={(selected) => selected.filter(s => s && s.trim() !== "").join(", ")}
+  >
+    <MenuItem value="None of the above">
+      <Radio
+        checked={formData.eventMedia.includes("None of the above")}
       />
-      <TextField
-        margin="dense"
-        label="Agenda"
-        name="agenda"
-        fullWidth
-        multiline
-        rows={2}
-        value={formData.agenda}
-        onChange={handleInputChange}
-      />
-      <TextField
-        margin="dense"
-        label="Event Media (URL or file path)"
-        name="eventMedia"
-        fullWidth
-        value={formData.eventMedia}
-        onChange={handleInputChange}
+      <ListItemText primary="None of the above" />
+    </MenuItem>
+
+    {[
+      "Banners",
+      "Live streams",
+      "Speaker interviews",
+      "Tutorials",
+      "Recorded speeches",
+      "Magazine features",
+      "Event pages",
+      "Photo galleries",
+    ].map((option) => (
+      <MenuItem
+        key={option}
+        value={option}
+        disabled={formData.eventMedia.includes("None of the above")}
+      >
+        <Radio
+          checked={formData.eventMedia.includes(option)}
         />
+        <ListItemText primary={option} />
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
+
                     <div className="flex gap-4 my-4">
                       <TextField
                         margin="dense"

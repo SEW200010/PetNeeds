@@ -31,7 +31,6 @@ def create_event():
 
         # New fields
         numberOfSlots = int(data.get("numberOfSlots", 0))        # ✅
-        agenda = data.get("agenda", "")                          # ✅
         eventMedia = data.get("eventMedia", "")                  # ✅
 
         # Validation
@@ -57,7 +56,6 @@ def create_event():
                 "confirmed": confirmed
             },
             "numberOfSlots": numberOfSlots,      # ✅
-            "agenda": agenda,                    # ✅
             "eventMedia": eventMedia             # ✅
         })
         return jsonify({"message": "Event created"}), 201
@@ -75,7 +73,6 @@ def get_all_events():
             e['_id'] = str(e['_id'])
             e['participants'] = e.get('participants', {"registered": 0, "confirmed": 0})
             e['numberOfSlots'] = e.get('numberOfSlots', 0)     # ✅
-            e['agenda'] = e.get('agenda', "")                  # ✅
             e['eventMedia'] = e.get('eventMedia', "")          # ✅
             events.append(e)
         return jsonify(events), 200
@@ -96,7 +93,6 @@ def get_event(id):
         e['_id'] = str(e['_id'])
         e['participants'] = e.get('participants', {"registered": 0, "confirmed": 0})
         e['numberOfSlots'] = e.get('numberOfSlots', 0)     # ✅
-        e['agenda'] = e.get('agenda', "")                  # ✅
         e['eventMedia'] = e.get('eventMedia', "")          # ✅
         return jsonify(e), 200
     except InvalidId:
@@ -118,7 +114,7 @@ def update_event(id):
             return jsonify({"error": "Event not found"}), 404
 
         update = {}
-        for field in ("event_id", "name", "date", "time", "description", "venue", "status", "schedule", "speakers", "participants", "numberOfSlots", "agenda", "eventMedia"):  # ✅ Included new fields
+        for field in ("event_id", "name", "date", "time", "description", "venue", "status", "schedule", "speakers", "participants", "numberOfSlots", "eventMedia"):  # ✅ Included new fields
             if field in data:
                 update[field] = data[field]
 
@@ -174,16 +170,18 @@ def get_participants_by_event():
         if not event:
             return jsonify({"error": "Event not found"}), 404
 
-        numeric_event_id = str(event.get("event_id"))
-        if not numeric_event_id:
+        numeric_event_id = event.get("event_id")
+        if numeric_event_id is None or numeric_event_id == "":
             return jsonify({"error": "Event numeric ID not found"}), 404
+
+        numeric_event_id_str = str(numeric_event_id)
 
         participants = []
         csv_path = os.path.join(os.path.dirname(__file__), "data", "participants.csv")
         with open(csv_path, mode='r', newline='', encoding='utf-8') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                if row.get("event_id") == numeric_event_id:
+                if row.get("event_id") == numeric_event_id_str:
                     participants.append(row)
 
         return jsonify(participants), 200
