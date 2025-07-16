@@ -13,9 +13,11 @@ import {
 } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import UserImg from "@/assets/User/DefaultUser.png"
+import { useNavigate } from "react-router-dom";
+
 
 const menuItems = [
-  { icon: User, label: "My Profile", hasChevron: true },
+  { icon: User, label: "My Profile", hasChevron: true ,path:"/profile"},
   { icon: Calendar, label: "My Events", hasChevron: true },
   { icon: Settings, label: "Settings", hasChevron: true },
   { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
@@ -23,6 +25,9 @@ const menuItems = [
 ];
 
 export default function UserSidebar() {
+
+  const navigate = useNavigate();
+  
   return (
     <aside className="w-72 bg-white shadow-lg border-r border-gray-200 rounded-xl p-2 h-88 mx-auto">
       <div className="p-6">
@@ -47,6 +52,7 @@ export default function UserSidebar() {
                 key={index}
                 variant="ghost"
                 className="w-full justify-between text-left font-normal text-gray-700 hover:bg-gray-50"
+                onClick={() => item.path && navigate(item.path)}
               >
                 <div className="flex items-center space-x-3">
                   <IconComponent className="h-5 w-5" />

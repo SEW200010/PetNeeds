@@ -1,10 +1,35 @@
 import Header from '@/components/Admin/header'
 import UserSidebar from '@/components/User/UserSidebar'
 import React from 'react'
-import UserImg from "@/assets/User/DefaultUser.png"
-import { Avatar, Button, Chip } from "@mui/material";
 import { Mail } from "lucide-react"; 
+import axios from 'axios';
+import {jwtDecode} from 'jwt-decode';
+import { useState, useEffect } from 'react';
+
 function Profile() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const decoded = jwtDecode(token);
+    const userId = decoded.sub || decoded.user_id;
+
+    axios
+      .get(`http://localhost:5000/api/user/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setUser(res.data))
+      .catch((err) => {
+        console.error(err);
+        // Optionally redirect to login if unauthorized
+      });
+  }, []);
+
+  if (!user) return <div className="text-center mt-10">Loading...</div>;
+
+
   return (
     <div>
         <Header/>
@@ -15,10 +40,10 @@ function Profile() {
               <div className="max-w-10xl mx-auto">
                 {/* Welcome */}
                 <h2 className="text-lg text-gray-700 font-semibold mb-1">
-                  Welcome, Mashi
+                  Welcome, {user.fullName}
                 </h2>
                 <p className="text-sm text-gray-500 mb-6">
-                  2022 July 21
+                  Joined: {user.joinedDate || "Unknown"}
                 </p>
 
                 {/* Profile Card */}
@@ -36,8 +61,8 @@ function Profile() {
                             className="w-16 h-16 rounded-full object-cover border-2 border-white shadow"
                           />
                           <div>
-                            <h2 className="text-xl font-semibold">Alexa Rawles</h2>
-                            <p className="text-gray-500">alexarawles@gmail.com</p>
+                            <h2 className="text-xl font-semibold">{user.fullName}</h2>
+                            <p className="text-gray-500">{user.email}</p>
                           </div>
                         </div>
 
@@ -50,12 +75,12 @@ function Profile() {
                       {/* Details Grid */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                         {[
-                          { label: 'Full Name', value: 'Alexa Rawles' },
-                          { label: 'Email', value: 'alexarawles@gmail.com' },
-                          { label: 'User Type', value: 'Student' },
-                          { label: 'Location', value: 'Kegalle' },
-                          { label: 'School', value: 'Kegalle' },
-                          { label: 'Contact', value: '0774551145' },
+                          { label: 'Full Name', value :user.fullName},
+                          { label: 'Email', value: user.email },
+                          { label: 'User Type', value: user.role},
+                          { label: 'Location', value: user.location },
+                          { label: 'School', value: user.school },
+                          { label: 'Contact', value: user.contact },
                         ].map((item, index) => (
                           <div key={index}>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -68,14 +93,15 @@ function Profile() {
                         ))}
                       </div>
                       <div>
-                        <label className="block text-2xl font-medium text-gray-700 mt-8 mb-1.5">
+                        <label className="block text-2xl font-medium text-gray-700 mt-8 mb-3">
                             My email Address
                         </label>
-                        <div className="flex  mb-6">
-                          <div className="flex items-center  px-2 py-2 ">
-                            <Mail className="w-4 h-4 mr-2 bg-green-300 rounded-full " />
-                            <span className="text-sm">alexarawles@gmail.com</span>
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="bg-emerald-100 text-emerald-600 p-2 rounded-full">
+                            <Mail className="w-4 h-4" />
                           </div>
+                            <span className="text-gray-800">{user.email}</span>
+                          
                         </div>
 
                         <div className="space-y-3">
