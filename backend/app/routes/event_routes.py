@@ -15,7 +15,7 @@ def create_event():
         last = mongo.db.events.find_one(sort=[("event_id", -1)])
         event_id = (last["event_id"] + 1) if last and isinstance(last["event_id"], int) else 1
 
-        # Required fields
+        # Extract fields from request
         event_id = data.get("event_id", event_id)
         name = data.get("name")
         date = data.get("date")
@@ -28,6 +28,11 @@ def create_event():
         participants = data.get("participants", {})
         registered = int(participants.get("registered", 0))
         confirmed = int(participants.get("confirmed", 0))
+
+        # New fields
+        numberOfSlots = int(data.get("numberOfSlots", 0))        # ✅
+        agenda = data.get("agenda", "")                          # ✅
+        eventMedia = data.get("eventMedia", "")                  # ✅
 
         # Validation
         if not all([name, date, time, description, venue, status]):
@@ -50,45 +55,16 @@ def create_event():
             "participants": {
                 "registered": registered,
                 "confirmed": confirmed
-            }
+            },
+            "numberOfSlots": numberOfSlots,      # ✅
+            "agenda": agenda,                    # ✅
+            "eventMedia": eventMedia             # ✅
         })
         return jsonify({"message": "Event created"}), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@event_bp.route('/participants', methods=['GET'])
-def get_participants_by_event():
-    try:
-        event_mongo_id = request.args.get("event_id")
-        if not event_mongo_id:
-            return jsonify({"error": "Missing event_id parameter"}), 400
-
-        # Find event document by MongoDB _id
-        event = mongo.db.events.find_one({"_id": ObjectId(event_mongo_id)})
-        if not event:
-            return jsonify({"error": "Event not found"}), 404
-
-        # Extract numeric event_id from event document
-        numeric_event_id = str(event.get("event_id"))
-        if not numeric_event_id:
-            return jsonify({"error": "Event numeric ID not found"}), 404
-
-        participants = []
-        csv_path = os.path.join(os.path.dirname(__file__), "data", "participants.csv")
-        with open(csv_path, mode='r', newline='', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                # Compare with numeric event_id from event document
-                if row.get("event_id") == numeric_event_id:
-                    participants.append(row)
-
-        return jsonify(participants), 200
-
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print("Error:", e)
 
 # Get All Events
 @event_bp.route('/events', methods=['GET'])
@@ -97,6 +73,10 @@ def get_all_events():
         events = []
         for e in mongo.db.events.find():
             e['_id'] = str(e['_id'])
+            e['participants'] = e.get('participants', {"registered": 0, "confirmed": 0})
+            e['numberOfSlots'] = e.get('numberOfSlots', 0)     # ✅
+            e['agenda'] = e.get('agenda', "")                  # ✅
+            e['eventMedia'] = e.get('eventMedia', "")          # ✅
             events.append(e)
         return jsonify(events), 200
     except Exception as e:
@@ -115,6 +95,9 @@ def get_event(id):
             return jsonify({"error": "Not found"}), 404
         e['_id'] = str(e['_id'])
         e['participants'] = e.get('participants', {"registered": 0, "confirmed": 0})
+        e['numberOfSlots'] = e.get('numberOfSlots', 0)     # ✅
+        e['agenda'] = e.get('agenda', "")                  # ✅
+        e['eventMedia'] = e.get('eventMedia', "")          # ✅
         return jsonify(e), 200
     except InvalidId:
         return jsonify({"error": "Invalid ObjectId format"}), 400
@@ -134,19 +117,20 @@ def update_event(id):
         if not e:
             return jsonify({"error": "Event not found"}), 404
 
-        # Prepare update
         update = {}
-        for field in ("event_id","name", "date", "time", "description", "venue", "status", "schedule", "speakers", "participants"):
+        for field in ("event_id", "name", "date", "time", "description", "venue", "status", "schedule", "speakers", "participants", "numberOfSlots", "agenda", "eventMedia"):  # ✅ Included new fields
             if field in data:
                 update[field] = data[field]
 
-        # Ensure participant types
         if "participants" in update:
             p = update["participants"]
             update["participants"] = {
                 "registered": int(p.get("registered", 0)),
                 "confirmed": int(p.get("confirmed", 0))
             }
+
+        if "numberOfSlots" in update:
+            update["numberOfSlots"] = int(update["numberOfSlots"])  # ✅ Ensure int
 
         res = mongo.db.events.update_one({"_id": ObjectId(id)}, {"$set": update})
         if res.matched_count == 0:
@@ -178,3 +162,33 @@ def delete_event(id):
         return jsonify({"error": str(e)}), 500
 
 
+# Get Participants by Event
+@event_bp.route('/participants', methods=['GET'])
+def get_participants_by_event():
+    try:
+        event_mongo_id = request.args.get("event_id")
+        if not event_mongo_id:
+            return jsonify({"error": "Missing event_id parameter"}), 400
+
+        event = mongo.db.events.find_one({"_id": ObjectId(event_mongo_id)})
+        if not event:
+            return jsonify({"error": "Event not found"}), 404
+
+        numeric_event_id = str(event.get("event_id"))
+        if not numeric_event_id:
+            return jsonify({"error": "Event numeric ID not found"}), 404
+
+        participants = []
+        csv_path = os.path.join(os.path.dirname(__file__), "data", "participants.csv")
+        with open(csv_path, mode='r', newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                if row.get("event_id") == numeric_event_id:
+                    participants.append(row)
+
+        return jsonify(participants), 200
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print("Error:", e)

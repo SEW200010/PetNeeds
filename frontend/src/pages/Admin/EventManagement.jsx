@@ -68,9 +68,11 @@ const EventManagement = () => {
     status: "Drafted",
     speakers: [],
     participants: { registered: "", confirmed: "" },
+    numberOfSlots: "",     // ✅ NEW FIELD
+    agenda: "",            // ✅ NEW FIELD
+    eventMedia: "",        // ✅ NEW FIELD
   });
 
-  // Fetch events from backend
   const fetchEvents = () => {
     fetch("http://localhost:5000/events")
       .then((res) => res.json())
@@ -86,7 +88,6 @@ const EventManagement = () => {
   }, []);
 
   useEffect(() => {
-    // If URL contains edit param, open edit form for that event
     const params = new URLSearchParams(location.search);
     const editId = params.get("edit");
     if (editId && events.length > 0 && !showForm) {
@@ -107,34 +108,34 @@ const EventManagement = () => {
     );
   }, [searchQuery, events]);
 
-  // Open edit form with event data
-const handleEditClick = (event) => {
-  setFormData({
-    event_id: event.event_id || uuidv4(),
-    name: event.name || "",
-    date: event.date || "",
-    time: event.time || "",
-    description: event.description || "",
-    venue: event.venue || "",
-    schedule: Array.isArray(event.schedule)
-      ? event.schedule.map((item) => ({
-          startTime: item.startTime || "",
-          endTime: item.endTime || "",
-          activity: item.activity || "",
-        }))
-      : [{ startTime: "", endTime: "", activity: "" }],
-    status: typeof event.status === "string" ? event.status : "Drafted",
-    speakers: Array.isArray(event.speakers) ? event.speakers : [],
-    participants: event.participants || { registered: "", confirmed: "" },
-  });
-  setEditingEventId(event._id); // ✅ Save MongoDB _id for PUT request
-  setSpeakers((event.speakers || []).join(", "));
-  setIsEditMode(true);
-  setShowForm(true);
-};
+  const handleEditClick = (event) => {
+    setFormData({
+      event_id: event.event_id || uuidv4(),
+      name: event.name || "",
+      date: event.date || "",
+      time: event.time || "",
+      description: event.description || "",
+      venue: event.venue || "",
+      schedule: Array.isArray(event.schedule)
+        ? event.schedule.map((item) => ({
+            startTime: item.startTime || "",
+            endTime: item.endTime || "",
+            activity: item.activity || "",
+          }))
+        : [{ startTime: "", endTime: "", activity: "" }],
+      status: typeof event.status === "string" ? event.status : "Drafted",
+      speakers: Array.isArray(event.speakers) ? event.speakers : [],
+      participants: event.participants || { registered: "", confirmed: "" },
+      numberOfSlots: event.numberOfSlots || "",   // ✅ NEW
+      agenda: event.agenda || "",                 // ✅ NEW
+      eventMedia: event.eventMedia || "",         // ✅ NEW
+    });
+    setEditingEventId(event._id);
+    setSpeakers((event.speakers || []).join(", "));
+    setIsEditMode(true);
+    setShowForm(true);
+  };
 
-
-  // Handle changes in text inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -154,7 +155,6 @@ const handleEditClick = (event) => {
     }
   };
 
-  // Reset form to empty defaults
   const resetForm = () => {
     setFormData({
       event_id: uuidv4(),
@@ -167,11 +167,13 @@ const handleEditClick = (event) => {
       status: "Drafted",
       speakers: [],
       participants: { registered: "", confirmed: "" },
+      numberOfSlots: "",   // ✅ NEW
+      agenda: "",          // ✅ NEW
+      eventMedia: "",      // ✅ NEW
     });
     setSpeakers("");
   };
 
-  // Handle form submit for add/update event
   const handleAddOrUpdateEvent = (e) => {
     e.preventDefault();
 
@@ -216,6 +218,9 @@ const handleEditClick = (event) => {
         registered: parseInt(formData.participants.registered) || 0,
         confirmed: parseInt(formData.participants.confirmed) || 0,
       },
+      numberOfSlots: parseInt(formData.numberOfSlots) || 0,  // ✅
+      agenda: formData.agenda,                                // ✅
+      eventMedia: formData.eventMedia,                        // ✅
     };
 
     fetch(url, {
@@ -243,7 +248,6 @@ const handleEditClick = (event) => {
       });
   };
 
-  // Update schedule array on input change
   const handleScheduleChange = (index, field, value) => {
     const updatedSchedule = [...formData.schedule];
     updatedSchedule[index][field] = value;
@@ -282,20 +286,21 @@ const handleEditClick = (event) => {
     setFilteredEvents(sortedEvents);
   };
 
-  // Helper to parse date strings "DD/MM/YYYY"
   function parseDate(str) {
     const [day, month, year] = str.split("/");
     return new Date(year, month - 1, day);
   }
 
-  // Filter and sort events before display
   const processedEvents = filteredEvents
-    .filter((event) => (filterStatus === "All" ? true : event.status === filterStatus))
+    .filter((event) =>
+      filterStatus === "All" ? true : event.status === filterStatus
+    )
     .sort((a, b) => {
       const dateA = parseDate(a.date);
       const dateB = parseDate(b.date);
       return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
     });
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -531,6 +536,33 @@ const handleEditClick = (event) => {
                       value={formData.description}
                       onChange={handleInputChange}
                     />
+                     <TextField
+        margin="dense"
+        label="Number of Slots"
+        name="numberOfSlots"
+        type="number"
+        fullWidth
+        value={formData.numberOfSlots}
+        onChange={handleInputChange}
+      />
+      <TextField
+        margin="dense"
+        label="Agenda"
+        name="agenda"
+        fullWidth
+        multiline
+        rows={2}
+        value={formData.agenda}
+        onChange={handleInputChange}
+      />
+      <TextField
+        margin="dense"
+        label="Event Media (URL or file path)"
+        name="eventMedia"
+        fullWidth
+        value={formData.eventMedia}
+        onChange={handleInputChange}
+        />
                     <div className="flex gap-4 my-4">
                       <TextField
                         margin="dense"
