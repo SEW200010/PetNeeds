@@ -8,6 +8,7 @@ import Services from "./pages/Services";
 import Register from "./pages/Register";
 import User from "./pages/User/User";
 import Admin from "./pages/Admin/Admin";
+import Teacher from "./pages/Teacher/Teacher";
 import FundRaising from "./pages/Admin/FundRaising";
 import MonitoreSession from "./pages/Admin/MonitorSession";
 import EventManagement from "./pages/Admin/EventManagement";
@@ -29,6 +30,7 @@ const App = () => {
         <Route path="/Register" element={<Register />}/>
         <Route path="/user-dashboard" element={<User />}/>
         <Route path="/admin-dashboard" element={<Admin />}/>
+        <Route path="/teacher-dashboard" element={<Teacher />}/>
         <Route path="/FundRaising" element={<FundRaising />}/>
         <Route path="/monitor-sessions" element={<MonitoreSession />}/>
         <Route path="/event-management" element={<EventManagement />} />
