@@ -1,8 +1,11 @@
 import React from 'react'
-
+import TeacherSidebar from "../../components/Teacher/TeacherSidebar"
 const Teacher = () => {
   return (
-    <div>Teacher</div>
+    <div>Teacher
+        <TeacherSidebar/>
+    </div>
+    
   )
 }
 

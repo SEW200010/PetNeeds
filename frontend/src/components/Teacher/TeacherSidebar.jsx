@@ -22,7 +22,7 @@ const menuItems = [
   { icon: LogOut, label: "Log Out", hasChevron: false },
 ];
 
-export default function UserSidebar() {
+export default function TeacherSidebar() {
   return (
     <aside className="w-72 bg-white shadow-lg border-r border-gray-200 rounded-xl p-2 h-88 mx-auto">
       <div className="p-6">
