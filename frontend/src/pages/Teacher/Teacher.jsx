@@ -1,6 +1,7 @@
 import React from 'react'
 import TeacherSidebar from "../../components/Teacher/TeacherSidebar"
 import Header from '@/components/Header'
+import SelectActionCard from '@/components/Teacher/ActionCard'
 const Teacher = () => {
     return (
 
@@ -10,9 +11,10 @@ const Teacher = () => {
                 <div className="flex flex-col md:flex-row">
                     <TeacherSidebar />
 
-                     <div className="w-full md:w-3/4 px-4 py-6">
-                     <div className="text-2xl bold"> Welcome to Teacher Dashboard !</div>
-                    
+                     <div className="w-full md:w-3/4 p-6">
+
+                     <div className="text-2xl bold pb-10"> Welcome to Teacher Dashboard !</div>
+                    <SelectActionCard/>
                      </div>
                 </div>
 
