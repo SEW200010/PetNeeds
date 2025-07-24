@@ -24,10 +24,12 @@ const menuItems = [
 
 export default function TeacherSidebar() {
   return (
-    <aside className="w-72 bg-white shadow-lg border-r border-gray-200 rounded-xl p-2 h-88 mx-auto">
+
+    <main className="w-full md:w-1/4 bg-white shadow-lg border-r border-gray-200 rounded-xl ">
+
       <div className="p-6">
         {/* User Profile Section */}
-        <div className="flex items-center space-x-3 mb-8">
+        <div className="flex items-center space-x-3 mb-8 bg-">
           <Avatar className="h-12 w-12">
             <AvatarImage src={`${UserImg}?height=48&width=48`} alt="User" />
             <AvatarFallback>YN</AvatarFallback>
@@ -38,6 +40,7 @@ export default function TeacherSidebar() {
           </div>
         </div>
 
+<div className="text-xl bold p-6">Teacher Menu</div>
         {/* Navigation Menu */}
         <nav className="space-y-2">
           {menuItems.map((item, index) => {
@@ -61,6 +64,7 @@ export default function TeacherSidebar() {
           })}
         </nav>
       </div>
-    </aside>
+
+    </main>
   );
 }
