@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Header from "../../components/Admin/Header";
 import {
-  PieChart, Pie, Cell,
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import AdminSidebar from "../../components/Admin/AdminSidebar";
+import BarChartComponent from '@/components/Fund/BarChartComponent';
+import { FaTrash, FaEye } from 'react-icons/fa';
 
 const COLORS = ['#0088FE', '#FF8042', '#00C49F', '#FFBB28', '#FF6666', '#AA88FF'];
 const ITEMS_PER_PAGE = 10;
@@ -29,6 +30,7 @@ const FundRaising = () => {
   // Pagination states
   const [incomePage, setIncomePage] = useState(1);
   const [expensePage, setExpensePage] = useState(1);
+  const fileInputRef = useRef(null);
 
   const categoryOptions = {
     income: ['Donation', 'Sponsorship', 'Grant'],
@@ -95,6 +97,39 @@ const FundRaising = () => {
     category &&
     !isNaN(parseFloat(amount)) &&
     ((type === 'income' && donorName) || (type === 'expense' && beneficiaryName));
+  //re
+  const handleFileChange = (e) => {
+    const selected = e.target.files[0];
+    if (selected && !['application/pdf', 'image/png', 'image/jpeg'].includes(selected.type)) {
+      alert('Only PDF or image files are allowed');
+      return;
+    }
+    setFile(selected);
+  };
+
+  const handleDeleteTransaction = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this transaction?")) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/transactions/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        alert(`❌ Failed to delete: ${errorData.error || 'Unknown error'}`);
+        return;
+      }
+
+      // Refresh data after deletion
+      await Promise.all([fetchTransactions(), fetchSummary(), fetchChartData()]);
+      setMessage("✅ Transaction deleted");
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error deleting transaction");
+    }
+  };
 
   const handleAddTransaction = async () => {
     if (!isFormValid || submitting) return;
@@ -128,7 +163,9 @@ const FundRaising = () => {
         setDonorName('');
         setBeneficiaryName('');
         setFile(null);
-
+        if (fileInputRef.current) {
+          fileInputRef.current.value = null; // This resets the file input field
+        }
         return; // Stop here to avoid success message
       }
 
@@ -139,7 +176,9 @@ const FundRaising = () => {
       setDonorName('');
       setBeneficiaryName('');
       setFile(null);
-
+      if (fileInputRef.current) {
+        fileInputRef.current.value = null; // This resets the file input field
+      }
       setIncomePage(1);
       setExpensePage(1);
 
@@ -157,6 +196,9 @@ const FundRaising = () => {
       setDonorName('');
       setBeneficiaryName('');
       setFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = null; // This resets the file input field
+      }
     } finally {
       setSubmitting(false);
       setTimeout(() => setMessage(''), 3000);
@@ -295,9 +337,11 @@ const FundRaising = () => {
                 <label className="block mb-2 text-sm font-medium">Upload Transcript</label>
                 <input
                   type="file"
-                  onChange={e => setFile(e.target.files[0])}
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
                   className="w-full border p-2 rounded mb-4"
                 />
+
 
                 <button
                   onClick={handleAddTransaction}
@@ -320,91 +364,81 @@ const FundRaising = () => {
               {/* Charts Section */}
               <div className="grid grid-cols-1 gap-4">
                 {/* Income Pie Chart */}
-                <div className="bg-white h-64 rounded border shadow p-4 flex">
-                  <div className="w-1/2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={incomePieData}
-                          dataKey="value"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={60}
-                          labelLine={false}
-                        >
-                          {incomePieData.map((entry, index) => (
-                            <Cell key={`income-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="w-1/2 flex flex-col justify-center pl-4">
-                    {incomePieData.map((entry, index) => (
-                      <div key={index} className="flex items-center mb-2">
-                        <div className="w-4 h-4 rounded mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                        <span className="text-sm">{entry.name} (${entry.value})</span>
-                      </div>
-                    ))}
+                <div className="bg-white h-64 rounded border shadow p-4">
+                  <h2 className="text-center font-semibold mb-2">Income Breakdown</h2>
+                  <div className="flex h-full">
+                    <div className="w-1/2">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={incomePieData}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={60}
+                            labelLine={false}
+                          >
+                            {incomePieData.map((entry, index) => (
+                              <Cell key={`income-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="w-1/2 flex flex-col justify-center pl-4">
+                      {incomePieData.map((entry, index) => (
+                        <div key={index} className="flex items-center mb-2">
+                          <div className="w-4 h-4 rounded mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                          <span className="text-sm">{entry.name} (${entry.value})</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
                 {/* Expense Pie Chart */}
-                <div className="bg-white h-64 rounded border shadow p-4 flex">
-                  <div className="w-1/2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={expensePieData}
-                          dataKey="value"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={60}
-                          labelLine={false}
-                        >
-                          {expensePieData.map((entry, index) => (
-                            <Cell key={`expense-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="w-1/2 flex flex-col justify-center pl-4">
-                    {expensePieData.map((entry, index) => (
-                      <div key={index} className="flex items-center mb-2">
-                        <div className="w-4 h-4 rounded mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                        <span className="text-sm">{entry.name} (${entry.value})</span>
-                      </div>
-                    ))}
+                <div className="bg-white h-64 rounded border shadow p-4">
+                  <h2 className="text-center font-semibold mb-2">Expenses Breakdown</h2>
+                  <div className="flex h-full">
+                    <div className="w-1/2">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={expensePieData}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={60}
+                            labelLine={false}
+                          >
+                            {expensePieData.map((entry, index) => (
+                              <Cell key={`expense-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="w-1/2 flex flex-col justify-center pl-4">
+                      {expensePieData.map((entry, index) => (
+                        <div key={index} className="flex items-center mb-2">
+                          <div
+                            className="w-4 h-4 rounded mr-2"
+                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                          ></div>
+                          <span className="text-sm">{entry.name} (${entry.value})</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
+
                 {/* Bar Chart */}
-                <div className="bg-white h-64 rounded border shadow p-4">
-                  <h3 className="text-center font-semibold mb-2">Income vs Expense</h3>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={[
-                        { name: 'Income', value: summary.income },
-                        { name: 'Expense', value: summary.expense }
-                      ]}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                      barCategoryGap={80}
-                    >
-                      <XAxis dataKey="name" />
-                      <YAxis domain={[0, Math.max(summary.income, summary.expense) * 1.2]} />
-                      <Tooltip />
-                      <Bar dataKey="value" barSize={100} radius={[6, 6, 0, 0]}>
-                        <Cell fill="#0088FE" /> {/* Income bar */}
-                        <Cell fill="#FF8042" /> {/* Expense bar */}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <BarChartComponent data={barChartData} title="Income vs Expense" />
               </div>
             </div>
 
@@ -414,12 +448,13 @@ const FundRaising = () => {
               <table className="w-full text-sm mb-2 border-collapse border border-gray-300">
                 <thead>
                   <tr className="text-left border-b border-gray-300 bg-gray-100">
-                    <th className="p-2 border border-gray-300">Donor/Organization</th>
-                    <th className="p-2 border border-gray-300">Category</th>
-                    <th className="p-2 border border-gray-300">Description</th>
-                    <th className="p-2 border border-gray-300">Amount</th>
-                    <th className="p-2 border border-gray-300">Date</th>
-                    <th className="p-2 border border-gray-300">File</th>
+                    <th className="p-2 border border-gray-300 text-center">Donor/Organization</th>
+                    <th className="p-2 border border-gray-300 text-center">Category</th>
+                    <th className="p-2 border border-gray-300 text-center">Description</th>
+                    <th className="p-2 border border-gray-300 text-center">Date</th>
+                    <th className="p-2 border border-gray-300 text-center">Amount</th>
+                    <th className="p-2 border border-gray-300 text-center">File</th>
+                    <th className="p-2 border border-gray-300 text-center">Actions</th>
                   </tr>
                 </thead>
 
@@ -434,17 +469,28 @@ const FundRaising = () => {
                         <td className="py-1 px-2 border border-gray-300">{t.donorName || '-'}</td>
                         <td className="py-1 px-2 border border-gray-300">{t.category}</td>
                         <td className="py-1 px-2 border border-gray-300">{t.description}</td>
-                        <td className="py-1 px-2 border border-gray-300 text-green-600">+${t.amount.toFixed(2)}</td>
                         <td className="py-1 px-2 border border-gray-300">{new Date(t.timestamp).toLocaleString()}</td>
-                        <td className="py-1 px-2 border border-gray-300">
+                        <td className="py-1 px-2 border border-gray-300 text-green-600">+${t.amount.toFixed(2)}</td>
+                        <td className="py-1 px-2 border border-gray-300 text-center">
                           {t.file?.url ? (
                             <a href={t.file.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                              View
+                              <div className="flex justify-center items-center h-full">
+                                <FaEye className="text-blue-400 text-xl hover:scale-125 text-blue-700 " size={20} />
+                              </div>
                             </a>
                           ) : (
                             "-"
                           )}
                         </td>
+                        <td className="py-1 px-2 border border-gray-300 text-center">
+                          <button
+                            onClick={() => handleDeleteTransaction(t._id)}
+                            className="text-red-600 hover:underline"
+                          >
+                            <FaTrash className="text-red hover:scale-125" size={20} />
+                          </button>
+                        </td>
+
                       </tr>
                     ))
                   )}
@@ -475,12 +521,13 @@ const FundRaising = () => {
               <table className="w-full text-sm mb-2 border-collapse border border-gray-300">
                 <thead>
                   <tr className="text-left border-b border-gray-300 bg-gray-100">
-                    <th className="p-2 border border-gray-300">Beneficiary's Name</th>
-                    <th className="p-2 border border-gray-300">Category</th>
-                    <th className="p-2 border border-gray-300">Description</th>
-                    <th className="p-2 border border-gray-300">Amount</th>
-                    <th className="p-2 border border-gray-300">Date</th>
-                    <th className="p-2 border border-gray-300">File</th>
+                    <th className="p-2 border border-gray-300 text-center">Beneficiary's Name</th>
+                    <th className="p-2 border border-gray-300 text-center">Category</th>
+                    <th className="p-2 border border-gray-300 text-center">Description</th>
+                    <th className="p-2 border border-gray-300 text-center">Date</th>
+                    <th className="p-2 border border-gray-300 text-center">Amount</th>
+                    <th className="p-2 border border-gray-300 text-center">File</th>
+                    <th className="p-2 border border-gray-300 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -494,15 +541,25 @@ const FundRaising = () => {
                         <td className="py-1 px-2 border border-gray-300">{t.beneficiaryName || '-'}</td>
                         <td className="py-1 px-2 border border-gray-300">{t.category}</td>
                         <td className="py-1 px-2 border border-gray-300">{t.description}</td>
-                        <td className="py-1 px-2 border border-gray-300 text-red-600">-${t.amount.toFixed(2)}</td>
                         <td className="py-1 px-2 border border-gray-300">{new Date(t.timestamp).toLocaleString()}</td>
-                        <td className="py-1 px-2 border border-gray-300">{t.file?.url ? (
+                        <td className="py-1 px-2 border border-gray-300 text-red-600">-${t.amount.toFixed(2)}</td>
+                        <td className="py-1 px-2 border border-gray-300 text-center">{t.file?.url ? (
                           <a href={t.file.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                            View
+                            <div className="flex justify-center items-center h-full">
+                              <FaEye className="text-blue-400 text-xl hover:scale-125 text-blue-700 " size={20}/>
+                            </div>
                           </a>
                         ) : (
                           "-"
                         )}
+                        </td>
+                        <td className="py-1 px-2 border border-gray-300 text-center">
+                          <button
+                            onClick={() => handleDeleteTransaction(t._id)}
+                            className="text-red-600 hover:underline"
+                          >
+                            <FaTrash className="text-red hover:scale-125" size={20} />
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -530,8 +587,8 @@ const FundRaising = () => {
 
           </div>
         </div>
-      </main>
-    </div>
+      </main >
+    </div >
   );
 };
 

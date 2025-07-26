@@ -1,8 +1,8 @@
 from flask import Flask
 from flask_pymongo import PyMongo
 from flask_cors import CORS
-#from dotenv import load_dotenv
-#import os
+from dotenv import load_dotenv
+import os
 
 # Load variables from .env file
 # load_dotenv()
