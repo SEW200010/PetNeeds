@@ -54,6 +54,7 @@ const EventManagement = () => {
   const [filterStatus, setFilterStatus] = useState("All");
   const [sortOrder, setSortOrder] = useState("asc");
   const [isMinimized, setIsMinimized] = useState(false);
+  const [totalAvgRating, setTotalAvgRating] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -85,6 +86,20 @@ const EventManagement = () => {
 
   useEffect(() => {
     fetchEvents();
+  }, []);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/all_feedback")
+      .then((res) => res.json())
+      .then((data) => {
+        const ratings = data.map(item => Number(item.rating)).filter(r => !isNaN(r));
+        const total = ratings.reduce((sum, r) => sum + r, 0);
+        const average = ratings.length ? (total / ratings.length).toFixed(2) : null;
+        setTotalAvgRating(average);
+      })
+      .catch((err) => {
+        console.error("Error fetching all feedback:", err);
+      });
   }, []);
 
   useEffect(() => {
@@ -187,6 +202,13 @@ const EventManagement = () => {
   const handleAddOrUpdateEvent = (e) => {
     e.preventDefault();
     setFormError("");
+
+    // Helper function to validate positive integers
+    const isPositiveInteger = (value) => {
+      return Number.isInteger(value) && value >= 0;
+    };
+
+    // Validate required fields
     if (
       !formData.name ||
       !formData.date ||
@@ -199,15 +221,58 @@ const EventManagement = () => {
       return;
     }
 
-    const method = isEditMode ? "PUT" : "POST";
-    const url = isEditMode
-      ? `http://localhost:5000/events/${editingEventId}`
-      : "http://localhost:5000/events";
+    // Validate numberOfSlots
+    if (
+      formData.numberOfSlots !== "" &&
+      (!Number.isInteger(Number(formData.numberOfSlots)) || Number(formData.numberOfSlots) < 0)
+    ) {
+      setFormError("Number of Slots must be a positive integer.");
+      return;
+    }
 
+    // Validate participants registered and confirmed
+    if (
+      formData.participants.registered !== "" &&
+      (!Number.isInteger(Number(formData.participants.registered)) || Number(formData.participants.registered) < 0)
+    ) {
+      setFormError("Registered participants must be a positive integer.");
+      return;
+    }
+    if (
+      formData.participants.confirmed !== "" &&
+      (!Number.isInteger(Number(formData.participants.confirmed)) || Number(formData.participants.confirmed) < 0)
+    ) {
+      setFormError("Confirmed participants must be a positive integer.");
+      return;
+    }
+
+    // Validate schedule items
+    for (let i = 0; i < formData.schedule.length; i++) {
+      const item = formData.schedule[i];
+      if (!item.startTime || !item.endTime || !item.activity) {
+        setFormError(`Schedule item ${i + 1} is incomplete.`);
+        return;
+      }
+      if (item.startTime >= item.endTime) {
+        setFormError(`Schedule item ${i + 1} start time must be before end time.`);
+        return;
+      }
+    }
+
+    // Validate speakers input (comma separated)
     const speakersArray = speakers
       .split(",")
       .map((s) => s.trim())
       .filter((s) => s.length > 0);
+    if (speakers && speakersArray.length === 0) {
+      setFormError("Please enter valid speakers separated by commas.");
+      return;
+    }
+
+    const method = isEditMode ? "PUT" : "POST";
+    const url = isEditMode
+      ? `http://localhost:5000/events/${editingEventId}`
+      : "http://localhost:5000/events";
 
     // Prepare JSON data to send
     let eventIdToSend = formData.event_id;
@@ -223,8 +288,11 @@ const EventManagement = () => {
       description: formData.description,
       venue: formData.venue,
       status: formData.status,
-      numberOfSlots: formData.numberOfSlots,
-      participants: formData.participants,
+      numberOfSlots: Number(formData.numberOfSlots) || 0,
+      participants: {
+        registered: Number(formData.participants.registered) || 0,
+        confirmed: Number(formData.participants.confirmed) || 0,
+      },
       speakers: speakersArray,
       schedule: formData.schedule,
       eventMedia: formData.eventMedia || [],
@@ -386,11 +454,23 @@ const EventManagement = () => {
             <div className="bg-[#C6E6D9] p-6 rounded-2xl text-center font-semibold">
               <div className="flex justify-center gap-1 mb-1">
                 {[1, 2, 3, 4].map((i) => (
-                  <FaStar key={i} className="text-yellow-500 text-xl" />
-                ))}
+              <FaStar
+                      key={i}
+                      className={`text-xl ${
+                        totalAvgRating >= i
+                          ? "text-yellow-500"
+                          : totalAvgRating >= i - 0.5
+                          ? "text-yellow-300"
+                          : "text-white"
+                      }`}
+                    />               
+                     ))}
                 <FaStar className="text-white text-xl mb-7" />
               </div>
               <div className="text-base">Overview Ratings</div>
+              <p className="text-lg font-semibold mb-4">{totalAvgRating || "Not available"}
+</p>
+
             </div>
           </div>
 

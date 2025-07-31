@@ -192,6 +192,12 @@ def get_event(id):
         return jsonify({"error": "Invalid ObjectId format"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+@event_bp.route('/all_feedback', methods=['GET'])
+def get_all_feedback():
+    participants = list(mongo.db.participants.find())
+    for p in participants:
+        p['_id'] = str(p['_id'])  # convert ObjectId to string
+    return jsonify(participants)
 
 # Update event
 @event_bp.route('/events/<event_id>', methods=['PUT'])

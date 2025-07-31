@@ -11,6 +11,7 @@ const FeedbackPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [date, setDate] = useState(new Date());
+  const [totalAvgRating, setTotalAvgRating] = useState(null);
 
   useEffect(() => {
     fetch(`http://localhost:5000/participants?event_id=${id}`)
@@ -26,6 +27,16 @@ const FeedbackPage = () => {
       })
       .finally(() => setLoading(false));
   }, [id]);
+useEffect(() => {
+  fetch(`http://localhost:5000/all_feedback`)
+    .then((res) => res.json())
+    .then((data) => {
+      calculateTotalAverageRating(data);
+    })
+    .catch((err) => {
+      console.error("Error fetching all feedback:", err);
+    });
+}, []);
 
   const calculateAverageRating = (data) => {
     const ratings = data.map((item) => Number(item.rating)).filter((r) => !isNaN(r));
@@ -33,6 +44,12 @@ const FeedbackPage = () => {
     const average = ratings.length ? (total / ratings.length).toFixed(2) : null;
     setAvgRating(average);
   };
+const calculateTotalAverageRating = (data) => {
+  const ratings = data.map(item => Number(item.rating)).filter(r => !isNaN(r));
+  const total = ratings.reduce((sum, r) => sum + r, 0);
+  const average = ratings.length ? (total / ratings.length).toFixed(2) : null;
+  setTotalAvgRating(average);
+};
 
   return (
     <div>
