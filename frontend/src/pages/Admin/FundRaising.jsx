@@ -239,13 +239,20 @@ const FundRaising = () => {
       minWidth: 80,
       align: 'center',
       render: (file, row) => (
-        file?.url ? (
-          <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-            <FaEye className="text-blue-700 hover:scale-125" size={20} />
-          </a>
-        ) : (
-          '-'
-        )
+        <div className="flex justify-center items-center h-full">
+          {file?.url ? (
+            <a
+              href={file.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline"
+            >
+              <FaEye className="text-blue-700 hover:scale-125" size={20} />
+            </a>
+          ) : (
+            '-'
+          )}
+        </div>
       ),
     },
     {
@@ -288,13 +295,20 @@ const FundRaising = () => {
       minWidth: 80,
       align: 'center',
       render: (file, row) => (
-        file?.url ? (
-          <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-            <FaEye className="text-blue-700 hover:scale-125" size={20} />
-          </a>
-        ) : (
-          '-'
-        )
+        <div className="flex justify-center items-center">
+          {file?.url ? (
+            <a
+              href={file.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline"
+            >
+              <FaEye className="text-blue-700 hover:scale-125" size={20} />
+            </a>
+          ) : (
+            '-'
+          )}
+        </div>
       ),
     },
     {
@@ -474,7 +488,7 @@ const FundRaising = () => {
                           </Pie>
                           <Tooltip />
                         </PieChart>
-                        </ResponsiveContainer>
+                      </ResponsiveContainer>
                     </div>
                     <div className="w-1/2 flex flex-col justify-center pl-4">
                       {incomePieData.map((entry, index) => (
@@ -509,7 +523,7 @@ const FundRaising = () => {
                           </Pie>
                           <Tooltip />
                         </PieChart>
-                        </ResponsiveContainer>
+                      </ResponsiveContainer>
                     </div>
                     <div className="w-1/2 flex flex-col justify-center pl-4">
                       {expensePieData.map((entry, index) => (
