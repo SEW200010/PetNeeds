@@ -1,26 +1,28 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_pymongo import PyMongo
 from flask_cors import CORS
-#from dotenv import load_dotenv
-#import os
 
-# Load variables from .env file
+# Optional: Load environment variables
+# from dotenv import load_dotenv
+# import os
 # load_dotenv()
 
-mongo = PyMongo()
+mongo = PyMongo()  # Initialize MongoDB
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+    CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)  # Enable CORS with explicit origin and credentials support
 
+    # Configure MongoDB
     # app.config["MONGO_URI"] = os.getenv("DB_URI")
     app.config["MONGO_URI"] = "mongodb://localhost:27017/lifeskill"
     mongo.init_app(app)
 
+    # Register Blueprints
     from app.routes.auth_routes import auth_bp
     from app.routes.transaction_routes import transaction_bp
     from app.routes.session_routes import session_bp
-    from app.routes.event_routes import event_bp  # New event Blueprint
+    from app.routes.event_routes import event_bp
     from app.routes.user_routes import user_bp
     from app.routes.monitoringStudents_routes import monitoringstudent_bp
     from app.routes.participant_routes import participant_bp
@@ -36,5 +38,18 @@ def create_app():
     app.register_blueprint(participant_bp)
     app.register_blueprint(notify_bp)
     app.register_blueprint(feedback_bp)
+
+    # Error Handlers
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return jsonify({"error": "Not found"}), 404
+
+    @app.errorhandler(405)
+    def method_not_allowed_error(error):
+        return jsonify({"error": "Method not allowed"}), 405
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        return jsonify({"error": "Internal server error"}), 500
 
     return app

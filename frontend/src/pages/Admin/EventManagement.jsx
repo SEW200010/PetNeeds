@@ -16,8 +16,6 @@ import {
   IconButton,
   InputLabel,
   MenuItem,
-  Radio,
-  ListItemText,
   Select,
   Slide,
   TextField,
@@ -60,26 +58,24 @@ const EventManagement = () => {
   const location = useLocation();
 
   const [formData, setFormData] = useState({
-  event_id: 0,
-  name: "",
-  date: "",
-  time: "",
-  description: "",
-  venue: "",
-  schedule: [{ startTime: "", endTime: "", activity: "" }],
-  status: "Drafted",
-  speakers: [],
-  participants: { registered: "", confirmed: "" },
-  numberOfSlots: "",
-  eventMedia: [],  // ✅ now initialized as array
-});
-
+    event_id: "",
+    name: "",
+    date: "",
+    time: "",
+    description: "",
+    venue: "",
+    schedule: [{ startTime: "", endTime: "", activity: "" }],
+    status: "Drafted",
+    speakers: [],
+    participants: { registered: "", confirmed: "" },
+    numberOfSlots: "",
+    eventMedia: [],
+  });
 
   const fetchEvents = () => {
     fetch("http://localhost:5000/events")
       .then((res) => res.json())
       .then((data) => {
-        // Filter out events without valid _id
         const validEvents = data.filter((e) => e._id && typeof e._id === "string" && e._id.length === 24);
         setEvents(validEvents);
         setFilteredEvents(validEvents);
@@ -113,42 +109,35 @@ const EventManagement = () => {
   }, [searchQuery, events]);
 
   const handleEditClick = (event) => {
-  setFormData({
-    event_id: event.event_id || 0,
-    name: event.name || "",
-    date: event.date || "",
-    time: event.time || "",
-    description: event.description || "",
-    venue: event.venue || "",
-    schedule: Array.isArray(event.schedule)
-      ? event.schedule.map((item) => ({
-          startTime: item.startTime || "",
-          endTime: item.endTime || "",
-          activity: item.activity || "",
-        }))
-      : [{ startTime: "", endTime: "", activity: "" }],
-    status: typeof event.status === "string" ? event.status : "Drafted",
-    speakers: Array.isArray(event.speakers) ? event.speakers : [],
-    participants: event.participants || { registered: "", confirmed: "" },
-    numberOfSlots: event.numberOfSlots || "",
-    eventMedia: Array.isArray(event.eventMedia)
-      ? event.eventMedia
-      : typeof event.eventMedia === "string"
-      ? event.eventMedia.split(",").map((m) => m.trim())
-      : [], // ✅ handles backward compatibility
-  });
-  setEditingEventId(event._id);
-  setSpeakers((event.speakers || []).join(", "));
-  setIsEditMode(true);
-  setShowForm(true);
-};
-
-
+    setFormData({
+      event_id: event.event_id || 0,
+      name: event.name || "",
+      date: event.date || "",
+      time: event.time || "",
+      description: event.description || "",
+      venue: event.venue || "",
+      schedule: Array.isArray(event.schedule)
+        ? event.schedule.map((item) => ({
+            startTime: item.startTime || "",
+            endTime: item.endTime || "",
+            activity: item.activity || "",
+          }))
+        : [{ startTime: "", endTime: "", activity: "" }],
+      status: typeof event.status === "string" ? event.status : "Drafted",
+      speakers: Array.isArray(event.speakers) ? event.speakers : [],
+      participants: event.participants || { registered: "", confirmed: "" },
+      numberOfSlots: event.numberOfSlots || "",
+      eventMedia: [], // Reset to avoid loading files
+    });
+    setEditingEventId(event._id);
+    setSpeakers((event.speakers || []).join(", "));
+    setIsEditMode(true);
+    setShowForm(true);
+  };
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
     if (["registered", "confirmed"].includes(name)) {
-      // Parse value as integer or empty string, prevent off-by-one errors
       let numericValue = value === "" ? "" : parseInt(value, 10);
       if (isNaN(numericValue)) numericValue = "";
       setFormData((prev) => ({
@@ -178,15 +167,26 @@ const EventManagement = () => {
       status: "Drafted",
       speakers: [],
       participants: { registered: "", confirmed: "" },
-      numberOfSlots: "",   // ✅ NEW
-      eventMedia: [],      // Changed from empty string to empty array
+      numberOfSlots: "",
+      eventMedia: [],
     });
     setSpeakers("");
   };
 
+  const [formError, setFormError] = React.useState("");
+
+  // Helper function to determine general file type
+  const getFileType = (fileName) => {
+    const ext = fileName.split('.').pop().toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
+    if (['mp4', 'avi', 'mov', 'mkv'].includes(ext)) return 'video';
+    if (ext === 'pdf') return 'pdf';
+    return null;
+  };
+
   const handleAddOrUpdateEvent = (e) => {
     e.preventDefault();
-
+    setFormError("");
     if (
       !formData.name ||
       !formData.date ||
@@ -195,12 +195,7 @@ const EventManagement = () => {
       !formData.venue ||
       !formData.status
     ) {
-      alert("Please fill in all required fields.");
-      return;
-    }
-
-    if (isEditMode && !editingEventId) {
-      alert("Invalid event ID. Cannot update event.");
+      setFormError("Please fill in all required fields.");
       return;
     }
 
@@ -214,28 +209,33 @@ const EventManagement = () => {
       .map((s) => s.trim())
       .filter((s) => s.length > 0);
 
-    const payload = {
-      event_id: formData.event_id || uuidv4(),
+    // Prepare JSON data to send
+    let eventIdToSend = formData.event_id;
+    if (typeof eventIdToSend === "string" && /^\d+$/.test(eventIdToSend)) {
+      eventIdToSend = parseInt(eventIdToSend, 10);
+    }
+
+    const jsonData = {
+      event_id: eventIdToSend || uuidv4(),
       name: formData.name,
       date: formData.date,
       time: formData.time,
       description: formData.description,
       venue: formData.venue,
-      schedule: formData.schedule,
       status: formData.status,
+      numberOfSlots: formData.numberOfSlots,
+      participants: formData.participants,
       speakers: speakersArray,
-      participants: {
-        registered: parseInt(formData.participants.registered) || 0,
-        confirmed: parseInt(formData.participants.confirmed) || 0,
-      },
-      numberOfSlots: parseInt(formData.numberOfSlots) || 0,
-      eventMedia: formData.eventMedia,
+      schedule: formData.schedule,
+      eventMedia: formData.eventMedia || [],
     };
 
     fetch(url, {
       method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(jsonData),
     })
       .then(async (res) => {
         if (!res.ok) {
@@ -253,7 +253,7 @@ const EventManagement = () => {
         navigate("/admin/EventManagement", { replace: true });
       })
       .catch((err) => {
-        alert(err.message);
+        setFormError(err.message);
       });
   };
 
@@ -262,9 +262,10 @@ const EventManagement = () => {
     updatedSchedule[index][field] = value;
     setFormData((prev) => ({ ...prev, schedule: updatedSchedule }));
   };
-const totalRegistered = events.reduce((sum, e) => {
-  return sum + (e.participants?.registered || 0);
-}, 0);
+
+  const totalRegistered = events.reduce((sum, e) => {
+    return sum + (e.participants?.registered || 0);
+  }, 0);
 
   const addScheduleItem = () => {
     setFormData((prev) => ({
@@ -281,20 +282,16 @@ const totalRegistered = events.reduce((sum, e) => {
     }
   };
 
-  const handleFilterChange = (status) => {
-    setFilterStatus(status);
-  };
+  const handleFilterChange = (status) => setFilterStatus(status);
 
   const handleSortToggle = () => {
     const newSortOrder = sortOrder === "asc" ? "desc" : "asc";
     setSortOrder(newSortOrder);
-
     const sortedEvents = [...filteredEvents].sort((a, b) => {
       const dateA = new Date(a.date);
       const dateB = new Date(b.date);
       return newSortOrder === "asc" ? dateA - dateB : dateB - dateA;
     });
-
     setFilteredEvents(sortedEvents);
   };
 
@@ -304,9 +301,7 @@ const totalRegistered = events.reduce((sum, e) => {
   }
 
   const processedEvents = filteredEvents
-    .filter((event) =>
-      filterStatus === "All" ? true : event.status === filterStatus
-    )
+    .filter((event) => (filterStatus === "All" ? true : event.status === filterStatus))
     .sort((a, b) => {
       const dateA = parseDate(a.date);
       const dateB = parseDate(b.date);
@@ -455,6 +450,7 @@ const totalRegistered = events.reduce((sum, e) => {
                     <div className="flex gap-2">
                     <button
                       onClick={() => {
+                        console.log("Navigating to view event with _id:", row._id);
                         if (row._id && row._id.length === 24) {
                           navigate(`/admin/ViewEvent/${row._id}`);
                         } else {
@@ -512,6 +508,9 @@ const totalRegistered = events.reduce((sum, e) => {
               <form onSubmit={handleAddOrUpdateEvent}>
                 {!isMinimized && (
                   <DialogContent dividers>
+                    {formError && (
+                      <div className="mb-4 text-red-600 font-semibold">{formError}</div>
+                    )}
                     <TextField
                       margin="dense"
                       label="Event Title"
@@ -563,61 +562,7 @@ const totalRegistered = events.reduce((sum, e) => {
                       value={formData.numberOfSlots}
                       onChange={handleInputChange}
                     />
-<FormControl fullWidth margin="dense" required>
-  <InputLabel>Event Media</InputLabel>
-  <Select
-    label="Event Media"
-    name="eventMedia"
-    multiple
-    value={formData.eventMedia}
-    onChange={(e) => {
-      const selected = e.target.value;
-
-      if (selected.includes("None of the above")) {
-        setFormData((prev) => ({
-          ...prev,
-          eventMedia: ["None of the above"],
-        }));
-      } else {
-        setFormData((prev) => ({
-          ...prev,
-          eventMedia: selected.filter((item) => item !== "None of the above"),
-        }));
-      }
-    }}
-                              renderValue={(selected) => selected.filter(s => s && s.trim() !== "").join(", ")}
-  >
-    <MenuItem value="None of the above">
-      <Radio
-        checked={formData.eventMedia.includes("None of the above")}
-      />
-      <ListItemText primary="None of the above" />
-    </MenuItem>
-
-    {[
-      "Banners",
-      "Live streams",
-      "Speaker interviews",
-      "Tutorials",
-      "Recorded speeches",
-      "Magazine features",
-      "Event pages",
-      "Photo galleries",
-    ].map((option) => (
-      <MenuItem
-        key={option}
-        value={option}
-        disabled={formData.eventMedia.includes("None of the above")}
-      >
-        <Radio
-          checked={formData.eventMedia.includes(option)}
-        />
-        <ListItemText primary={option} />
-      </MenuItem>
-    ))}
-  </Select>
-</FormControl>
-
+                    
                     <div className="flex gap-4 my-4">
                       <TextField
                         margin="dense"
@@ -709,7 +654,7 @@ const totalRegistered = events.reduce((sum, e) => {
                         Add Schedule Item
                       </Button>
                     </div>
-
+                        
                     {/* Status Select */}
                     <FormControl fullWidth margin="dense" required>
                       <InputLabel>Status</InputLabel>
