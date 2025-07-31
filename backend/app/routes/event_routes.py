@@ -113,9 +113,15 @@ def create_event():
     event_id = get_next_event_id()
 
     try:
-        schedule = json.loads(data.get("schedule", "[]"))
-        speakers = json.loads(data.get("speakers", "[]"))
-        participants = json.loads(data.get("participants", "{}"))
+        schedule = data.get("schedule", [])
+        if isinstance(schedule, str):
+            schedule = json.loads(schedule)
+        speakers = data.get("speakers", [])
+        if isinstance(speakers, str):
+            speakers = json.loads(speakers)
+        participants = data.get("participants", {})
+        if isinstance(participants, str):
+            participants = json.loads(participants)
     except json.JSONDecodeError:
         return jsonify({"error": "Invalid JSON format in schedule, speakers, or participants"}), 400
 
@@ -158,8 +164,19 @@ def create_event():
 
 
 # Get all events
-@event_bp.route('/events', methods=['GET'])
+from flask import make_response
+
+from flask import make_response
+
+@event_bp.route('/events', methods=['GET', 'OPTIONS'])
 def get_all_events():
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Methods", "GET, OPTIONS")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type")
+        return response
+
     try:
         events = []
         for e in mongo.db.events.find():
@@ -168,7 +185,9 @@ def get_all_events():
             e['numberOfSlots'] = e.get('numberOfSlots', 0)
             e['eventMedia'] = e.get('eventMedia', [])
             events.append(e)
-        return jsonify(events), 200
+        response = make_response(jsonify(events), 200)
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

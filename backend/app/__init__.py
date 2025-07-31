@@ -11,7 +11,7 @@ mongo = PyMongo()  # Initialize MongoDB
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)  # Enable CORS with explicit origin and credentials support
+    CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS with all origins allowed, no credentials
 
     # Configure MongoDB
     # app.config["MONGO_URI"] = os.getenv("DB_URI")
