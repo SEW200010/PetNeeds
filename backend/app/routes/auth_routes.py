@@ -31,6 +31,9 @@ def register():
         return jsonify({"error": "Email already registered"}), 409
 
     hashed_password = generate_password_hash(password)
+    
+    default_profile_image = "/uploads/default.png"
+    
     mongo.db.users.insert_one({
         "fullName": name,
         "email": email,
@@ -40,7 +43,8 @@ def register():
         "joinedDate": joinDate,
         "location": location,
         "school": school,
-        "contact": contact
+        "contact": contact,
+        "profileImage": default_profile_image
     })
 
     return jsonify({"message": "User registered successfully"}), 201

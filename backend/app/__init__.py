@@ -3,13 +3,17 @@ from flask_pymongo import PyMongo
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
-#import os
+from flask_bcrypt import Bcrypt
+from flask import send_from_directory
+import os
 
 # Load variables from .env file
 #load_dotenv()
 
 mongo = PyMongo()
 jwt = JWTManager()
+
+
 
 def create_app():
     app = Flask(__name__)
@@ -21,6 +25,8 @@ def create_app():
 
     app.config["JWT_SECRET_KEY"] = "my_dev_secret_123"  # change this to a strong secret!
     jwt.init_app(app)
+    
+    
     
     from app.routes.auth_routes import auth_bp
     from app.routes.transaction_routes import transaction_bp
@@ -37,5 +43,10 @@ def create_app():
     app.register_blueprint(user_bp)
     app.register_blueprint(monitoringstudent_bp)
     app.register_blueprint(profile_bp)
+    
+    
+    @app.route('/uploads/<path:filename>')
+    def serve_uploaded_file(filename):
+        return send_from_directory(os.path.join(os.getcwd(), 'uploads'), filename)
 
     return app

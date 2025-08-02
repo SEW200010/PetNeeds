@@ -1,13 +1,18 @@
 import Header from '@/components/Admin/header'
 import UserSidebar from '@/components/User/UserSidebar'
-import React from 'react'
-import { Mail } from "lucide-react"; 
+import React from 'react';
 import axios from 'axios';
 import {jwtDecode} from 'jwt-decode';
-import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react'
+import AddEmailAddress from '@/components/User/AddEmailAddress';
+import ProfileImageUploader from '@/components/User/ProfileImageUploader';
 
 function Profile() {
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  const API = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -17,7 +22,7 @@ function Profile() {
     const userId = decoded.sub || decoded.user_id;
 
     axios
-      .get(`http://localhost:5000/api/user/${userId}`, {
+      .get(`${API}/api/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setUser(res.data))
@@ -28,6 +33,7 @@ function Profile() {
   }, []);
 
   if (!user) return <div className="text-center mt-10">Loading...</div>;
+
 
 
   return (
@@ -55,11 +61,8 @@ function Profile() {
                       <div className="flex justify-between items-center">
                         {/* Profile Info */}
                         <div className="flex items-center space-x-4">
-                          <img
-                            src="https://randomuser.me/api/portraits/women/44.jpg"
-                            alt="Profile"
-                            className="w-16 h-16 rounded-full object-cover border-2 border-white shadow"
-                          />
+          
+                          <ProfileImageUploader user={user} setUser={setUser} />
                           <div>
                             <h2 className="text-xl font-semibold">{user.fullName}</h2>
                             <p className="text-gray-500">{user.email}</p>
@@ -67,7 +70,9 @@ function Profile() {
                         </div>
 
                         {/* Edit Button */}
-                        <button className="bg-green-600 text-white px-5 py-2 rounded-md hover:bg-green-700">
+                        <button 
+                          onClick={() => navigate('/profile/profile-edit')}
+                          className="bg-green-600 text-white px-5 py-2 rounded-md hover:bg-green-700">
                           Edit
                         </button>
                       </div>
@@ -93,25 +98,15 @@ function Profile() {
                         ))}
                       </div>
                       <div>
-                        <label className="block text-2xl font-medium text-gray-700 mt-8 mb-3">
-                            My email Address
-                        </label>
-                        <div className="flex items-center gap-3 mb-6">
-                          <div className="bg-emerald-100 text-emerald-600 p-2 rounded-full">
-                            <Mail className="w-4 h-4" />
-                          </div>
-                            <span className="text-gray-800">{user.email}</span>
-                          
+                        <AddEmailAddress user={user} setUser={setUser}/>
+                        <div>
+                          <button 
+                          onClick={() => navigate('/profile/change-password')}
+                          className="w-full md:w-auto px-4 py-2 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition block">
+                          Change Password
+                        </button>
                         </div>
-
-                        <div className="space-y-3">
-                          <button className="w-full md:w-auto px-4 py-2 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition">
-                            +Add Email Address
-                          </button>
-                          <button className="w-full md:w-auto px-4 py-2 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition block">
-                            Change Password
-                          </button>
-                        </div>
+                        
                       </div>
                     </div>
                   </div>

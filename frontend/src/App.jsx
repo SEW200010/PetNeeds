@@ -16,6 +16,9 @@ import UserManagementDashboard from "./pages/Admin/UserManagementDashboard";
 import MonitorStudent from "./pages/Admin/MonitorStudent";
 import ExploreModel from "./pages/Admin/ExploreModel";
 import Profile from "./pages/User/Profile";
+import AddEmailPage from "./pages/User/AddEmailPage";
+import ChangePasswordPage from "./pages/User/ChangePasswordPage";
+import ProfileEditPage from "./pages/User/ProfileEditPage";
 
 const App = () => {
   return (
@@ -40,6 +43,9 @@ const App = () => {
         <Route path="/explore-model" element={<ExploreModel />}/>
         <Route path="/explore-model" element={<ExploreModel />}/>
         <Route path="/profile" element={<Profile />}/>
+        <Route path="/profile/add-email" element={<AddEmailPage />}/>
+        <Route path="/profile/change-password" element={<ChangePasswordPage />}/>
+        <Route path="/profile/profile-edit" element={<ProfileEditPage />}/>
         {/* Add more routes here for About, Services, etc. */}
       </Routes>
     </Router>
