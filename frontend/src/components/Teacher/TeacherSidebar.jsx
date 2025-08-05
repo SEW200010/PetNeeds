@@ -17,6 +17,8 @@ import UserImg from "@/assets/User/DefaultUser.png"
 const menuItems = [
   { icon: User, label: "My Profile", hasChevron: true },
   { icon: Calendar, label: "My Events", hasChevron: true },
+  { icon: Calendar, label: "My Course", hasChevron: true },
+  { icon: Calendar, label: "My Supervisions", hasChevron: true },
   { icon: Settings, label: "Settings", hasChevron: true },
   { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
   { icon: LogOut, label: "Log Out", hasChevron: false },

@@ -28,7 +28,7 @@ function SelectActionCard() {
   return (
     <Box
       sx={{
-        width: '100%',
+        width: '95%',
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(min(220px, 100%), 1fr))',
         gap: 12,
