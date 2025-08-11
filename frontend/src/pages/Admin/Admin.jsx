@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardCard from "../../components/Admin/DashboardCard";
 import userIcon from "../../assets/Admin/image3.png";
 import eventIcon from "../../assets/Admin/image2.png";
@@ -7,10 +7,27 @@ import modelIcon from "../../assets/Admin/image4.png";
 import Header from "../../components/Admin/Header";
 import AdminSidebar from "../../components/Admin/AdminSidebar";
 import 'react-calendar/dist/Calendar.css';
-
+import BarChartComponent from '@/components/Fund/BarChartComponent';
 
 const AdminDashboard = () => {
     const [date, setDate] = useState(new Date());
+    const [barChartData, setBarChartData] = useState([]);
+    useEffect(() => {
+        const fetchChartData = async () => {
+            try {
+                const res = await fetch('http://localhost:5000/api/chart-data');
+                const data = await res.json();
+                setBarChartData([
+                    { name: 'Income', value: data.income },
+                    { name: 'Expense', value: data.expense },
+                ]);
+            } catch (err) {
+                console.error("Failed to fetch bar chart data", err);
+            }
+        };
+
+        fetchChartData();
+    }, []);
 
     // Example event dates (you can later fetch or generate these)
     const eventDates = [
@@ -61,9 +78,9 @@ const AdminDashboard = () => {
                             {/* Fundraising */}
                             <div className="w-full md:w-[55%]">
                                 <h2 className="text-xl font-bold mb-2 text-gray-800">Fundraising Status</h2>
-                                <div className="bg-white p-4 rounded-xl shadow-lg h-full">
-                                    <div className="h-48 flex items-center justify-center text-gray-500">[ Pie Chart Placeholder ]</div>
-                                </div>
+                                {/*<div className="bg-white p-4 rounded-xl shadow-lg h-full">*/}
+                                    <BarChartComponent data={barChartData} title="Income vs Expense" />
+                                {/*</div>*/}
                             </div>
                         </div>
 
