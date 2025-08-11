@@ -37,6 +37,13 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 }
+  :root {
+  --spacing: 4px;
+  --font-weight-semibold: 600;
+  --color-red-600: #dc2626;
+}
+
+
 
 .dark {
   --background: oklch(0.145 0 0);
