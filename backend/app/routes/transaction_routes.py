@@ -150,6 +150,14 @@ def get_summary():
         'expense': expense,
         'balance': balance
     })
+
+@transaction_bp.route('/api/transactions/<transaction_id>', methods=['DELETE'])
+def delete_transaction(transaction_id):
+    result = mongo.db.transactions.delete_one({'_id': ObjectId(transaction_id)})
+    if result.deleted_count == 1:
+        return jsonify({"message": "Transaction deleted"}), 200
+    return jsonify({"error": "Transaction not found"}), 404
+
 @transaction_bp.route('/api/chart-data', methods=['GET'])
 def get_chart_data():
     total_pipeline = [{"$group": {"_id": "$type", "total": {"$sum": "$amount"}}}]
