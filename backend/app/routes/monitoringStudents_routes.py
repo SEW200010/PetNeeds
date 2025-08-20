@@ -1,5 +1,6 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify ,request
 from app import mongo
+from bson import ObjectId
 
 monitoringstudent_bp = Blueprint('monitoringstudent_bp', __name__)
 
@@ -8,9 +9,8 @@ def get_all_monitored_students():
     students = list(mongo.db.montoringstudents.find({}, {"_id": 0}))
     return jsonify(students), 200
 
-
 # -----------------------------
-# Add New Student
+# Add New Monitored Student
 # -----------------------------
 @monitoringstudent_bp.route('/api/monitoringstudents', methods=['POST'])
 def add_monitored_student():
@@ -24,25 +24,32 @@ def add_monitored_student():
 
         # Basic validation
         if not all([name, unid, email, supervisor]):
-            return jsonify({"error": "All required fields must be provided"}), 400
+            return jsonify({"error": "All fields are required"}), 400
+
+        # Check if student with same UNID already exists
+        if mongo.db.montoringstudents.find_one({"unid": unid}):
+            return jsonify({"error": "Student with this UNID already exists"}), 409
+
+       
 
         student_doc = {
             "name": name,
             "unid": unid,
             "email": email,
             "progress": progress,
-            "supervisor": supervisor
+            "supervisor": supervisor,
+           
         }
 
-        result = mongo.db.monitoringstudents.insert_one(student_doc)
+        result = mongo.db.montoringstudents.insert_one(student_doc)
+
+        # Include inserted _id for frontend
         student_doc["_id"] = str(result.inserted_id)
 
         return jsonify(student_doc), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
 # -----------------------------
 # Get Student by ID
 # -----------------------------
@@ -73,7 +80,7 @@ def update_student(student_id):
             "supervisor": data.get("supervisor")
         }
 
-        result = mongo.db.monitoringstudents.update_one(
+        result = mongo.db.montoringstudents.update_one(
             {"_id": ObjectId(student_id)},
             {"$set": update_data}
         )

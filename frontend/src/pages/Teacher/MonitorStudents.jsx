@@ -10,7 +10,7 @@ import {
   CardActionArea,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { jwtDecode } from "jwt-decode";
+import {jwtDecode} from "jwt-decode";
 
 const MonitorStudentPage = () => {
   const navigate = useNavigate();
@@ -40,7 +40,6 @@ const MonitorStudentPage = () => {
         return;
       }
 
-      // Use decoded.name (or username/email depending on backend)
       setSupervisor(decoded.name || decoded.username || decoded.email);
     } catch (err) {
       console.error("Invalid token", err);
@@ -63,48 +62,43 @@ const MonitorStudentPage = () => {
   }, []);
 
   // Handle form submit
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const newStudent = {
-      name,
-      unid,
-      email,
-      progress: Number(progress),
-      supervisor  // ✅ logged-in teacher name/email
-    };
+  const newStudent = {
+    name,        // use state directly
+    unid,
+    email,
+    progress: Number(progress),
+    supervisor,  // read from state
+  };
 
-    console.log("Submitting student:", newStudent); // 🔍 Debug log
+  console.log("Submitting student:", newStudent);
 
-    try {
-      const res = await fetch('http://localhost:5000/api/monitoringstudents', {
+  try {
+    const res = await fetch(`http://localhost:5000/api/monitoringstudents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newStudent),
       });
+console.log(res);
+      if (!res.ok) throw new Error('Failed to add course');
 
-      const savedStudent = await res.json();
+    const savedStudent = await res.json();
+    setStudents([...students, savedStudent]);
 
-      if (!res.ok) {
-        console.error("Error response:", savedStudent);
-        alert("Error: " + (savedStudent.error || "Failed to add student"));
-        return;
-      }
+    // reset form
+    setName('');
+    setUnid('');
+    setEmail('');
+    setProgress(0);
+    setShowForm(false);
+  } catch (err) {
+    console.error(err);
+    alert('Error adding student');
+  }
+};
 
-      // Add to state
-      setStudents([...students, savedStudent]);
-
-      // Reset form
-      setName('');
-      setUnid('');
-      setEmail('');
-      setProgress(0);
-      setShowForm(false);
-    } catch (err) {
-      console.error(err);
-      alert('Error adding student');
-    }
-  };
 
   return (
     <div>
@@ -124,7 +118,6 @@ const MonitorStudentPage = () => {
             {showForm ? "Cancel" : "Add New Student"}
           </Button>
 
-          {/* Form */}
           {showForm && (
             <Box
               component="form"
@@ -140,6 +133,7 @@ const MonitorStudentPage = () => {
               <TextField
                 label="Full Name"
                 value={name}
+                 name="name" 
                 onChange={(e) => setName(e.target.value)}
                 required
                 fullWidth
@@ -147,6 +141,7 @@ const MonitorStudentPage = () => {
               <TextField
                 label="University ID"
                 value={unid}
+                 name="unid"
                 onChange={(e) => setUnid(e.target.value)}
                 required
                 fullWidth
@@ -154,6 +149,7 @@ const MonitorStudentPage = () => {
               <TextField
                 label="Email"
                 value={email}
+                 name="email"
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 fullWidth
@@ -161,12 +157,14 @@ const MonitorStudentPage = () => {
               <TextField
                 label="Progress (%)"
                 type="number"
+                 name="progress"
                 value={progress}
                 onChange={(e) => setProgress(e.target.value)}
                 fullWidth
               />
               <TextField
                 label="Supervisor"
+                 name="supervisor"
                 value={supervisor}
                 InputProps={{ readOnly: true }}
                 fullWidth
@@ -177,7 +175,6 @@ const MonitorStudentPage = () => {
             </Box>
           )}
 
-          {/* Students List */}
           <Typography variant="h6" gutterBottom>
             Your Monitored Students
           </Typography>
