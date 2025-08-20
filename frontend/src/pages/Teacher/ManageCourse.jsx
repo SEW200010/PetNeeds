@@ -5,28 +5,54 @@ import {
   TextField,
   Button,
   Typography,
-  MenuItem,
   Chip,
   Stack,
   Card,
   CardContent,
   CardActionArea,
+  MenuItem,   // ✅ add this
 } from '@mui/material';
 
+import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from "jwt-decode";
 
-const Teacher = () => {
-  const loggedTeacher = "Dr. Smith"; // 🔑 Replace with actual logged-in teacher
-  const API_BASE = "http://localhost:5000/courses"; // ✅ Flask backend
+const ManageCourse = () => {
+  const navigate = useNavigate();
+  const API_BASE = "http://localhost:5000/courses";
 
+  const [teacherName, setTeacherName] = useState('');
   const [attendees, setAttendees] = useState([]);
   const [emailInput, setEmailInput] = useState('');
   const [courses, setCourses] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
+  // ✅ Get logged-in teacher info from localStorage
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    navigate("/login");
+    return;
+  }
+
+  try {
+    const decoded = jwtDecode(token);
+    if (decoded.role !== "teacher-in-charge") {
+      alert("Access denied. Only teachers in charge can access this page.");
+      navigate("/login");
+      return;
+    }
+
+    setTeacherName(decoded.name);  // name from token payload
+  } catch (err) {
+    console.error("Invalid token", err);
+    navigate("/login");
+  }
+}, [navigate]);
+
   // Email validation
   const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
 
-  // Add attendees (comma separated)
+  // Add attendees
   const handleAddAttendees = () => {
     if (!emailInput.trim()) return;
 
@@ -35,9 +61,7 @@ const Teacher = () => {
       .map((email) => email.trim())
       .filter((email) => email !== '' && isValidEmail(email));
 
-    if (emails.length > 0) {
-      setAttendees([...attendees, ...emails]);
-    }
+    if (emails.length > 0) setAttendees([...attendees, ...emails]);
 
     setEmailInput('');
   };
@@ -47,64 +71,59 @@ const Teacher = () => {
     setAttendees(attendees.filter((email) => email !== emailToDelete));
   };
 
-  // Fetch courses from backend
+  // Fetch courses for logged-in teacher
+  useEffect(() => {
+    if (!teacherName) return;
 
+    const fetchCourses = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/teacher/${encodeURIComponent(teacherName)}`);
+        if (!res.ok) throw new Error('Failed to fetch courses');
+        const data = await res.json();
+        setCourses(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
 
-useEffect(() => {
-  const fetchCourses = async () => {
+    fetchCourses();
+  }, [teacherName]);
+
+  // Handle course form submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
+    const newCourse = {
+      courseName: formData.get('courseName'),
+      duration: formData.get('duration'),
+      courseId: formData.get('courseId'),
+      attendeesCount: attendees.length,
+      attendees,
+      teacherIncharge: teacherName, // ✅ always use logged-in teacher
+      year: formData.get('year'),
+    };
+
     try {
-      const res = await fetch(`http://localhost:5000/courses/teacher/${encodeURIComponent(loggedTeacher)}`);
-      if (!res.ok) throw new Error('Failed to fetch courses');
-      const data = await res.json();
-      setCourses(data);
+      const res = await fetch(`${API_BASE}/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCourse),
+      });
+
+      if (!res.ok) throw new Error('Failed to add course');
+      const savedCourse = await res.json();
+
+      setCourses([...courses, savedCourse]);
+      setAttendees([]);
+      setEmailInput('');
+      e.target.reset();
+      setShowForm(false);
     } catch (err) {
       console.error(err);
+      alert('Error adding course');
     }
   };
-
-  fetchCourses();
-}, []);
-
-  // Handle form submit
-  // Replace handleSubmit
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  const formData = new FormData(e.currentTarget);
-
-  const newCourse = {
-    courseName: formData.get('courseName'),
-    duration: formData.get('duration'),
-    courseId: formData.get('courseId'),
-    attendeesCount: attendees.length,
-    attendees: attendees,
-    teacherIncharge: formData.get('teacherIncharge'),
-    year: formData.get('year'),
-  };
-
-  try {
-    const res = await fetch('http://localhost:5000/courses/add', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newCourse),
-    });
-
-    if (!res.ok) throw new Error('Failed to add course');
-    const savedCourse = await res.json();
-
-    // Add saved course to state
-    setCourses([...courses, savedCourse]);
-
-    // Reset form
-    setAttendees([]);
-    setEmailInput('');
-    e.target.reset();
-    setShowForm(false);
-  } catch (err) {
-    console.error(err);
-    alert('Error adding course');
-  }
-};
-
 
   return (
     <div>
@@ -112,10 +131,9 @@ const handleSubmit = async (e) => {
       <main className="pt-[65px] min-h-screen">
         <Box sx={{ p: 3 }}>
           <Typography variant="h5" gutterBottom>
-            Welcome to manage courses!
+            Welcome, {teacherName}!
           </Typography>
 
-          {/* Add new course button */}
           <Button
             variant="contained"
             color="primary"
@@ -130,19 +148,12 @@ const handleSubmit = async (e) => {
             <Box
               component="form"
               onSubmit={handleSubmit}
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 2,
-                maxWidth: 600,
-                mb: 4,
-              }}
+              sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 600, mb: 4 }}
             >
               <TextField required label="Course Name" name="courseName" fullWidth />
-              <TextField required label="Duration" name="duration" placeholder="e.g. 3 months" fullWidth />
+              <TextField required label="Duration" name="duration" fullWidth placeholder="e.g. 3 months" />
               <TextField required label="Course ID" name="courseId" fullWidth />
 
-              {/* Year Selection */}
               <TextField select required label="Year" name="year" fullWidth>
                 <MenuItem value="2025">2025</MenuItem>
                 <MenuItem value="2026">2026</MenuItem>
@@ -169,22 +180,19 @@ const handleSubmit = async (e) => {
 
                 <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap' }}>
                   {attendees.map((email, index) => (
-                    <Chip
-                      key={index}
-                      label={email}
-                      onDelete={() => handleDeleteAttendee(email)}
-                      color="primary"
-                    />
+                    <Chip key={index} label={email} onDelete={() => handleDeleteAttendee(email)} color="primary" />
                   ))}
                 </Stack>
               </Box>
 
               {/* Teacher Incharge */}
-              <TextField select required label="Teacher Incharge" name="teacherIncharge" fullWidth>
-                <MenuItem value="Dr. Smith">Dr. Smith</MenuItem>
-                <MenuItem value="Prof. Johnson">Prof. Johnson</MenuItem>
-                <MenuItem value="Ms. Williams">Ms. Williams</MenuItem>
-              </TextField>
+              <TextField
+                label="Teacher Incharge"
+                name="teacherIncharge"
+                fullWidth
+                value={teacherName}
+                InputProps={{ readOnly: true }}
+              />
 
               <Button type="submit" variant="contained" color="success">
                 Save Course
@@ -192,33 +200,23 @@ const handleSubmit = async (e) => {
             </Box>
           )}
 
-          {/* Courses List (filter by logged teacher) */}
+          {/* Courses List */}
           <Typography variant="h6" gutterBottom>
             Your Courses
           </Typography>
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-              gap: 2,
-            }}
-          >
-            {courses
-              .filter((course) => course.teacherIncharge === loggedTeacher)
-              .map((course, index) => (
-                <Card key={index}>
-                  <CardActionArea
-                    onClick={() => alert(`Go to details of ${course.courseName}`)} // Replace with navigate()
-                  >
-                    <CardContent>
-                      <Typography variant="h6">{course.courseName}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Year: {course.year}
-                      </Typography>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              ))}
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 2 }}>
+            {courses.map((course, index) => (
+              <Card key={index}>
+                <CardActionArea onClick={() => alert(`Go to details of ${course.courseName}`)}>
+                  <CardContent>
+                    <Typography variant="h6">{course.courseName}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Year: {course.year}
+                    </Typography>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            ))}
           </Box>
         </Box>
       </main>
@@ -226,4 +224,4 @@ const handleSubmit = async (e) => {
   );
 };
 
-export default Teacher;
+export default ManageCourse;

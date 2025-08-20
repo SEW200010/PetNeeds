@@ -9,67 +9,38 @@ const Register = () => {
     name: '',
     email: '',
     password: '',
-    user_type: 'student'
+    user_type: 'student', // student, parent, teacher-in-charge
+    location: "",
+    school: "",
+    contact: ""
   });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  /*
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const res = await fetch("http://localhost:5000/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
       });
 
       if (res.ok) {
         const result = await res.json();
         alert(result.message);
-        // Redirect based on user type
-        if (formData.user_type === 'admin') {
-          navigate("/admin-dashboard");
-        } else {
-          navigate("/user-dashboard");
-        }
+        navigate("/login"); // redirect after registration
       } else {
-        alert("Registration failed");
+        const error = await res.json();
+        alert(error.error || "Registration failed");
       }
     } catch (err) {
       console.error("Error:", err);
     }
-  };*/
-
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  try {
-    const res = await fetch("http://localhost:5000/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(formData)
-    });
-
-    if (res.ok) {
-      const result = await res.json();
-      alert(result.message);
-      // Redirect user to login page after successful registration
-      navigate("/login");
-    } else {
-      alert("Registration failed");
-    }
-  } catch (err) {
-    console.error("Error:", err);
-  }
-};
+  };
 
   return (
     <>
@@ -116,8 +87,36 @@ const Register = () => {
             className="w-full px-4 py-2 mb-6 border rounded"
           >
             <option value="student">Student</option>
-            <option value="admin">Admin</option>
+            <option value="parent">Parent</option>
+            <option value="teacher-in-charge">Teacher In Charge</option>
           </select>
+
+          <label className="block mb-2 font-medium">Location</label>
+          <input
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            className="w-full px-4 py-2 mb-4 border rounded"
+          />
+
+          <label className="block mb-2 font-medium">School</label>
+          <input
+            type="text"
+            name="school"
+            value={formData.school}
+            onChange={handleChange}
+            className="w-full px-4 py-2 mb-4 border rounded"
+          />
+
+          <label className="block mb-2 font-medium">Contact</label>
+          <input
+            type="text"
+            name="contact"
+            value={formData.contact}
+            onChange={handleChange}
+            className="w-full px-4 py-2 mb-4 border rounded"
+          />
 
           <button
             type="submit"

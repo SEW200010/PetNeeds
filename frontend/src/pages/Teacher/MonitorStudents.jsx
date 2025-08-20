@@ -8,12 +8,13 @@ import {
   Card,
   CardContent,
   CardActionArea,
-  Stack,
-  Chip,
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from "jwt-decode";
 
 const MonitorStudentPage = () => {
-  const loggedTeacher = "Abc"; // Replace with actual logged-in teacher
+  const navigate = useNavigate();
+  const [supervisor, setSupervisor] = useState('');
   const [students, setStudents] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
@@ -22,6 +23,30 @@ const MonitorStudentPage = () => {
   const [unid, setUnid] = useState('');
   const [email, setEmail] = useState('');
   const [progress, setProgress] = useState(0);
+
+  // ✅ Get logged-in teacher from JWT
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+      if (decoded.role !== "teacher-in-charge") {
+        alert("Access denied. Only teachers in charge can access this page.");
+        navigate("/login");
+        return;
+      }
+
+      // Use decoded.name (or username/email depending on backend)
+      setSupervisor(decoded.name || decoded.username || decoded.email);
+    } catch (err) {
+      console.error("Invalid token", err);
+      navigate("/login");
+    }
+  }, [navigate]);
 
   // Fetch students on page load
   useEffect(() => {
@@ -40,13 +65,16 @@ const MonitorStudentPage = () => {
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const newStudent = {
       name,
       unid,
       email,
       progress: Number(progress),
-      supervisor: loggedTeacher,
+      supervisor  // ✅ logged-in teacher name/email
     };
+
+    console.log("Submitting student:", newStudent); // 🔍 Debug log
 
     try {
       const res = await fetch('http://localhost:5000/api/monitoringstudents', {
@@ -54,8 +82,14 @@ const MonitorStudentPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newStudent),
       });
-      if (!res.ok) throw new Error('Failed to add student');
+
       const savedStudent = await res.json();
+
+      if (!res.ok) {
+        console.error("Error response:", savedStudent);
+        alert("Error: " + (savedStudent.error || "Failed to add student"));
+        return;
+      }
 
       // Add to state
       setStudents([...students, savedStudent]);
@@ -78,7 +112,7 @@ const MonitorStudentPage = () => {
       <main className="pt-[65px] min-h-screen">
         <Box sx={{ p: 3 }}>
           <Typography variant="h5" gutterBottom>
-            Monitored Students
+            Monitored Students (Supervisor: {supervisor})
           </Typography>
 
           <Button
@@ -131,6 +165,12 @@ const MonitorStudentPage = () => {
                 onChange={(e) => setProgress(e.target.value)}
                 fullWidth
               />
+              <TextField
+                label="Supervisor"
+                value={supervisor}
+                InputProps={{ readOnly: true }}
+                fullWidth
+              />
               <Button type="submit" variant="contained" color="success">
                 Save Student
               </Button>
@@ -149,7 +189,7 @@ const MonitorStudentPage = () => {
             }}
           >
             {students
-              .filter((s) => s.supervisor === loggedTeacher)
+              .filter((s) => s.supervisor === supervisor)
               .map((student) => (
                 <Card key={student._id}>
                   <CardActionArea
