@@ -2,30 +2,34 @@ from flask import Flask, jsonify
 from flask_pymongo import PyMongo
 from flask_cors import CORS
 from flask_mail import Mail
+from dotenv import load_dotenv
+import os
 
 
 # Optional: Load environment variables
 # from dotenv import load_dotenv
 # import os
-# load_dotenv()
+load_dotenv()
 
 mongo = PyMongo()  # Initialize MongoDB
 mail = Mail() 
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS with all origins allowed, no credentials
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
-    # Configure MongoDB
-    # app.config["MONGO_URI"] = os.getenv("DB_URI")
-    app.config["MONGO_URI"] = "mongodb://localhost:27017/lifeskill"
+    # MongoDB config
+    app.config["MONGO_URI"] = os.getenv("DB_URI")
+
+    # Flask-Mail config
     app.config["MAIL_SERVER"] = "smtp.gmail.com"
     app.config["MAIL_PORT"] = 587
     app.config["MAIL_USE_TLS"] = True
-    app.config["MAIL_USERNAME"] = "pebalbubulu@gmail.com"  
-    app.config["MAIL_PASSWORD"] = "wcuh gknz vhri mfdn"          
-    app.config["MAIL_DEFAULT_SENDER"] = "pebalbubulu@gmail.com"
-    mail.init_app(app) 
+    app.config["MAIL_USERNAME"] = os.getenv("EMAIL_USER")
+    app.config["MAIL_PASSWORD"] = os.getenv("EMAIL_PASS")
+    app.config["MAIL_DEFAULT_SENDER"] = os.getenv("EMAIL_USER")
+
+    mail.init_app(app)
     mongo.init_app(app)
 
     # Register Blueprints
