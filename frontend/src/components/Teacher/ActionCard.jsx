@@ -4,27 +4,32 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import CardActionArea from '@mui/material/CardActionArea';
+import { useNavigate } from 'react-router-dom';
 
 const cards = [
   {
     id: 1,
     title: 'Create Events',
     description: 'Plants are essential for all life.',
+    path: '/create-events',
   },
   {
     id: 2,
     title: 'Manage Course Flow',
     description: 'Animals are a part of nature.',
+    path: '/manage-course',
   },
   {
     id: 3,
     title: 'Monitor Students',
     description: 'Humans depend on plants and animals for survival.',
+    path: '/monitor-students-teacher',
   },
 ];
 
 function SelectActionCard() {
-  const [selectedCard, setSelectedCard] = React.useState(0);
+  const navigate = useNavigate();
+
   return (
     <Box
       sx={{
@@ -34,18 +39,14 @@ function SelectActionCard() {
         gap: 12,
       }}
     >
-      {cards.map((card, index) => (
-        <Card>
+      {cards.map((card) => (
+        <Card key={card.id}>
           <CardActionArea
-            onClick={() => setSelectedCard(index)}
-            data-active={selectedCard === index ? '' : undefined}
+            onClick={() => navigate(card.path)} // 👈 navigate to page
             sx={{
               height: '100%',
-              '&[data-active]': {
-                backgroundColor: 'action.selected',
-                '&:hover': {
-                  backgroundColor: 'action.selectedHover',
-                },
+              '&:hover': {
+                backgroundColor: 'action.selectedHover',
               },
             }}
           >

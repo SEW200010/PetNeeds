@@ -16,6 +16,10 @@ import ViewEvent from "./pages/Admin/ViewEvent";
 import UserManagementDashboard from "./pages/Admin/UserManagementDashboard";
 import MonitorStudent from "./pages/Admin/MonitorStudent";
 import ExploreModel from "./pages/Admin/ExploreModel";
+import CreateEvents from './pages/Teacher/CreateEvents';
+import ManageCourse from './pages/Teacher/ManageCourse';
+import MonitorStudentsTeacheet from './pages/Teacher/MonitorStudents';
+//import SelectActionCard from './SelectActionCard';
 
 const App = () => {
   return (
@@ -39,6 +43,10 @@ const App = () => {
         <Route path="/user-management" element={<UserManagementDashboard/>}/>
         <Route path="/monitor-students" element={<MonitorStudent />}/>
         <Route path="/explore-model" element={<ExploreModel />}/>
+        <Route path="/create-events" element={<CreateEvents />} />
+        <Route path="/manage-course" element={<ManageCourse />} />
+        <Route path="/monitor-students-teacher" element={<MonitorStudentsTeacheet />} />
+       
         {/* Add more routes here for About, Services, etc. */}
       </Routes>
     </Router>

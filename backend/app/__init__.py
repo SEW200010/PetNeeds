@@ -23,7 +23,7 @@ def create_app():
     from app.routes.event_routes import event_bp  # New event Blueprint
     from app.routes.user_routes import user_bp
     from app.routes.monitoringStudents_routes import monitoringstudent_bp
-
+    from app.routes.course_routes import course_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(transaction_bp)
@@ -31,5 +31,6 @@ def create_app():
     app.register_blueprint(event_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(monitoringstudent_bp)
+    app.register_blueprint(course_bp, url_prefix="/courses")
 
     return app
