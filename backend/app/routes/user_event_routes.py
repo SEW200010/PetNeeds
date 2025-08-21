@@ -10,6 +10,13 @@ def serialize_event(e):
     e['participants'] = e.get('participants', {"registered": 0, "confirmed": 0})
     e['numberOfSlots'] = e.get('numberOfSlots', 0)
     e['eventMedia'] = e.get('eventMedia', [])
+
+    # Convert datetime objects to ISO string for JSON
+    if isinstance(e.get("start_time"), datetime):
+        e['start_time'] = e['start_time'].isoformat()
+    if isinstance(e.get("end_time"), datetime):
+        e['end_time'] = e['end_time'].isoformat()
+
     return e
 
 def compute_event_status(event):
@@ -21,7 +28,7 @@ def compute_event_status(event):
     if not start or not end:
         return "unknown"
 
-    # Convert to datetime if stored as string
+    # Convert strings to datetime if necessary
     if isinstance(start, str):
         start = datetime.fromisoformat(start)
     if isinstance(end, str):
