@@ -1,8 +1,12 @@
 from flask import Blueprint, jsonify
-from datetime import datetime
-from app import mongo  
+from datetime import datetime, timezone
+import pytz
+from app import mongo
 
-user_event_bp = Blueprint('user_event_bp', __name__)
+user_event_bp = Blueprint("user_event_bp", __name__)
+
+# Sri Lanka timezone
+SL_TZ = pytz.timezone("Asia/Colombo")
 
 def serialize_event(e):
     """Convert MongoDB document to JSON-serializable dict."""
@@ -11,28 +15,44 @@ def serialize_event(e):
     e['numberOfSlots'] = e.get('numberOfSlots', 0)
     e['eventMedia'] = e.get('eventMedia', [])
 
-    # Convert datetime objects to ISO string for JSON
-    if isinstance(e.get("start_time"), datetime):
-        e['start_time'] = e['start_time'].isoformat()
-    if isinstance(e.get("end_time"), datetime):
-        e['end_time'] = e['end_time'].isoformat()
+    start = e.get("start_time")
+    end = e.get("end_time")
+
+    # Convert to ISO format in Sri Lanka time
+    if isinstance(start, datetime):
+        e['start_time'] = start.astimezone(SL_TZ).isoformat()
+    if isinstance(end, datetime):
+        e['end_time'] = end.astimezone(SL_TZ).isoformat()
 
     return e
 
 def compute_event_status(event):
     """Determine event status based on current time and start/end times."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)  # Use UTC-aware current time
+
     start = event.get("start_time")
     end = event.get("end_time")
 
     if not start or not end:
         return "unknown"
 
-    # Convert strings to datetime if necessary
+    # If start/end are strings, parse with fromisoformat
     if isinstance(start, str):
-        start = datetime.fromisoformat(start)
+        try:
+            start = datetime.fromisoformat(start)
+        except ValueError:
+            return "unknown"
     if isinstance(end, str):
-        end = datetime.fromisoformat(end)
+        try:
+            end = datetime.fromisoformat(end)
+        except ValueError:
+            return "unknown"
+
+    # If start/end are naive, assume UTC
+    if start.tzinfo is None:
+        start = start.replace(tzinfo=timezone.utc)
+    if end.tzinfo is None:
+        end = end.replace(tzinfo=timezone.utc)
 
     if now < start:
         return "upcoming"
@@ -41,7 +61,8 @@ def compute_event_status(event):
     else:
         return "completed"
 
-@user_event_bp.route('/upcoming-events', methods=['GET'])
+# Routes
+@user_event_bp.route("/upcoming-events", methods=["GET"])
 def get_upcoming_events():
     try:
         events = list(mongo.db.events.find())
@@ -50,7 +71,7 @@ def get_upcoming_events():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@user_event_bp.route('/ongoing-events', methods=['GET'])
+@user_event_bp.route("/ongoing-events", methods=["GET"])
 def get_ongoing_events():
     try:
         events = list(mongo.db.events.find())
@@ -59,7 +80,7 @@ def get_ongoing_events():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@user_event_bp.route('/completed-events', methods=['GET'])
+@user_event_bp.route("/completed-events", methods=["GET"])
 def get_completed_events():
     try:
         events = list(mongo.db.events.find())
