@@ -1,18 +1,19 @@
 from app import create_app, mongo
-from datetime import datetime, timedelta
+from datetime import datetime
+import pytz
 
 app = create_app()
 
-with app.app_context():
-    now = datetime.utcnow()
+SL_TZ = pytz.timezone("Asia/Colombo")
 
+with app.app_context():
     sample_events = [
-        # === UPCOMING EVENTS ===
+        # UPCOMING
         {
             "name": "Counseling Intro",
             "description": "Introduction to counseling services",
-            "start_time": now + timedelta(days=1),
-            "end_time": now + timedelta(days=1, hours=2),
+            "start_time": SL_TZ.localize(datetime(2025, 8, 22, 8, 18)),
+            "end_time": SL_TZ.localize(datetime(2025, 8, 22, 10, 18)),
             "venue": "Conference Room A",
             "schedule": [],
             "speakers": ["Dr. Smith"],
@@ -21,30 +22,31 @@ with app.app_context():
         {
             "name": "Career Guidance Workshop",
             "description": "Helping students plan their career paths",
-            "start_time": now + timedelta(days=2),
-            "end_time": now + timedelta(days=2, hours=3),
+            "start_time": SL_TZ.localize(datetime(2025, 8, 23, 14, 0)),
+            "end_time": SL_TZ.localize(datetime(2025, 8, 23, 17, 0)),
             "venue": "Auditorium",
             "schedule": [],
             "speakers": ["Prof. Adams", "Ms. Lee"],
             "participants": {"registered": 10, "confirmed": 5}
         },
-        {
-            "name": "Time Management Seminar",
-            "description": "Techniques to manage your time efficiently",
-            "start_time": now + timedelta(days=3, hours=2),
-            "end_time": now + timedelta(days=3, hours=4),
-            "venue": "Room 101",
-            "schedule": [],
-            "speakers": ["Mr. John"],
-            "participants": {"registered": 5, "confirmed": 2}
-        },
 
-        # === ONGOING EVENTS ===
+        # ONGOING
+        {
+    "name": "Quick Mindfulness Break",
+    "description": "Short session to relax and refocus",
+    "start_time": SL_TZ.localize(datetime(2025, 8, 21, 11, 0)),  # started at 11:00
+    "end_time": SL_TZ.localize(datetime(2025, 8, 21, 12, 0)),    # ends at 12:00
+    "venue": "Room 105",
+    "schedule": [],
+    "speakers": ["Coach Anna"],
+    "participants": {"registered": 15, "confirmed": 10}
+},
+
         {
             "name": "Mindfulness Session",
             "description": "Live mindfulness and stress relief session",
-            "start_time": now - timedelta(hours=1),
-            "end_time": now + timedelta(hours=1),
+            "start_time": SL_TZ.localize(datetime(2025, 8, 21, 13, 0)),
+            "end_time": SL_TZ.localize(datetime(2025, 8, 21, 15, 0)),
             "venue": "Room 201",
             "schedule": [],
             "speakers": ["Coach Michael"],
@@ -53,49 +55,27 @@ with app.app_context():
         {
             "name": "Team Building Workshop",
             "description": "Interactive session to improve collaboration",
-            "start_time": now - timedelta(minutes=30),
-            "end_time": now + timedelta(hours=2),
+            "start_time": SL_TZ.localize(datetime(2025, 8, 21, 14, 0)),
+            "end_time": SL_TZ.localize(datetime(2025, 8, 21, 16, 30)),
             "venue": "Hall B",
             "schedule": [],
             "speakers": ["Ms. Laura"],
             "participants": {"registered": 30, "confirmed": 18}
         },
-        {
-            "name": "AI & Machine Learning Intro",
-            "description": "Basics of AI and ML for beginners",
-            "start_time": now - timedelta(hours=2),
-            "end_time": now + timedelta(hours=2),
-            "venue": "Computer Lab",
-            "schedule": [],
-            "speakers": ["Dr. Alan"],
-            "participants": {"registered": 15, "confirmed": 10}
-        },
 
-        # === COMPLETED EVENTS ===
+        # COMPLETED
         {
             "name": "Stress Management Seminar",
             "description": "Techniques for managing stress effectively",
-            "start_time": now - timedelta(days=2, hours=3),
-            "end_time": now - timedelta(days=2, hours=1),
+            "start_time": SL_TZ.localize(datetime(2025, 8, 19, 11, 30)),
+            "end_time": SL_TZ.localize(datetime(2025, 8, 19, 13, 30)),
             "venue": "Conference Room C",
             "schedule": [],
             "speakers": ["Dr. Green"],
             "participants": {"registered": 50, "confirmed": 40}
-        },
-        {
-            "name": "Parent Counseling Session",
-            "description": "Guidance session for parents",
-            "start_time": now - timedelta(days=5, hours=2),
-            "end_time": now - timedelta(days=5),
-            "venue": "Online (Zoom)",
-            "schedule": [],
-            "speakers": ["Ms. Rose"],
-            "participants": {"registered": 25, "confirmed": 20}
         }
     ]
 
-    # Clear old events and insert new ones
     mongo.db.events.delete_many({})
     mongo.db.events.insert_many(sample_events)
-
-    print("✅ Sample events inserted with proper datetime objects.")
+    print("✅ Sample events inserted with Sri Lanka timezone datetime objects.")
