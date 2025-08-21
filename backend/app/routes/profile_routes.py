@@ -17,6 +17,7 @@ def allowed_file(filename):
 
 profile_bp = Blueprint("profile_bp", __name__)
 
+
 @profile_bp.route("/api/user/<user_id>", methods=["GET"])
 @jwt_required()
 def get_user(user_id):
@@ -153,7 +154,7 @@ def upload_profile_image(user_id):
         return jsonify({"message": "Invalid image file"}), 400
 
 
-@profile_bp.route('/user/<user_id>/update', methods=['PUT'])
+@profile_bp.route('/api/user/<user_id>/update', methods=['PUT'])
 @jwt_required()
 def update_user(user_id):
     data = request.get_json()
