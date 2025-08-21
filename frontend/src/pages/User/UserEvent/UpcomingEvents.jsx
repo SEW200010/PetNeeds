@@ -1,19 +1,34 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import { Grid, List } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import EventCard from "./EventCard";
 import Header from "../../../components/Header";
 import UserSidebar from "./UserSidebar";
+import { jwtDecode } from "jwt-decode"; // ✅ import jwtDecode
 
 export default function OngoingEvents() {
   const [events, setEvents] = useState([]);
-  const userId = "68a6c2d32438f4fcfff8dd6f"; // Replace with logged-in user ID
+  const [user, setUser] = useState(null); // store user info
+  const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
+    // Get user info from token
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const decoded = jwtDecode(token);
+    const currentUser = {
+      _id: decoded.sub || decoded.user_id,
+      fullName: decoded.name || decoded.fullName || "User",
+    };
+    setUser(currentUser);
+
+    // Fetch ongoing events
     axios
-      .get("http://localhost:5000/upcoming-events")
+      .get(`${API}/ongoing-events`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => setEvents(res.data))
       .catch((err) => console.error("Failed to load ongoing events", err));
   }, []);
@@ -26,6 +41,8 @@ export default function OngoingEvents() {
     );
   };
 
+  if (!user) return <div className="mt-10 text-center">Loading...</div>;
+
   return (
     <div className="min-h-screen bg-gray-50 relative">
       <Header />
@@ -34,7 +51,7 @@ export default function OngoingEvents() {
         <main className="w-full md:w-3/4 px-4 py-6 flex-1">
           <div className="mb-8">
             <h1 className="text-2xl font-semibold text-gray-900 mb-2">
-              Welcome, Amanda
+              Welcome, {user.fullName}
             </h1>
             <p className="text-gray-500">
               {new Date().toLocaleDateString("en-GB", {
@@ -85,14 +102,20 @@ export default function OngoingEvents() {
 
           {/* Events Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {events.map((event) => (
-              <EventCard
-                key={event._id}
-                event={event}
-                userId={userId}
-                onJoinSuccess={handleJoinSuccess}
-              />
-            ))}
+            {events.length > 0 ? (
+              events.map((event) => (
+                <EventCard
+                  key={event._id}
+                  event={event}
+                  userId={user._id} // use decoded userId
+                  onJoinSuccess={handleJoinSuccess}
+                />
+              ))
+            ) : (
+              <p className="text-gray-500 col-span-full">
+                No upcoming events yet.
+              </p>
+            )}
           </div>
         </main>
       </div>
