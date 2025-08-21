@@ -5,17 +5,35 @@ import { Button } from "../../../components/ui/button";
 import EventCard from "./EventCard";
 import Header from "../../../components/Header";
 import UserSidebar from "./UserSidebar";
+import { jwtDecode } from "jwt-decode";
 
 export default function CompletedEventsPage() {
   const [events, setEvents] = useState([]);
-  const userId = "68a6c2d32438f4fcfff8dd6f"; // Replace with logged-in user ID
+  const [user, setUser] = useState(null);
+  const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    // Decode user info from JWT
+    const decoded = jwtDecode(token);
+    const currentUser = {
+      _id: decoded.sub || decoded.user_id,
+      fullName: decoded.name || decoded.fullName || "User",
+    };
+    setUser(currentUser);
+
+    // Fetch completed events
     axios
-      .get(`http://localhost:5000/completed-events`)
+      .get(`${API}/completed-events`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => setEvents(res.data))
       .catch((err) => console.error("Failed to load completed events", err));
-  }, [userId]);
+  }, []);
+
+  if (!user) return <div className="mt-10 text-center">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 relative">
@@ -25,7 +43,7 @@ export default function CompletedEventsPage() {
         <main className="w-full md:w-3/4 px-4 py-6 flex-1">
           <div className="mb-8">
             <h1 className="text-2xl font-semibold text-gray-900 mb-2">
-              Welcome, Amanda
+              Welcome, {user.fullName}
             </h1>
             <p className="text-gray-500">
               {new Date().toLocaleDateString("en-GB", {
@@ -81,7 +99,7 @@ export default function CompletedEventsPage() {
                 <EventCard
                   key={event._id}
                   event={event}
-                  userId={userId}
+                  userId={user._id}
                   completed={true}
                 />
               ))
