@@ -13,24 +13,31 @@ export default function OngoingEvents() {
   const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
-    // Get user info from token
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const decoded = jwtDecode(token);
-    const currentUser = {
-      _id: decoded.sub || decoded.user_id,
-      fullName: decoded.name || decoded.fullName || "User",
-    };
-    setUser(currentUser);
+    try {
+      const decoded = jwtDecode(token);
+      const userId = decoded.sub || decoded.user_id;
 
-    // Fetch ongoing events
-    axios
-      .get(`${API}/ongoing-events`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setEvents(res.data))
-      .catch((err) => console.error("Failed to load ongoing events", err));
+      // Fetch full user info from backend
+      axios
+        .get(`${API}/api/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => setUser({ fullName: res.data.fullName, email: res.data.email, _id: res.data._id }))
+        .catch((err) => console.error("Failed to fetch user info", err));
+
+      // Fetch ongoing events
+      axios
+        .get(`${API}/upcoming-events`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => setEvents(res.data))
+        .catch((err) => console.error("Failed to load ongoing events", err));
+    } catch (err) {
+      console.error("Failed to decode token", err);
+    }
   }, []);
 
   const handleJoinSuccess = (joinedEventId) => {
