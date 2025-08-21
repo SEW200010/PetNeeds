@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, make_response
 from flask_pymongo import PyMongo
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -17,7 +17,8 @@ jwt = JWTManager()
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+    CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
+
 
     #app.config["MONGO_URI"] = os.getenv("DB_URI")
     app.config["MONGO_URI"] = "mongodb://localhost:27017/lifeskill"
@@ -48,5 +49,8 @@ def create_app():
     @app.route('/uploads/<path:filename>')
     def serve_uploaded_file(filename):
         return send_from_directory(os.path.join(os.getcwd(), 'uploads'), filename)
+
+    
+    
 
     return app

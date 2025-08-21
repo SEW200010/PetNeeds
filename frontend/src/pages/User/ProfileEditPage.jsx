@@ -46,7 +46,11 @@ function ProfileEditPage() {
 
     try {
       await axios.put(`${API}/api/user/${userId}/update`, formData, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+             'Authorization': `Bearer ${token}`,
+             'Content-Type': 'application/json',
+        },
+        withCredentials: true 
       });
       alert("Profile updated successfully!");
     } catch (error) {
