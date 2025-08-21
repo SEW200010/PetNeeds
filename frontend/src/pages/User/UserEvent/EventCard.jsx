@@ -32,6 +32,20 @@ export default function EventCard({ event, userId, onJoinSuccess }) {
     }
   };
 
+  // Convert UTC ISO string to SLST (UTC+5:30)
+  const formatToSLST = (utcDate) => {
+    const slstDate = new Date(new Date(utcDate).getTime() + 5.5 * 60 * 60 * 1000);
+    const optionsDate = { year: "numeric", month: "short", day: "numeric" };
+    const optionsTime = { hour: "2-digit", minute: "2-digit" };
+    return {
+      date: slstDate.toLocaleDateString("en-GB", optionsDate),
+      time: slstDate.toLocaleTimeString("en-GB", optionsTime)
+    };
+  };
+
+  const startSLST = formatToSLST(event.start_time);
+  const endSLST = formatToSLST(event.end_time);
+
   return (
     <Card className="overflow-hidden shadow-xl hover:shadow-xl transition-shadow border-0 py-2">
       <div className="aspect-[4/3] relative">
@@ -46,21 +60,7 @@ export default function EventCard({ event, userId, onJoinSuccess }) {
           {event.name || event.title}
         </p>
         <p className="text-xs text-gray-400 mb-4">
-          {new Date(event.start_time).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          })}{" "}
-          |{" "}
-          {new Date(event.start_time).toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-          })}{" "}
-          -{" "}
-          {new Date(event.end_time).toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-          })}
+          {startSLST.date} | {startSLST.time} - {endSLST.time}
         </p>
 
         <Button
