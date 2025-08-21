@@ -15,10 +15,11 @@ import ViewEvent from "./pages/Admin/ViewEvent";
 import UserManagementDashboard from "./pages/Admin/UserManagementDashboard";
 import MonitorStudent from "./pages/Admin/MonitorStudent";
 import ExploreModel from "./pages/Admin/ExploreModel";
-import FeedbackPage from "./pages/Admin/FeedbackPage"; // ✅ Valid page component
+import FeedbackPage from "./pages/Admin/FeedbackPage"; 
 import BasicPage from "./pages/Admin/BasicPage";
 import UpcomingEvents from "./pages/User/UserEvent/UpcomingEvents";
 import OngoingEvents from "./pages/User/UserEvent/OngoingEvents";
+import CompletedEventsPage from "./pages/User/UserEvent/CompletedEventsPage";
 const App = () => {
   return (
     <Router>
@@ -44,6 +45,7 @@ const App = () => {
         <Route path="/explore-model" element={<ExploreModel />} />
         <Route path="/upcoming-events" element={<UpcomingEvents />} />
         <Route path="/ongoing-events" element={<OngoingEvents />} />
+        <Route path="/completed-events" element={<CompletedEventsPage />} />
       </Routes>
     </Router>
   );
