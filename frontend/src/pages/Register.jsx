@@ -9,7 +9,11 @@ const Register = () => {
     name: '',
     email: '',
     password: '',
-    user_type: 'student'
+    user_type: 'student',
+    location: "",
+    school: "",
+    contact: "",
+    joinDate: "2025-01-01",
   });
 
   const handleChange = (e) => {
@@ -118,6 +122,35 @@ const Register = () => {
             <option value="student">Student</option>
             <option value="admin">Admin</option>
           </select>
+
+<label className="block mb-2 font-medium">Location</label>
+          <input
+            type="text"
+            name="location"
+            required
+            value={formData.location}
+            onChange={handleChange}
+            className="w-full px-4 py-2 mb-4 border rounded"
+          />
+
+          <label className="block mb-2 font-medium">School</label>
+          <input
+            type="text"
+            name="school"
+            required
+            value={formData.school}
+            onChange={handleChange}
+            className="w-full px-4 py-2 mb-4 border rounded"
+          />
+          <label className="block mb-2 font-medium">Contact</label>
+          <input
+            type="text"
+            name="contact"
+            required
+            value={formData.contact}
+            onChange={handleChange}
+            className="w-full px-4 py-2 mb-4 border rounded"
+          />
 
           <button
             type="submit"
