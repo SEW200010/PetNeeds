@@ -1,6 +1,7 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, request, jsonify
 from datetime import datetime, timezone
 import pytz
+from bson import ObjectId
 from app import mongo
 
 user_event_bp = Blueprint("user_event_bp", __name__)
@@ -88,3 +89,44 @@ def get_completed_events():
         return jsonify(completed), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+@user_event_bp.route("/join-event", methods=["POST"])
+def join_event():
+    try:
+        data = request.json
+        user_id = data.get("user_id")
+        event_id = data.get("event_id")
+
+        if not user_id or not event_id:
+            return jsonify({"error": "User ID and Event ID are required"}), 400
+
+        # Convert IDs to ObjectId
+        try:
+            user_obj_id = ObjectId(user_id)
+            event_obj_id = ObjectId(event_id)
+        except Exception as e:
+            return jsonify({"error": "Invalid user_id or event_id"}), 400
+
+        # Check if event exists
+        event = mongo.db.events.find_one({"_id": event_obj_id})
+        if not event:
+            return jsonify({"error": "Event not found"}), 404
+
+        # Add user to event's registered_users array (avoid duplicates)
+        mongo.db.events.update_one(
+            {"_id": event_obj_id, "participants.registered_users": {"$ne": user_obj_id}},
+            {"$push": {"participants.registered_users": user_obj_id}}
+        )
+
+        # Add event to user's joined_events array (avoid duplicates)
+        mongo.db.users.update_one(
+            {"_id": user_obj_id, "joined_events": {"$ne": event_obj_id}},
+            {"$push": {"joined_events": event_obj_id}}
+        )
+
+        return jsonify({"message": "Event joined successfully"}), 200
+
+    except Exception as e:
+        print("Error in join_event:", e)
+        return jsonify({"error": "Something went wrong"}), 500
