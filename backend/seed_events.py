@@ -9,6 +9,17 @@ SL_TZ = pytz.timezone("Asia/Colombo")
 with app.app_context():
     sample_events = [
         {
+    "_id": ObjectId(),
+    "name": "Quick Test Event",
+    "description": "This event ends in 5 minutes",
+    "start_time": SL_TZ.localize(datetime(2025, 8, 21, 13, 15)),
+    "end_time": SL_TZ.localize(datetime(2025, 8, 21, 13, 20)),
+    "venue": "Test Room",
+    "participants": {"registered_users": [], "confirmed_users": []},
+    "speakers": ["Test Speaker"]
+},
+
+        {
             "_id": ObjectId(),
             "name": "Counseling Intro",
             "description": "Introduction to counseling services",
@@ -27,7 +38,7 @@ with app.app_context():
             "venue": "Room 201",
             "participants": {"registered_users": [], "confirmed_users": []},
             "speakers": ["Coach Michael"]
-        }
+        },
     ]
 
     mongo.db.events.delete_many({})
