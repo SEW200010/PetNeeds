@@ -10,3 +10,5 @@ instance/
 
 # Environment config files
 #.env
+
+/uploads
