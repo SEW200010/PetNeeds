@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Header from "../../components/Admin/Header";
 import {
-  PieChart, Pie, Cell,
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import AdminSidebar from "../../components/Admin/AdminSidebar";
+import BarChartComponent from '@/components/Fund/BarChartComponent';
+import { FaTrash, FaEye } from 'react-icons/fa';
+import StickyHeadTable from "../../components/Admin/StickyHeadTable";
 
 const COLORS = ['#0088FE', '#FF8042', '#00C49F', '#FFBB28', '#FF6666', '#AA88FF'];
-const ITEMS_PER_PAGE = 10;
-
 const FundRaising = () => {
   const [transactions, setTransactions] = useState([]);
   const [description, setDescription] = useState('');
@@ -26,9 +26,7 @@ const FundRaising = () => {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
 
-  // Pagination states
-  const [incomePage, setIncomePage] = useState(1);
-  const [expensePage, setExpensePage] = useState(1);
+  const fileInputRef = useRef(null);
 
   const categoryOptions = {
     income: ['Donation', 'Sponsorship', 'Grant'],
@@ -39,7 +37,7 @@ const FundRaising = () => {
       'Event/Session Logistics',
       'Staff & Volunteer Costs',
       'Program Development',
-      'Monitoring & Evaluation'
+      'Monitoring & Evaluation'
     ],
   };
 
@@ -96,6 +94,39 @@ const FundRaising = () => {
     !isNaN(parseFloat(amount)) &&
     ((type === 'income' && donorName) || (type === 'expense' && beneficiaryName));
 
+  const handleFileChange = (e) => {
+    const selected = e.target.files[0];
+    if (selected && !['application/pdf', 'image/png', 'image/jpeg'].includes(selected.type)) {
+      alert('Only PDF or image files are allowed');
+      return;
+    }
+    setFile(selected);
+  };
+
+  const handleDeleteTransaction = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this transaction?")) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/transactions/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        alert(`❌ Failed to delete: ${errorData.error || 'Unknown error'}`);
+        return;
+      }
+
+      // Refresh data after deletion
+      await Promise.all([fetchTransactions(), fetchSummary(), fetchChartData()]);
+      setMessage("✅ Transaction deleted");
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error deleting transaction");
+    }
+  };
+
   const handleAddTransaction = async () => {
     if (!isFormValid || submitting) return;
 
@@ -128,7 +159,9 @@ const FundRaising = () => {
         setDonorName('');
         setBeneficiaryName('');
         setFile(null);
-
+        if (fileInputRef.current) {
+          fileInputRef.current.value = null; // This resets the file input field
+        }
         return; // Stop here to avoid success message
       }
 
@@ -139,9 +172,12 @@ const FundRaising = () => {
       setDonorName('');
       setBeneficiaryName('');
       setFile(null);
-
-      setIncomePage(1);
-      setExpensePage(1);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = null; // This resets the file input field
+      }
+      // No need to reset incomePage/expensePage here, StickyHeadTable manages its own
+      // setIncomePage(1);
+      // setExpensePage(1);
 
       await Promise.all([fetchTransactions(), fetchSummary(), fetchChartData()]);
 
@@ -157,6 +193,9 @@ const FundRaising = () => {
       setDonorName('');
       setBeneficiaryName('');
       setFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = null; // This resets the file input field
+      }
     } finally {
       setSubmitting(false);
       setTimeout(() => setMessage(''), 3000);
@@ -172,22 +211,121 @@ const FundRaising = () => {
     );
   }
 
-  // Filter and paginate income and expense transactions
+  // Filter income and expense transactions
   const incomeTransactions = transactions.filter(t => t.type === 'income');
   const expenseTransactions = transactions.filter(t => t.type === 'expense');
 
-  const incomePageCount = Math.ceil(incomeTransactions.length / ITEMS_PER_PAGE);
-  const expensePageCount = Math.ceil(expenseTransactions.length / ITEMS_PER_PAGE);
+  // --- Define Columns for Income Table ---
+  const incomeColumns = [
+    { id: 'donorName', label: 'Donor/Organization', minWidth: 150 },
+    { id: 'category', label: 'Category', minWidth: 120 },
+    { id: 'description', label: 'Description', minWidth: 180 },
+    {
+      id: 'timestamp',
+      label: 'Date',
+      minWidth: 170,
+      format: (value) => new Date(value).toLocaleString(),
+    },
+    {
+      id: 'amount',
+      label: 'Amount',
+      minWidth: 100,
+      align: 'right',
+      render: (value) => <span className="text-green-600">+{value.toFixed(2)}</span>,
+    },
+    {
+      id: 'file',
+      label: 'File',
+      minWidth: 80,
+      align: 'center',
+      render: (file, row) => (
+        <div className="flex justify-center items-center h-full">
+          {file?.url ? (
+            <a
+              href={file.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline"
+            >
+              <FaEye className="text-blue-700 hover:scale-125" size={20} />
+            </a>
+          ) : (
+            '-'
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 'actions',
+      label: 'Actions',
+      minWidth: 80,
+      align: 'center',
+      render: (_, row) => (
+        <button
+          onClick={() => handleDeleteTransaction(row._id)}
+          className="text-red-600 hover:underline"
+        >
+          <FaTrash className="text-red hover:scale-125" size={20} />
+        </button>
+      ),
+    },
+  ];
 
-  const incomePaginated = incomeTransactions.slice(
-    (incomePage - 1) * ITEMS_PER_PAGE,
-    incomePage * ITEMS_PER_PAGE
-  );
-
-  const expensePaginated = expenseTransactions.slice(
-    (expensePage - 1) * ITEMS_PER_PAGE,
-    expensePage * ITEMS_PER_PAGE
-  );
+  // --- Define Columns for Expense Table ---
+  const expenseColumns = [
+    { id: 'beneficiaryName', label: 'Beneficiary\'s Name', minWidth: 150 },
+    { id: 'category', label: 'Category', minWidth: 120 },
+    { id: 'description', label: 'Description', minWidth: 180 },
+    {
+      id: 'timestamp',
+      label: 'Date',
+      minWidth: 170,
+      format: (value) => new Date(value).toLocaleString(),
+    },
+    {
+      id: 'amount',
+      label: 'Amount',
+      minWidth: 100,
+      align: 'right',
+      render: (value) => <span className="text-red-600">-{value.toFixed(2)}</span>,
+    },
+    {
+      id: 'file',
+      label: 'File',
+      minWidth: 80,
+      align: 'center',
+      render: (file, row) => (
+        <div className="flex justify-center items-center">
+          {file?.url ? (
+            <a
+              href={file.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline"
+            >
+              <FaEye className="text-blue-700 hover:scale-125" size={20} />
+            </a>
+          ) : (
+            '-'
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 'actions',
+      label: 'Actions',
+      minWidth: 80,
+      align: 'center',
+      render: (_, row) => (
+        <button
+          onClick={() => handleDeleteTransaction(row._id)}
+          className="text-red-600 hover:underline"
+        >
+          <FaTrash className="text-red hover:scale-125" size={20} />
+        </button>
+      ),
+    },
+  ];
 
   return (
     <div>
@@ -219,8 +357,9 @@ const FundRaising = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Form Section */}
               <div className="bg-white p-4 rounded shadow overflow-auto max-h-[700px]">
-                <label className="block mb-2 text-sm font-medium">Type</label>
+                <label htmlFor="type" className="block mb-2 text-sm font-medium">Type</label>
                 <select
+                  id="type"
                   value={type}
                   onChange={e => {
                     setType(e.target.value);
@@ -234,8 +373,9 @@ const FundRaising = () => {
                   <option value="expense">Expense</option>
                 </select>
 
-                <label className="block mb-2 text-sm font-medium">Category</label>
+                <label htmlFor="category" className="block mb-2 text-sm font-medium">Category</label>
                 <select
+                  id="category"
                   value={category}
                   onChange={e => setCategory(e.target.value)}
                   className="w-full border p-2 rounded mb-4"
@@ -249,8 +389,9 @@ const FundRaising = () => {
                 {/* Conditional donor/beneficiary fields */}
                 {type === 'income' && (
                   <>
-                    <label className="block mb-2 text-sm font-medium">Donor / Organization Name</label>
+                    <label htmlFor="donorName" className="block mb-2 text-sm font-medium">Donor / Organization Name</label>
                     <input
+                      id="donorName"
                       type="text"
                       value={donorName}
                       onChange={e => setDonorName(e.target.value)}
@@ -262,8 +403,9 @@ const FundRaising = () => {
 
                 {type === 'expense' && (
                   <>
-                    <label className="block mb-2 text-sm font-medium">Beneficiary Name</label>
+                    <label htmlFor="beneficiaryName" className="block mb-2 text-sm font-medium">Beneficiary Name</label>
                     <input
+                      id="beneficiaryName"
                       type="text"
                       value={beneficiaryName}
                       onChange={e => setBeneficiaryName(e.target.value)}
@@ -273,8 +415,9 @@ const FundRaising = () => {
                   </>
                 )}
 
-                <label className="block mb-2 text-sm font-medium">Description</label>
+                <label htmlFor="description" className="block mb-2 text-sm font-medium">Description</label>
                 <input
+                  id="description"
                   type="text"
                   value={description}
                   onChange={e => setDescription(e.target.value)}
@@ -282,8 +425,9 @@ const FundRaising = () => {
                   placeholder="Enter description"
                 />
 
-                <label className="block mb-2 text-sm font-medium">Amount</label>
+                <label htmlFor="amount" className="block mb-2 text-sm font-medium">Amount</label>
                 <input
+                  id="amount"
                   type="number"
                   step="0.01"
                   value={amount}
@@ -292,12 +436,15 @@ const FundRaising = () => {
                   placeholder="$0.00"
                 />
 
-                <label className="block mb-2 text-sm font-medium">Upload Transcript</label>
+                <label htmlFor="transcriptFile" className="block mb-2 text-sm font-medium">Upload Transcript</label>
                 <input
+                  id="transcriptFile"
                   type="file"
-                  onChange={e => setFile(e.target.files[0])}
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
                   className="w-full border p-2 rounded mb-4"
                 />
+
 
                 <button
                   onClick={handleAddTransaction}
@@ -320,218 +467,102 @@ const FundRaising = () => {
               {/* Charts Section */}
               <div className="grid grid-cols-1 gap-4">
                 {/* Income Pie Chart */}
-                <div className="bg-white h-64 rounded border shadow p-4 flex">
-                  <div className="w-1/2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={incomePieData}
-                          dataKey="value"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={60}
-                          labelLine={false}
-                        >
-                          {incomePieData.map((entry, index) => (
-                            <Cell key={`income-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="w-1/2 flex flex-col justify-center pl-4">
-                    {incomePieData.map((entry, index) => (
-                      <div key={index} className="flex items-center mb-2">
-                        <div className="w-4 h-4 rounded mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                        <span className="text-sm">{entry.name} (${entry.value})</span>
-                      </div>
-                    ))}
+                <div className="bg-white h-64 rounded border shadow p-4">
+                  <h2 className="text-center font-semibold mb-2">Income Breakdown</h2>
+                  <div className="flex h-full">
+                    <div className="w-1/2">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={incomePieData}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={60}
+                            labelLine={false}
+                          >
+                            {incomePieData.map((entry, index) => (
+                              <Cell key={`income-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="w-1/2 flex flex-col justify-center pl-4">
+                      {incomePieData.map((entry, index) => (
+                        <div key={index} className="flex items-center mb-2">
+                          <div className="w-4 h-4 rounded mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                          <span className="text-sm">{entry.name} (${entry.value})</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
                 {/* Expense Pie Chart */}
-                <div className="bg-white h-64 rounded border shadow p-4 flex">
-                  <div className="w-1/2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={expensePieData}
-                          dataKey="value"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={60}
-                          labelLine={false}
-                        >
-                          {expensePieData.map((entry, index) => (
-                            <Cell key={`expense-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="w-1/2 flex flex-col justify-center pl-4">
-                    {expensePieData.map((entry, index) => (
-                      <div key={index} className="flex items-center mb-2">
-                        <div className="w-4 h-4 rounded mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                        <span className="text-sm">{entry.name} (${entry.value})</span>
-                      </div>
-                    ))}
+                <div className="bg-white h-64 rounded border shadow p-4">
+                  <h2 className="text-center font-semibold mb-2">Expenses Breakdown</h2>
+                  <div className="flex h-full">
+                    <div className="w-1/2">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={expensePieData}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={60}
+                            labelLine={false}
+                          >
+                            {expensePieData.map((entry, index) => (
+                              <Cell key={`expense-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="w-1/2 flex flex-col justify-center pl-4">
+                      {expensePieData.map((entry, index) => (
+                        <div key={index} className="flex items-center mb-2">
+                          <div
+                            className="w-4 h-4 rounded mr-2"
+                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                          ></div>
+                          <span className="text-sm">{entry.name} (${entry.value})</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
+
                 {/* Bar Chart */}
-                <div className="bg-white h-64 rounded border shadow p-4">
-                  <h3 className="text-center font-semibold mb-2">Income vs Expense</h3>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={[
-                        { name: 'Income', value: summary.income },
-                        { name: 'Expense', value: summary.expense }
-                      ]}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                      barCategoryGap={80}
-                    >
-                      <XAxis dataKey="name" />
-                      <YAxis domain={[0, Math.max(summary.income, summary.expense) * 1.2]} />
-                      <Tooltip />
-                      <Bar dataKey="value" barSize={100} radius={[6, 6, 0, 0]}>
-                        <Cell fill="#0088FE" /> {/* Income bar */}
-                        <Cell fill="#FF8042" /> {/* Expense bar */}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <BarChartComponent data={barChartData} title="Income vs Expense" />
               </div>
             </div>
 
             {/* Income Transactions Table */}
             <div className="mt-8">
               <h2 className="text-lg font-semibold mb-2">Income Transactions</h2>
-              <table className="w-full text-sm mb-2 border-collapse border border-gray-300">
-                <thead>
-                  <tr className="text-left border-b border-gray-300 bg-gray-100">
-                    <th className="p-2 border border-gray-300">Donor/Organization</th>
-                    <th className="p-2 border border-gray-300">Category</th>
-                    <th className="p-2 border border-gray-300">Description</th>
-                    <th className="p-2 border border-gray-300">Amount</th>
-                    <th className="p-2 border border-gray-300">Date</th>
-                    <th className="p-2 border border-gray-300">File</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {incomePaginated.length === 0 ? (
-                    <tr>
-                      <td colSpan="6" className="py-4 text-center">No income transactions</td>
-                    </tr>
-                  ) : (
-                    incomePaginated.map(t => (
-                      <tr key={t._id} className="bg-gray-50">
-                        <td className="py-1 px-2 border border-gray-300">{t.donorName || '-'}</td>
-                        <td className="py-1 px-2 border border-gray-300">{t.category}</td>
-                        <td className="py-1 px-2 border border-gray-300">{t.description}</td>
-                        <td className="py-1 px-2 border border-gray-300 text-green-600">+${t.amount.toFixed(2)}</td>
-                        <td className="py-1 px-2 border border-gray-300">{new Date(t.timestamp).toLocaleString()}</td>
-                        <td className="py-1 px-2 border border-gray-300">
-                          {t.file?.url ? (
-                            <a href={t.file.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                              View
-                            </a>
-                          ) : (
-                            "-"
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-              <div className="flex justify-between mb-6">
-                <button
-                  onClick={() => setIncomePage(p => Math.max(1, p - 1))}
-                  disabled={incomePage === 1}
-                  className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <span>Page {incomePage} of {incomePageCount}</span>
-                <button
-                  onClick={() => setIncomePage(p => Math.min(incomePageCount, p + 1))}
-                  disabled={incomePage === incomePageCount}
-                  className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
+              {/* Replace the old table with StickyHeadTable */}
+              <StickyHeadTable columns={incomeColumns} rows={incomeTransactions} />
             </div>
 
             {/* Expense Transactions Table */}
             <div className="mt-8">
               <h2 className="text-lg font-semibold mb-2">Expense Transactions</h2>
-              <table className="w-full text-sm mb-2 border-collapse border border-gray-300">
-                <thead>
-                  <tr className="text-left border-b border-gray-300 bg-gray-100">
-                    <th className="p-2 border border-gray-300">Beneficiary's Name</th>
-                    <th className="p-2 border border-gray-300">Category</th>
-                    <th className="p-2 border border-gray-300">Description</th>
-                    <th className="p-2 border border-gray-300">Amount</th>
-                    <th className="p-2 border border-gray-300">Date</th>
-                    <th className="p-2 border border-gray-300">File</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {expensePaginated.length === 0 ? (
-                    <tr>
-                      <td colSpan="6" className="py-4 text-center">No expense transactions</td>
-                    </tr>
-                  ) : (
-                    expensePaginated.map(t => (
-                      <tr key={t._id} className="bg-gray-50">
-                        <td className="py-1 px-2 border border-gray-300">{t.beneficiaryName || '-'}</td>
-                        <td className="py-1 px-2 border border-gray-300">{t.category}</td>
-                        <td className="py-1 px-2 border border-gray-300">{t.description}</td>
-                        <td className="py-1 px-2 border border-gray-300 text-red-600">-${t.amount.toFixed(2)}</td>
-                        <td className="py-1 px-2 border border-gray-300">{new Date(t.timestamp).toLocaleString()}</td>
-                        <td className="py-1 px-2 border border-gray-300">{t.file?.url ? (
-                          <a href={t.file.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                            View
-                          </a>
-                        ) : (
-                          "-"
-                        )}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-              <div className="flex justify-between mb-6">
-                <button
-                  onClick={() => setExpensePage(p => Math.max(1, p - 1))}
-                  disabled={expensePage === 1}
-                  className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <span>Page {expensePage} of {expensePageCount}</span>
-                <button
-                  onClick={() => setExpensePage(p => Math.min(expensePageCount, p + 1))}
-                  disabled={expensePage === expensePageCount}
-                  className="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
+              {/* Replace the old table with StickyHeadTable */}
+              <StickyHeadTable columns={expenseColumns} rows={expenseTransactions} />
             </div>
 
           </div>
         </div>
-      </main>
-    </div>
+      </main >
+    </div >
   );
 };
 
