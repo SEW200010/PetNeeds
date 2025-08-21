@@ -130,3 +130,28 @@ def join_event():
     except Exception as e:
         print("Error in join_event:", e)
         return jsonify({"error": "Something went wrong"}), 500
+    
+@user_event_bp.route("/completed-events/<user_id>", methods=["GET"])
+def get_completed_events_for_user(user_id):
+    try:
+        user_obj_id = ObjectId(user_id)
+        user = mongo.db.users.find_one({"_id": user_obj_id})
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        joined_event_ids = user.get("joined_events", [])
+        events = list(mongo.db.events.find({"_id": {"$in": joined_event_ids}}))
+
+        # Filter events that have ended
+        from datetime import datetime, timezone
+        completed_events = [
+            e for e in events
+            if e.get("end_time") and e["end_time"].replace(tzinfo=timezone.utc) < datetime.now(timezone.utc)
+        ]
+
+        serialized = [serialize_event(e) for e in completed_events]
+        return jsonify(serialized), 200
+
+    except Exception as e:
+        print("Error in get_completed_events_for_user:", e)
+        return jsonify({"error": "Something went wrong"}), 500
