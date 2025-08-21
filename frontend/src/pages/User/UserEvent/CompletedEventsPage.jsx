@@ -16,21 +16,34 @@ export default function CompletedEventsPage() {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    // Decode user info from JWT
-    const decoded = jwtDecode(token);
-    const currentUser = {
-      _id: decoded.sub || decoded.user_id,
-      fullName: decoded.name || decoded.fullName || "User",
-    };
-    setUser(currentUser);
+    try {
+      const decoded = jwtDecode(token);
+      const userId = decoded.sub || decoded.user_id;
 
-    // Fetch completed events
-    axios
-      .get(`${API}/completed-events`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setEvents(res.data))
-      .catch((err) => console.error("Failed to load completed events", err));
+      // Fetch full user info from backend
+      axios
+        .get(`${API}/api/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) =>
+          setUser({
+            fullName: res.data.fullName,
+            email: res.data.email,
+            _id: res.data._id,
+          })
+        )
+        .catch((err) => console.error("Failed to fetch user info", err));
+
+      // Fetch ongoing events
+      axios
+        .get(`${API}/completed-events`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => setEvents(res.data))
+        .catch((err) => console.error("Failed to load ongoing events", err));
+    } catch (err) {
+      console.error("Failed to decode token", err);
+    }
   }, []);
 
   if (!user) return <div className="mt-10 text-center">Loading...</div>;
