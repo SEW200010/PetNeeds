@@ -11,9 +11,10 @@ export default function CompletedEventsPage() {
   const userId = "68a6c2d32438f4fcfff8dd6f"; // Replace with logged-in user ID
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/completed-events`)
-      .then(res => setEvents(res.data))
-      .catch(err => console.error("Failed to load completed events", err));
+    axios
+      .get(`http://localhost:5000/completed-events`)
+      .then((res) => setEvents(res.data))
+      .catch((err) => console.error("Failed to load completed events", err));
   }, [userId]);
 
   return (
@@ -28,7 +29,10 @@ export default function CompletedEventsPage() {
             </h1>
             <p className="text-gray-500">
               {new Date().toLocaleDateString("en-GB", {
-                weekday: "short", day: "2-digit", month: "long", year: "numeric"
+                weekday: "short",
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
               })}
             </p>
           </div>
@@ -36,34 +40,55 @@ export default function CompletedEventsPage() {
           {/* Tabs */}
           <div className="bg-teal-50 rounded-full p-1 inline-flex mb-8">
             <Link to="/upcoming-events">
-              <Button variant="ghost" size="sm" className="px-6 text-teal-600 hover:bg-white/50">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="px-6 text-teal-600 hover:bg-white/50"
+              >
                 Upcoming
               </Button>
             </Link>
             <Link to="/ongoing-events">
-              <Button variant="ghost" size="sm" className="px-6 text-teal-600 hover:bg-white/50">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="px-6 text-teal-600 hover:bg-white/50"
+              >
                 Ongoing
               </Button>
             </Link>
             <Link to="/completed-events">
-              <Button variant="ghost" size="sm" className="bg-white shadow-sm rounded-full px-6 text-teal-700">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="bg-white shadow-sm rounded-full px-6 text-teal-700"
+              >
                 Completed
               </Button>
             </Link>
           </div>
 
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-medium text-teal-600">Completed events</h2>
+            <h2 className="text-xl font-medium text-teal-600">
+              Completed events
+            </h2>
           </div>
 
           {/* Events Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {events.length > 0 ? (
-              events.map(event => (
-                <EventCard key={event._id} event={event} userId={userId} />
+              events.map((event) => (
+                <EventCard
+                  key={event._id}
+                  event={event}
+                  userId={userId}
+                  completed={true}
+                />
               ))
             ) : (
-              <p className="text-gray-500 col-span-full">No completed events yet.</p>
+              <p className="text-gray-500 col-span-full">
+                No completed events yet.
+              </p>
             )}
           </div>
         </main>
