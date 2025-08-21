@@ -7,25 +7,20 @@ import EventCard from "./EventCard";
 import Header from "../../../components/Header";
 import UserSidebar from "./UserSidebar";
 
-export default function UserEvents() {
+export default function OngoingEvents() {
   const [events, setEvents] = useState([]);
-
-  const userId = 3; //to complete....................
+  const userId = 3; // Replace with logged-in user ID
 
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/upcoming-events`)
-      .then((res) => {
-        setEvents(res.data);
-      })
-      .catch((err) => {
-        console.error("Failed to load today's events", err);
-      });
+      .get("http://localhost:5000/upcoming-events")
+      .then((res) => setEvents(res.data))
+      .catch((err) => console.error("Failed to load ongoing events", err));
   }, []);
 
   const handleJoinSuccess = (joinedEventId) => {
-    setEvents((prevEvents) =>
-      prevEvents.map((event) =>
+    setEvents((prev) =>
+      prev.map((event) =>
         event._id === joinedEventId ? { ...event, status: "joined" } : event
       )
     );
@@ -37,7 +32,6 @@ export default function UserEvents() {
       <div className="pt-16 flex m-6">
         <UserSidebar />
         <main className="w-full md:w-3/4 px-4 py-6 flex-1">
-          {/* Welcome Section */}
           <div className="mb-8">
             <h1 className="text-2xl font-semibold text-gray-900 mb-2">
               Welcome, Amanda
@@ -52,8 +46,8 @@ export default function UserEvents() {
             </p>
           </div>
 
-          {/* Status Tabs */}
-          <div className="bg-teal-50 rounded-full p-1 inline-flex mb-8 ">
+          {/* Tabs */}
+          <div className="bg-teal-50 rounded-full p-1 inline-flex mb-8">
             <Link to="/upcoming-events">
               <Button
                 variant="ghost"
@@ -63,7 +57,6 @@ export default function UserEvents() {
                 Upcoming
               </Button>
             </Link>
-
             <Link to="/ongoing-events">
               <Button
                 variant="ghost"
@@ -73,7 +66,6 @@ export default function UserEvents() {
                 Ongoing
               </Button>
             </Link>
-
             <Link to="/completed-events">
               <Button
                 variant="ghost"
@@ -85,37 +77,10 @@ export default function UserEvents() {
             </Link>
           </div>
 
-          {/* Events Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-medium text-teal-600">
-              Upcoming events
+              Ongoing events
             </h2>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="icon" className="text-gray-400">
-                  <Grid className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon" className="text-gray-400">
-                  <List className="h-5 w-5" />
-                </Button>
-              </div>
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-teal-600 text-white border-teal-600 hover:bg-teal-700"
-                >
-                  filter
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-teal-600 text-white border-teal-600 hover:bg-teal-700"
-                >
-                  sort
-                </Button>
-              </div>
-            </div>
           </div>
 
           {/* Events Grid */}
@@ -128,13 +93,6 @@ export default function UserEvents() {
                 onJoinSuccess={handleJoinSuccess}
               />
             ))}
-          </div>
-
-          {/* Explore Events Button */}
-          <div className="text-center">
-            <Button className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-2">
-              Explore events
-            </Button>
           </div>
         </main>
       </div>
