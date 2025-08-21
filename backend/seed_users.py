@@ -6,62 +6,35 @@ app = create_app()
 with app.app_context():
     sample_users = [
         {
-            "id": 1,
+            "_id": ObjectId(),
             "fullName": "John Doe",
             "email": "johndoe@example.com",
             "role": "teacher-in-charge",
             "status": "Active",
             "joinDate": "2023-01-15",
-            "joined_event_ids": [ObjectId("6870cfc2620a87c7f5024569")]
+            "joined_events": []
         },
         {
-            "id": 2,
+            "_id": ObjectId(),
             "fullName": "Jane Smith",
             "email": "janesmith@example.com",
             "role": "student",
             "status": "Inactive",
             "joinDate": "2023-02-10",
-            "joined_event_ids": []
+            "joined_events": []
         },
         {
-            "id": 3,
-            "fullName": "Jane Smith",
-            "email": "janesmith@example.com",
+            "_id": ObjectId(),
+            "fullName": "Parent User",
+            "email": "parent@example.com",
             "role": "parent",
             "status": "Inactive",
             "joinDate": "2023-03-10",
-            "joined_event_ids": []
-        },
-        {
-            "id": 4,
-            "fullName": "Jane Smith",
-            "email": "janesmith@example.com",
-            "role": "student",
-            "status": "Active",
-            "joinDate": "2023-04-05",
-            "joined_event_ids": []
-        },
-        {
-            "id": 5,
-            "fullName": "TeacherJane Smith",
-            "email": "janesmith@example.com",
-            "role": "student",
-            "status": "Pending",
-            "joinDate": "2023-05-12",
-            "joined_event_ids": []
-        },
-        {
-            "id": 6,
-            "fullName": "Jane Smith",
-            "email": "janesmith@example.com",
-            "role": "student",
-            "status": "Active",
-            "joinDate": "2023-06-18",
-            "joined_event_ids": []
+            "joined_events": []
         },
     ]
 
     mongo.db.users.delete_many({})
     mongo.db.users.insert_many(sample_users)
 
-    print("✅ Sample users inserted.")
+    print("✅ Sample users inserted with ObjectId.")
