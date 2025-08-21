@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "../../../components/ui/button";
 import EventCard from "./EventCard";
 import Header from "../../../components/Header";
-import UserSidebar from "./UserSidebar";
+import UserSidebar from "../../../components/User/UserSidebar";
 import { jwtDecode } from "jwt-decode";
 
 export default function CompletedEventsPage() {
