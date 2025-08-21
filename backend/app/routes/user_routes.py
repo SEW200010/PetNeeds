@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_mail import Message
 from app import mongo, mail
+from bson import ObjectId
 
 user_bp = Blueprint("user", __name__, url_prefix="/api/users")
 
@@ -10,6 +11,23 @@ user_bp = Blueprint("user", __name__, url_prefix="/api/users")
 def get_users():
     users = list(mongo.db.users.find({}, {"_id": 0}))  # Hide _id
     return jsonify(users)
+
+# ---------------------- GET USER BY ID ----------------------
+@user_bp.route("/<user_id>", methods=["GET"])
+def get_user(user_id):
+    try:
+        user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+        
+        # Convert ObjectId to string for JSON
+        user["_id"] = str(user["_id"])
+        # Optionally, remove password before sending
+        user.pop("password", None)
+
+        return jsonify(user), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # ---------------------- ADD NEW USER ----------------------
