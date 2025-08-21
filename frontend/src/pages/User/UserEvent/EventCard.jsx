@@ -32,35 +32,6 @@ export default function EventCard({ event, userId, onJoinSuccess }) {
     }
   };
 
-  // ✅ Format in Asia/Colombo time
-  const formatEventTime = (startIso, endIso) => {
-    try {
-      const optionsDate = {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-        timeZone: "Asia/Colombo",
-      };
-      const optionsTime = {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-        timeZone: "Asia/Colombo",
-      };
-
-      const start = new Date(startIso);
-      const end = new Date(endIso);
-
-      const dateStr = new Intl.DateTimeFormat("en-GB", optionsDate).format(start);
-      const startTimeStr = new Intl.DateTimeFormat("en-GB", optionsTime).format(start);
-      const endTimeStr = new Intl.DateTimeFormat("en-GB", optionsTime).format(end);
-
-      return `${dateStr} | ${startTimeStr} - ${endTimeStr}`;
-    } catch {
-      return "";
-    }
-  };
-
   return (
     <Card className="overflow-hidden shadow-xl hover:shadow-xl transition-shadow border-0 py-2">
       <div className="aspect-[4/3] relative">
@@ -75,8 +46,23 @@ export default function EventCard({ event, userId, onJoinSuccess }) {
           {event.name || event.title}
         </p>
         <p className="text-xs text-gray-400 mb-4">
-          {formatEventTime(event.start_time, event.end_time)}
+          {new Date(event.start_time).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })}{" "}
+          |{" "}
+          {new Date(event.start_time).toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+          })}{" "}
+          -{" "}
+          {new Date(event.end_time).toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+          })}
         </p>
+
         <Button
           size="sm"
           className={
