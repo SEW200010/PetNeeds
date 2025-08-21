@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import EventImage from "../../../assets/User/Event.jpg";
 import { Button } from "../../../components/ui/button";
@@ -6,12 +6,19 @@ import { Card, CardContent } from "../../../components/ui/card";
 
 export default function EventCard({ event, userId, onJoinSuccess }) {
   const [isJoining, setIsJoining] = useState(false);
-  const [joined, setJoined] = useState(event.status === "joined");
+  const [joined, setJoined] = useState(false);
+
+  // Initialize joined state from event.joined_events
+  useEffect(() => {
+    if (event.joined_events && event.joined_events.includes(event._id)) {
+      setJoined(true);
+    }
+  }, [event]);
 
   const handleJoin = async () => {
     if (joined) return;
-
     setIsJoining(true);
+
     try {
       const res = await axios.post("http://localhost:5000/join-event", {
         user_id: userId,
@@ -20,7 +27,8 @@ export default function EventCard({ event, userId, onJoinSuccess }) {
 
       if (res.data.message === "Event joined successfully") {
         setJoined(true);
-        onJoinSuccess(event._id);
+        // Update parent state if needed
+        if (onJoinSuccess) onJoinSuccess(event._id);
       } else {
         alert(res.data.message || "Join failed");
       }
@@ -39,7 +47,7 @@ export default function EventCard({ event, userId, onJoinSuccess }) {
     const optionsTime = { hour: "2-digit", minute: "2-digit" };
     return {
       date: slstDate.toLocaleDateString("en-GB", optionsDate),
-      time: slstDate.toLocaleTimeString("en-GB", optionsTime)
+      time: slstDate.toLocaleTimeString("en-GB", optionsTime),
     };
   };
 
