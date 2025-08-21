@@ -9,7 +9,7 @@ import UserSidebar from "./UserSidebar";
 
 export default function OngoingEvents() {
   const [events, setEvents] = useState([]);
-  const userId = 3; // Replace with logged-in user ID
+  const userId = "68a6c2d32438f4fcfff8dd6f"; // Replace with logged-in user ID
 
   useEffect(() => {
     axios
@@ -79,7 +79,7 @@ export default function OngoingEvents() {
 
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-medium text-teal-600">
-              Ongoing events
+              Upcoming events
             </h2>
           </div>
 

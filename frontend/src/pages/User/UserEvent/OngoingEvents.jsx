@@ -9,7 +9,7 @@ import UserSidebar from "./UserSidebar";
 
 export default function OngoingEvents() {
   const [events, setEvents] = useState([]);
-  const userId = 3; // Replace with logged-in user ID
+  const userId = "68a6c2d32438f4fcfff8dd6f"; // Replace with logged-in user ID
 
   useEffect(() => {
     axios.get("http://localhost:5000/ongoing-events")
