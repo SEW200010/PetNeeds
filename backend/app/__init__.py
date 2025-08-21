@@ -1,8 +1,11 @@
 from flask import Flask, jsonify
 from flask_pymongo import PyMongo
 from flask_cors import CORS
-from flask_mail import Mail
+from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
+from flask import send_from_directory
+from flask_mail import Mail
+
 import os
 
 
@@ -12,11 +15,15 @@ import os
 load_dotenv()
 
 mongo = PyMongo()  # Initialize MongoDB
+jwt = JWTManager()
 mail = Mail() 
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    CORS(app, resources={r"/*": {"origins": ["*", "http://localhost:5173"]}}, supports_credentials=True)
+
+    app.config["JWT_SECRET_KEY"] = "my_dev_secret_123"  # change this to a strong secret!
+    jwt.init_app(app)
 
     # MongoDB config
     app.config["MONGO_URI"] = os.getenv("DB_URI")
@@ -54,6 +61,11 @@ def create_app():
     app.register_blueprint(notify_bp)
     app.register_blueprint(feedback_bp)
     app.register_blueprint(user_event_bp)
+
+
+    @app.route('/uploads/<path:filename>')
+    def serve_uploaded_file(filename):
+        return send_from_directory(os.path.join(os.getcwd(), 'uploads'), filename)
 
     # Error Handlers
     @app.errorhandler(404)
