@@ -14,7 +14,7 @@ export default function UserEvents() {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/upcoming-events/${userId}`)
+      .get(`http://localhost:5000/upcoming-events`)
       .then((res) => {
         setEvents(res.data);
       })
