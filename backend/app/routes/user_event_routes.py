@@ -81,16 +81,6 @@ def get_ongoing_events():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@user_event_bp.route("/completed-events", methods=["GET"])
-def get_completed_events():
-    try:
-        events = list(mongo.db.events.find())
-        completed = [serialize_event(e) for e in events if compute_event_status(e) == "completed"]
-        return jsonify(completed), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
-
 @user_event_bp.route("/join-event", methods=["POST"])
 def join_event():
     try:
@@ -131,19 +121,15 @@ def join_event():
         print("Error in join_event:", e)
         return jsonify({"error": "Something went wrong"}), 500
     
-@user_event_bp.route("/completed-events/<user_id>", methods=["GET"])
-def get_completed_events_for_user(user_id):
+@user_event_bp.route("/completed-events", methods=["GET"])
+def get_completed_events():
     try:
-        user_obj_id = ObjectId(user_id)
-        user = mongo.db.users.find_one({"_id": user_obj_id})
-        if not user:
-            return jsonify({"error": "User not found"}), 404
+        from datetime import datetime, timezone
 
-        joined_event_ids = user.get("joined_events", [])
-        events = list(mongo.db.events.find({"_id": {"$in": joined_event_ids}}))
+        # Get all events
+        events = list(mongo.db.events.find())
 
         # Filter events that have ended
-        from datetime import datetime, timezone
         completed_events = [
             e for e in events
             if e.get("end_time") and e["end_time"].replace(tzinfo=timezone.utc) < datetime.now(timezone.utc)
@@ -153,5 +139,5 @@ def get_completed_events_for_user(user_id):
         return jsonify(serialized), 200
 
     except Exception as e:
-        print("Error in get_completed_events_for_user:", e)
+        print("Error in get_completed_events:", e)
         return jsonify({"error": "Something went wrong"}), 500
