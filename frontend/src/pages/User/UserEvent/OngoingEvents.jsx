@@ -4,38 +4,51 @@ import { Link } from "react-router-dom";
 import { Button } from "../../../components/ui/button";
 import EventCard from "./EventCard";
 import Header from "../../../components/Header";
-import UserSidebar from "./UserSidebar";
+import UserSidebar from "../../../components/User/UserSidebar";
 import { jwtDecode } from "jwt-decode"; // ✅ import jwtDecode
 
 export default function OngoingEvents() {
   const [events, setEvents] = useState([]);
   const [user, setUser] = useState(null); // store user info
-  const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+  const API = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
-    // Get user info from token
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const decoded = jwtDecode(token);
-    const currentUser = {
-      _id: decoded.sub || decoded.user_id,
-      fullName: decoded.name || decoded.fullName || "User",
-    };
-    setUser(currentUser);
+    try {
+      const decoded = jwtDecode(token);
+      const userId = decoded.sub || decoded.user_id;
 
-    // Fetch ongoing events
-    axios
-      .get(`${API}/ongoing-events`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(res => setEvents(res.data))
-      .catch(err => console.error("Failed to load ongoing events", err));
+      // Fetch full user info from backend
+      axios
+        .get(`${API}/api/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) =>
+          setUser({
+            fullName: res.data.fullName,
+            email: res.data.email,
+            _id: res.data._id,
+          })
+        )
+        .catch((err) => console.error("Failed to fetch user info", err));
+
+      // Fetch ongoing events
+      axios
+        .get(`${API}/ongoing-events`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => setEvents(res.data))
+        .catch((err) => console.error("Failed to load ongoing events", err));
+    } catch (err) {
+      console.error("Failed to decode token", err);
+    }
   }, []);
 
   const handleJoinSuccess = (joinedEventId) => {
-    setEvents(prev =>
-      prev.map(event =>
+    setEvents((prev) =>
+      prev.map((event) =>
         event._id === joinedEventId ? { ...event, status: "joined" } : event
       )
     );
@@ -58,7 +71,7 @@ export default function OngoingEvents() {
                 weekday: "short",
                 day: "2-digit",
                 month: "long",
-                year: "numeric"
+                year: "numeric",
               })}
             </p>
           </div>
@@ -66,30 +79,44 @@ export default function OngoingEvents() {
           {/* Tabs */}
           <div className="bg-teal-50 rounded-full p-1 inline-flex mb-8">
             <Link to="/upcoming-events">
-              <Button variant="ghost" size="sm" className="px-6 text-teal-600 hover:bg-white/50">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="px-6 text-teal-600 hover:bg-white/50"
+              >
                 Upcoming
               </Button>
             </Link>
             <Link to="/ongoing-events">
-              <Button variant="ghost" size="sm" className="bg-white shadow-sm rounded-full px-6 text-teal-700">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="bg-white shadow-sm rounded-full px-6 text-teal-700"
+              >
                 Ongoing
               </Button>
             </Link>
             <Link to="/completed-events">
-              <Button variant="ghost" size="sm" className="px-6 text-teal-600 hover:bg-white/50">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="px-6 text-teal-600 hover:bg-white/50"
+              >
                 Completed
               </Button>
             </Link>
           </div>
 
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-medium text-teal-600">Ongoing events</h2>
+            <h2 className="text-xl font-medium text-teal-600">
+              Ongoing events
+            </h2>
           </div>
 
           {/* Events Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {events.length > 0 ? (
-              events.map(event => (
+              events.map((event) => (
                 <EventCard
                   key={event._id}
                   event={event}
@@ -98,7 +125,9 @@ export default function OngoingEvents() {
                 />
               ))
             ) : (
-              <p className="text-gray-500 col-span-full">No ongoing events yet.</p>
+              <p className="text-gray-500 col-span-full">
+                No ongoing events yet.
+              </p>
             )}
           </div>
         </main>
