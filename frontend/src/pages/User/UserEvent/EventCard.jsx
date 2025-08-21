@@ -4,19 +4,19 @@ import EventImage from "../../../assets/User/Event.jpg";
 import { Button } from "../../../components/ui/button";
 import { Card, CardContent } from "../../../components/ui/card";
 
-export default function EventCard({ event, userId, onJoinSuccess }) {
+export default function EventCard({ event, userId, onJoinSuccess, completed }) {
   const [isJoining, setIsJoining] = useState(false);
   const [joined, setJoined] = useState(false);
 
-  // Initialize joined state from event.joined_events
+  // Only check joined state if not completed
   useEffect(() => {
-    if (event.joined_events && event.joined_events.includes(event._id)) {
+    if (!completed && event.joined_events && event.joined_events.includes(event._id)) {
       setJoined(true);
     }
-  }, [event]);
+  }, [event, completed]);
 
   const handleJoin = async () => {
-    if (joined) return;
+    if (completed || joined) return;
     setIsJoining(true);
 
     try {
@@ -27,7 +27,6 @@ export default function EventCard({ event, userId, onJoinSuccess }) {
 
       if (res.data.message === "Event joined successfully") {
         setJoined(true);
-        // Update parent state if needed
         if (onJoinSuccess) onJoinSuccess(event._id);
       } else {
         alert(res.data.message || "Join failed");
@@ -71,17 +70,26 @@ export default function EventCard({ event, userId, onJoinSuccess }) {
           {startSLST.date} | {startSLST.time} - {endSLST.time}
         </p>
 
+        {/* Button logic */}
         <Button
           size="sm"
           className={
-            joined
+            completed
+              ? "bg-gray-500 text-white w-full cursor-not-allowed"
+              : joined
               ? "bg-orange-500 hover:bg-orange-600 text-white w-full cursor-not-allowed"
               : "bg-teal-600 hover:bg-teal-700 text-white w-full"
           }
           onClick={handleJoin}
-          disabled={joined || isJoining}
+          disabled={completed || joined || isJoining}
         >
-          {joined ? "Joined" : isJoining ? "Joining..." : "Join"}
+          {completed
+            ? "Completed"
+            : joined
+            ? "Joined"
+            : isJoining
+            ? "Joining..."
+            : "Join"}
         </Button>
       </CardContent>
     </Card>
