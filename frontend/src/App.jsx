@@ -19,7 +19,8 @@ import ExploreModel from "./pages/Admin/ExploreModel";
 import CreateEvents from './pages/Teacher/CreateEvents';
 import ManageCourse from './pages/Teacher/ManageCourse';
 import MonitorStudentsTeacheet from './pages/Teacher/MonitorStudents';
-//import SelectActionCard from './SelectActionCard';
+import FeedbackPage from "./pages/Admin/FeedbackPage"; // ✅ Valid page component
+import BasicPage from "./pages/Admin/BasicPage";
 
 const App = () => {
   return (
@@ -28,30 +29,31 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/Team" element={<Team />}/>
-        <Route path="/Services" element={<Services />}/>
-        <Route path="/Aboutus" element={<Aboutus />}/>
-        <Route path="/Register" element={<Register />}/>
-        <Route path="/user-dashboard" element={<User />}/>
-        <Route path="/admin-dashboard" element={<Admin />}/>
+
+        <Route path="/Team" element={<Team />} />
+        <Route path="/Services" element={<Services />} />
+        <Route path="/Aboutus" element={<Aboutus />} />
+        <Route path="/Register" element={<Register />} />
+        <Route path="/user-dashboard" element={<User />} />
+        <Route path="/admin-dashboard" element={<Admin />} />
         <Route path="/teacher-dashboard" element={<Teacher />}/>
-        <Route path="/FundRaising" element={<FundRaising />}/>
-        <Route path="/monitor-sessions" element={<MonitoreSession />}/>
+        <Route path="/FundRaising" element={<FundRaising />} />
+        <Route path="/monitor-sessions" element={<MonitoreSession />} />
         <Route path="/event-management" element={<EventManagement />} />
         <Route path="/admin/EventManagement" element={<EventManagement />} />
         <Route path="/admin/ViewEvent/:id" element={<ViewEvent />} />
-        <Route path="/user-management" element={<UserManagementDashboard/>}/>
-        <Route path="/monitor-students" element={<MonitorStudent />}/>
-        <Route path="/explore-model" element={<ExploreModel />}/>
+        <Route path="/admin/events/:id/feedback" element={<FeedbackPage />} />
+        <Route path="/admin/events/:id/basic" element={<BasicPage />} />
+        <Route path="/user-management" element={<UserManagementDashboard />} />
+        <Route path="/monitor-students" element={<MonitorStudent />} />
+        <Route path="/explore-model" element={<ExploreModel />} />
         <Route path="/create-events" element={<CreateEvents />} />
         <Route path="/manage-course" element={<ManageCourse />} />
         <Route path="/monitor-students-teacher" element={<MonitorStudentsTeacheet />} />
-       
-        {/* Add more routes here for About, Services, etc. */}
+
       </Routes>
     </Router>
   );
 };
 
 export default App;
-
