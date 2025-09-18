@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { BiUser, BiLock } from "react-icons/bi";
 import { Link, useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode"; // ✅ install with: npm install jwt-decode
 
 const Login = () => {
   const navigate = useNavigate();
@@ -32,20 +31,15 @@ const Login = () => {
       if (res.ok) {
         alert(data.message);
 
-        // ✅ Store token
-        localStorage.setItem("token", data.access_token);
-
-        // ✅ Decode token to get role
-        const decoded = jwtDecode(data.access_token);
-        const role = decoded.role;
-
-        // ✅ Navigate based on role
-        if (role === "admin") {
+        // Check if admin credentials
+        if (
+          credentials.email === "admin@admin.com" &&
+          credentials.password === "admin123"
+        ) {
           navigate("/admin-dashboard");
         } else {
           navigate("/user-dashboard");
         }
-
       } else {
         alert(data.message || "Login failed");
       }
