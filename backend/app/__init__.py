@@ -1,42 +1,22 @@
 from flask import Flask, jsonify
 from flask_pymongo import PyMongo
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager
-from dotenv import load_dotenv
-from flask import send_from_directory
-from flask_mail import Mail
-
-import os
 
 
 # Optional: Load environment variables
 # from dotenv import load_dotenv
 # import os
-load_dotenv()
+# load_dotenv()
 
 mongo = PyMongo()  # Initialize MongoDB
-jwt = JWTManager()
-mail = Mail() 
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, resources={r"/*": {"origins": ["*", "http://localhost:5173"]}}, supports_credentials=True)
+    CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS with all origins allowed, no credentials
 
-    app.config["JWT_SECRET_KEY"] = "my_dev_secret_123"  # change this to a strong secret!
-    jwt.init_app(app)
-
-    # MongoDB config
-    app.config["MONGO_URI"] = os.getenv("DB_URI")
-
-    # Flask-Mail config
-    app.config["MAIL_SERVER"] = "smtp.gmail.com"
-    app.config["MAIL_PORT"] = 587
-    app.config["MAIL_USE_TLS"] = True
-    app.config["MAIL_USERNAME"] = os.getenv("EMAIL_USER")
-    app.config["MAIL_PASSWORD"] = os.getenv("EMAIL_PASS")
-    app.config["MAIL_DEFAULT_SENDER"] = os.getenv("EMAIL_USER")
-
-    mail.init_app(app)
+    # Configure MongoDB
+    # app.config["MONGO_URI"] = os.getenv("DB_URI")
+    app.config["MONGO_URI"] = "mongodb://localhost:27017/lifeskill"
     mongo.init_app(app)
 
     # Register Blueprints
@@ -49,7 +29,6 @@ def create_app():
     from app.routes.participant_routes import participant_bp
     from app.routes.notification import notify_bp
     from app.routes.feedback import feedback_bp
-    from app.routes.user_event_routes import user_event_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(transaction_bp)
@@ -60,12 +39,6 @@ def create_app():
     app.register_blueprint(participant_bp)
     app.register_blueprint(notify_bp)
     app.register_blueprint(feedback_bp)
-    app.register_blueprint(user_event_bp)
-
-
-    @app.route('/uploads/<path:filename>')
-    def serve_uploaded_file(filename):
-        return send_from_directory(os.path.join(os.getcwd(), 'uploads'), filename)
 
     # Error Handlers
     @app.errorhandler(404)
