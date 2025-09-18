@@ -15,12 +15,11 @@ import ViewEvent from "./pages/Admin/ViewEvent";
 import UserManagementDashboard from "./pages/Admin/UserManagementDashboard";
 import MonitorStudent from "./pages/Admin/MonitorStudent";
 import ExploreModel from "./pages/Admin/ExploreModel";
-import Profile from "./pages/User/Profile";
-import AddEmailPage from "./pages/User/AddEmailPage";
-import ChangePasswordPage from "./pages/User/ChangePasswordPage";
-import ProfileEditPage from "./pages/User/ProfileEditPage";
-import FeedbackPage from "./pages/Admin/FeedbackPage"; // ✅ Valid page component
+import FeedbackPage from "./pages/Admin/FeedbackPage"; 
 import BasicPage from "./pages/Admin/BasicPage";
+import UpcomingEvents from "./pages/User/UserEvent/UpcomingEvents";
+import OngoingEvents from "./pages/User/UserEvent/OngoingEvents";
+import CompletedEventsPage from "./pages/User/UserEvent/CompletedEventsPage";
 const App = () => {
   return (
     <Router>
@@ -38,18 +37,15 @@ const App = () => {
         <Route path="/monitor-sessions" element={<MonitoreSession />} />
         <Route path="/event-management" element={<EventManagement />} />
         <Route path="/admin/EventManagement" element={<EventManagement />} />
-        <Route path="/admin/ViewEvent/:id" element={<ViewEvent />} /> 
-        <Route path="/profile" element={<Profile />}/>
-        <Route path="/profile/add-email" element={<AddEmailPage />}/>
-        <Route path="/profile/change-password" element={<ChangePasswordPage />}/>
-        <Route path="/profile/profile-edit" element={<ProfileEditPage />}/>
-        {/* Add more routes here for About, Services, etc. */}
+        <Route path="/admin/ViewEvent/:id" element={<ViewEvent />} />
         <Route path="/admin/events/:id/feedback" element={<FeedbackPage />} />
         <Route path="/admin/events/:id/basic" element={<BasicPage />} />
         <Route path="/user-management" element={<UserManagementDashboard />} />
         <Route path="/monitor-students" element={<MonitorStudent />} />
         <Route path="/explore-model" element={<ExploreModel />} />
-
+        <Route path="/upcoming-events" element={<UpcomingEvents />} />
+        <Route path="/ongoing-events" element={<OngoingEvents />} />
+        <Route path="/completed-events" element={<CompletedEventsPage />} />
       </Routes>
     </Router>
   );
