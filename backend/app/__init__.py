@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
 from flask import send_from_directory
 import os
+from flask_mail import Mail
 
 # from dotenv import load_dotenv
 # import os
@@ -19,6 +20,7 @@ import os
 
 mongo = PyMongo()  # Initialize MongoDB
 jwt = JWTManager()
+mail = Mail()
 
 def create_app():
     app = Flask(__name__)

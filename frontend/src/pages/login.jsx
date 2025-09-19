@@ -51,7 +51,7 @@ localStorage.setItem("token", data.access_token);
   } else if (role === "teacher-in-charge") {
     navigate("/teacher-dashboard");
   } else {
-    navigate("/user-dashboard"); // student or parent
+    navigate("/upcoming-events"); // student or parent
   }
 
     } else {

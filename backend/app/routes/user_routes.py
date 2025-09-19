@@ -1,15 +1,16 @@
 from flask import Blueprint, jsonify ,request
-from app import mongo, mail
-from flask_mail import Message
 from werkzeug.security import generate_password_hash
 from bson import ObjectId
+from app import mongo, mail
+from flask_mail import Message
 user_bp = Blueprint("user", __name__, url_prefix="/api/users")
+
 
 @user_bp.route("/", methods=["GET"])
 def get_users():
     users = list(mongo.db.users.find({}, {"_id": 0}))  # Exclude _id or convert to string
     return jsonify(users)
-
+'''
 @user_bp.route("/<int:user_id>", methods=["DELETE"])
 def delete_user(user_id):
     result = mongo.db.users.delete_one({"id": user_id})
@@ -17,7 +18,8 @@ def delete_user(user_id):
         return jsonify({"message": "User deleted"}), 200
     else:
         return jsonify({"message": "User not found"}), 404
-    
+    '''
+'''
 @user_bp.route("/verify/<int:user_id>", methods=["PUT"])
 def verify_user(user_id):
     result = mongo.db.users.update_one(
@@ -28,9 +30,10 @@ def verify_user(user_id):
         return jsonify({"message": "User verified successfully"}), 200
     else:
         return jsonify({"message": "User not found or already active"}), 404
-
+'''
 from flask import request
 
+'''
 @user_bp.route("/<int:user_id>", methods=["PUT"])
 def update_user(user_id):
     data = request.json
@@ -40,14 +43,14 @@ def update_user(user_id):
         "school": data.get("school"),
         "contact": data.get("contact"),
         "email": data.get("email"),
-    }
+    } 
 
     result = mongo.db.users.update_one({"id": user_id}, {"$set": update_fields})
     if result.modified_count == 1:
         return jsonify({"message": "User updated successfully"}), 200
     else:
         return jsonify({"message": "No changes made or user not found"}), 404
-
+'''
 @user_bp.route("/", methods=["POST"])
 def add_user():
     data = request.json
