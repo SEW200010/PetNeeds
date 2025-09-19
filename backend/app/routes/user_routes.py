@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify
 from app import mongo
+from werkzeug.security import generate_password_hash
 
 user_bp = Blueprint("user", __name__, url_prefix="/api/users")
 
@@ -62,6 +63,7 @@ def add_user():
         "id": next_id,
         "fullName": data.get("fullName"),
         "email": data.get("email"),
+        "password": generate_password_hash(data.get("password", data["email"])), #default password will assign to new users created by admin
         "role": data.get("role", "student"),
         "status": "Pending",  
         "joinDate": data.get("joinDate", "2025-01-01"),
