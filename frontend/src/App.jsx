@@ -21,6 +21,10 @@ import ManageCourse from './pages/Teacher/ManageCourse';
 import MonitorStudentsTeacheet from './pages/Teacher/MonitorStudents';
 import FeedbackPage from "./pages/Admin/FeedbackPage"; // ✅ Valid page component
 import BasicPage from "./pages/Admin/BasicPage";
+import Profile from "./pages/User/Profile";
+import AddEmailPage from "./pages/User/AddEmailPage";
+import ChangePasswordPage from "./pages/User/ChangePasswordPage";
+import ProfileEditPage from "./pages/User/ProfileEditPage";
 
 const App = () => {
   return (
@@ -50,7 +54,11 @@ const App = () => {
         <Route path="/create-events" element={<CreateEvents />} />
         <Route path="/manage-course" element={<ManageCourse />} />
         <Route path="/monitor-students-teacher" element={<MonitorStudentsTeacheet />} />
-
+        <Route path="/profile" element={<Profile />}/>
+        <Route path="/profile/add-email" element={<AddEmailPage />}/>
+        <Route path="/profile/change-password" element={<ChangePasswordPage />}/>
+        <Route path="/profile/profile-edit" element={<ProfileEditPage />}/>
+        
       </Routes>
     </Router>
   );

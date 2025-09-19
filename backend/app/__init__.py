@@ -1,7 +1,11 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify , make_response
 from flask_pymongo import PyMongo
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager  # ✅ Correct import
+from dotenv import load_dotenv
+from flask_bcrypt import Bcrypt
+from flask import send_from_directory
+import os
 
 # from dotenv import load_dotenv
 # import os
@@ -14,15 +18,17 @@ from flask_jwt_extended import JWTManager  # ✅ Correct import
 # load_dotenv()
 
 mongo = PyMongo()  # Initialize MongoDB
+jwt = JWTManager()
 
 def create_app():
     app = Flask(__name__)
     CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS with all origins allowed, no credentials
-
+    #CORS(app, resources={r"/*": {"origins": ["*", "http://localhost:5173"]}}, supports_credentials=True)
 
     # Set a secret key for JWTs
     app.config['JWT_SECRET_KEY'] = 'your-super-secret-key'  # change this to a strong key
-
+    #app.config["JWT_SECRET_KEY"] = "my_dev_secret_123"  # change this to a strong secret!
+    #jwt.init_app(app)
     # Initialize JWTManager
     jwt = JWTManager(app)
 
@@ -45,7 +51,7 @@ def create_app():
     from app.routes.participant_routes import participant_bp
     from app.routes.notification import notify_bp
     from app.routes.feedback import feedback_bp
-
+    from app.routes.profile_routes import profile_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(transaction_bp)
@@ -59,7 +65,12 @@ def create_app():
     app.register_blueprint(participant_bp)
     app.register_blueprint(notify_bp)
     app.register_blueprint(feedback_bp)
+    app.register_blueprint(profile_bp)
 
+    @app.route('/uploads/<path:filename>')
+    def serve_uploaded_file(filename):
+        return send_from_directory(os.path.join(os.getcwd(), 'uploads'), filename)
+    
     # Error Handlers
     @app.errorhandler(404)
     def not_found_error(error):

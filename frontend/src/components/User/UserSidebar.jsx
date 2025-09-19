@@ -15,27 +15,24 @@ import { Button } from "@/components/ui/button";
 import UserImg from "@/assets/User/DefaultUser.png"
 import { useNavigate } from "react-router-dom";
 
+
 const menuItems = [
   { icon: User, label: "My Profile", hasChevron: true ,path:"/profile"},
   { icon: Calendar, label: "My Events", hasChevron: true },
-  { icon: Calendar, label: "My Course", hasChevron: true },
-  { icon: Calendar, label: "My Supervisions", hasChevron: true },
   { icon: Settings, label: "Settings", hasChevron: true },
   { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
   { icon: LogOut, label: "Log Out", hasChevron: false },
 ];
 
-export default function TeacherSidebar() {
+export default function UserSidebar() {
 
   const navigate = useNavigate();
-  
+
   return (
-
-    <main className="w-full md:w-1/4 bg-white shadow-lg border-r border-gray-200 rounded-xl ">
-
+    <aside className="w-72 bg-white shadow-lg border-r border-gray-200 rounded-xl p-2 h-88 mx-auto">
       <div className="p-6">
         {/* User Profile Section */}
-        <div className="flex items-center space-x-3 mb-8 bg-">
+        <div className="flex items-center space-x-3 mb-8">
           <Avatar className="h-12 w-12">
             <AvatarImage src={`${UserImg}?height=48&width=48`} alt="User" />
             <AvatarFallback>YN</AvatarFallback>
@@ -46,7 +43,6 @@ export default function TeacherSidebar() {
           </div>
         </div>
 
-<div className="text-xl bold p-6">Teacher Menu</div>
         {/* Navigation Menu */}
         <nav className="space-y-2">
           {menuItems.map((item, index) => {
@@ -71,7 +67,6 @@ export default function TeacherSidebar() {
           })}
         </nav>
       </div>
-
-    </main>
+    </aside>
   );
 }

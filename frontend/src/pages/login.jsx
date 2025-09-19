@@ -43,6 +43,7 @@ const Login = () => {
   // ✅ Store in localStorage
   localStorage.setItem("role", role);
   localStorage.setItem("name", name);
+localStorage.setItem("token", data.access_token);
 
   // ✅ Navigate based on role
   if (role === "admin") {
