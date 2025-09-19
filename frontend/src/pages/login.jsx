@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { BiUser, BiLock } from "react-icons/bi";
 import { Link, useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode"; // ✅ install with: npm install jwt-decode
 
 const Login = () => {
   const navigate = useNavigate();
@@ -15,39 +16,52 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const res = await fetch("http://localhost:5000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(credentials)
-      });
+  try {
+    const res = await fetch("http://localhost:5000/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(credentials)
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (res.ok) {
-        alert(data.message);
+   if (res.ok) {
+  alert(data.message);
 
-        // Check if admin credentials
-        if (
-          credentials.email === "admin@admin.com" &&
-          credentials.password === "admin123"
-        ) {
-          navigate("/admin-dashboard");
-        } else {
-          navigate("/user-dashboard");
-        }
-      } else {
-        alert(data.message || "Login failed");
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-      alert("Something went wrong. Please try again.");
+  // ✅ Store token
+  localStorage.setItem("token", data.access_token);
+
+  // ✅ Decode token to get role and name
+  const decoded = jwtDecode(data.access_token);
+  const role = decoded.role;
+  const name = decoded.name || decoded.identity; // make sure backend includes this
+
+  // ✅ Store in localStorage
+  localStorage.setItem("role", role);
+  localStorage.setItem("name", name);
+
+  // ✅ Navigate based on role
+  if (role === "admin") {
+    navigate("/admin-dashboard");
+  } else if (role === "teacher-in-charge") {
+    navigate("/teacher-dashboard");
+  } else {
+    navigate("/user-dashboard"); // student or parent
+  }
+
+    } else {
+      alert(data.message || "Login failed");
     }
-  };
+  } catch (err) {
+    console.error("Login error:", err);
+    alert("Something went wrong. Please try again.");
+  }
+};
+
 
   return (
     <div
