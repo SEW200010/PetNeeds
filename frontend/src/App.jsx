@@ -25,6 +25,9 @@ import Profile from "./pages/User/Profile";
 import AddEmailPage from "./pages/User/AddEmailPage";
 import ChangePasswordPage from "./pages/User/ChangePasswordPage";
 import ProfileEditPage from "./pages/User/ProfileEditPage";
+import UpcomingEvents from "./pages/User/UserEvent/UpcomingEvents";
+import OngoingEvents from "./pages/User/UserEvent/OngoingEvents";
+import CompletedEventsPage from "./pages/User/UserEvent/CompletedEventsPage";
 
 const App = () => {
   return (
@@ -58,6 +61,9 @@ const App = () => {
         <Route path="/profile/add-email" element={<AddEmailPage />}/>
         <Route path="/profile/change-password" element={<ChangePasswordPage />}/>
         <Route path="/profile/profile-edit" element={<ProfileEditPage />}/>
+         <Route path="/upcoming-events" element={<UpcomingEvents />} />
+        <Route path="/ongoing-events" element={<OngoingEvents />} />
+        <Route path="/completed-events" element={<CompletedEventsPage />} />
         
       </Routes>
     </Router>

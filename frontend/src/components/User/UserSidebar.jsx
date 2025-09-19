@@ -14,6 +14,9 @@ import {
 import { Button } from "@/components/ui/button";
 import UserImg from "@/assets/User/DefaultUser.png"
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 
 
 const menuItems = [
@@ -28,18 +31,46 @@ export default function UserSidebar() {
 
   const navigate = useNavigate();
 
+  const [user, setUser] = useState({ fullName: "", email: "" });
+  const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const decoded = jwtDecode(token);
+      const userId = decoded.sub || decoded.user_id;
+
+      // Fetch user info from backend
+      axios
+        .get(`${API}/api/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) =>
+          setUser({ fullName: res.data.fullName, email: res.data.email })
+        )
+        .catch((err) => console.error("Failed to fetch user info", err));
+    } catch (err) {
+      console.error("Failed to decode token", err);
+    }
+  }, []);
+
   return (
     <aside className="w-72 bg-white shadow-lg border-r border-gray-200 rounded-xl p-2 h-88 mx-auto">
       <div className="p-6">
         {/* User Profile Section */}
+        {/* User Profile Section */}
         <div className="flex items-center space-x-3 mb-8">
           <Avatar className="h-12 w-12">
             <AvatarImage src={`${UserImg}?height=48&width=48`} alt="User" />
-            <AvatarFallback>YN</AvatarFallback>
+            <AvatarFallback>
+              {user.fullName ? user.fullName.slice(0, 2).toUpperCase() : "YN"}
+            </AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-medium text-gray-900"> name</p>
-            <p className="text-sm text-gray-500">yourname@gmail.com</p>
+            <p className="font-medium text-gray-900">{user.fullName}</p>
+            <p className="text-sm text-gray-500">{user.email}</p>
           </div>
         </div>
 
