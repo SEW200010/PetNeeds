@@ -28,7 +28,7 @@ def create_app():
     # Set a secret key for JWTs
     app.config['JWT_SECRET_KEY'] = 'your-super-secret-key'  # change this to a strong key
     #app.config["JWT_SECRET_KEY"] = "my_dev_secret_123"  # change this to a strong secret!
-    jwt.init_app(app)
+    #jwt.init_app(app)
     # Initialize JWTManager
     jwt = JWTManager(app)
 
