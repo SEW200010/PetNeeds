@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import UserImg from "@/assets/User/DefaultUser.png";
 
 const menuItems = [
+  {icon: User, label: "Dashboard", path: "/upcoming-events", hasChevron: true },
   { icon: User, label: "My Profile", hasChevron: true, path: "/profile" },
   { icon: CalendarIcon, label: "My Events", hasChevron: true },
   { icon: Settings, label: "Settings", hasChevron: true },
