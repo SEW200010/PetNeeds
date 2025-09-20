@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { Button } from "../../../components/ui/button";
 import EventCard from "./EventCard";
-import Header from "../../../components/Header";
+import Header from "../../../components/Admin/Header";
 import UserSidebar from "../../../components/User/UserSidebar";
 import { jwtDecode } from "jwt-decode";
 
@@ -51,9 +51,10 @@ export default function CompletedEventsPage() {
   return (
     <div className="min-h-screen bg-gray-50 relative">
       <Header />
-      <div className="pt-16 flex m-6">
+      <main className="bg-gray-100 pt-[65px] min-h-screen">
+      <div className="flex flex-col md:flex-row">
         <UserSidebar />
-        <main className="w-full md:w-3/4 px-4 py-6 flex-1">
+        <div className="w-full md:w-3/4 px-4 py-6">
           <div className="mb-8">
             <h1 className="text-2xl font-semibold text-gray-900 mb-2">
               Welcome, {user.fullName}
@@ -122,8 +123,9 @@ export default function CompletedEventsPage() {
               </p>
             )}
           </div>
-        </main>
+        </div>
       </div>
+      </main>
     </div>
   );
 }

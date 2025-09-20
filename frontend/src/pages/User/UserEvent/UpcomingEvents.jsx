@@ -53,9 +53,15 @@ export default function OngoingEvents() {
   return (
     <div className="min-h-screen bg-gray-50 relative">
       <Header />
-      <div className="pt-16 flex m-6">
+       <main className="bg-gray-100 pt-[65px] min-h-screen">
+        
+      <div className="flex flex-col md:flex-row">
+        {/* left panel- Sidebar */}
         <UserSidebar />
-        <main className="w-full md:w-3/4 px-4 py-6 flex-1">
+
+        {/* right panel- Sidebar */}
+        <div className="w-full md:w-3/4 px-4 py-6">
+
           <div className="mb-8">
             <h1 className="text-2xl font-semibold text-gray-900 mb-2">
               Welcome, {user.fullName}
@@ -124,8 +130,11 @@ export default function OngoingEvents() {
               </p>
             )}
           </div>
-        </main>
+
+
+        </div>
       </div>
+      </main>
     </div>
   );
 }

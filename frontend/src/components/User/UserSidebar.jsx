@@ -1,36 +1,33 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import {jwtDecode} from "jwt-decode";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+
 import {
   User,
-  Calendar,
+  Calendar as CalendarIcon,
   Settings,
   Bell,
   LogOut,
   ChevronRight,
 } from "lucide-react";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import UserImg from "@/assets/User/DefaultUser.png"
-import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
-import axios from "axios";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import UserImg from "@/assets/User/DefaultUser.png";
 
 const menuItems = [
-  { icon: User, label: "My Profile", hasChevron: true ,path:"/profile"},
-  { icon: Calendar, label: "My Events", hasChevron: true },
+  { icon: User, label: "My Profile", hasChevron: true, path: "/profile" },
+  { icon: CalendarIcon, label: "My Events", hasChevron: true },
   { icon: Settings, label: "Settings", hasChevron: true },
   { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
   { icon: LogOut, label: "Log Out", hasChevron: false },
 ];
 
-export default function UserSidebar() {
-
+export default function UserSidebar({ date, setDate, eventDates }) {
   const navigate = useNavigate();
-
   const [user, setUser] = useState({ fullName: "", email: "" });
   const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -42,7 +39,6 @@ export default function UserSidebar() {
       const decoded = jwtDecode(token);
       const userId = decoded.sub || decoded.user_id;
 
-      // Fetch user info from backend
       axios
         .get(`${API}/api/users/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -57,21 +53,25 @@ export default function UserSidebar() {
   }, []);
 
   return (
-    <aside className="w-72 bg-white shadow-lg border-r border-gray-200 rounded-xl p-2 h-88 mx-auto">
+    <main className="w-full md:w-1/4 bg-white shadow-lg border-r border-gray-200 rounded-xl">
       <div className="p-6">
-        {/* User Profile Section */}
-        {/* User Profile Section */}
+        {/* Profile Section */}
         <div className="flex items-center space-x-3 mb-8">
           <Avatar className="h-12 w-12">
-            <AvatarImage src={`${UserImg}?height=48&width=48`} alt="User" />
+            <AvatarImage src={UserImg} alt="User" />
             <AvatarFallback>
               {user.fullName ? user.fullName.slice(0, 2).toUpperCase() : "YN"}
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-medium text-gray-900">{user.fullName}</p>
-            <p className="text-sm text-gray-500">{user.email}</p>
+            <p className="font-medium text-gray-900">{user.fullName || "User"}</p>
+            <p className="text-sm text-gray-500">{user.email || "user@example.com"}</p>
           </div>
+        </div>
+
+        {/* Sidebar Title */}
+        <div className="text-xl font-bold mt-6 mb-6 text-gray-800">
+          User Menu
         </div>
 
         {/* Navigation Menu */}
@@ -97,7 +97,25 @@ export default function UserSidebar() {
             );
           })}
         </nav>
+
+        {/* Calendar Section */}
+        <div className="mt-10 border border-gray-200 rounded-lg p-4">
+          <h2 className="text-lg font-bold text-gray-800 mb-3">
+            📆 Upcoming Events
+          </h2>
+          <Calendar
+            onChange={setDate}
+            value={date}
+            tileClassName={({ date: day, view }) =>
+              view === "month" &&
+              Array.isArray(eventDates) &&
+              eventDates.find((d) => d.toDateString() === day.toDateString())
+                ? "highlighted-day"
+                : null
+            }
+          />
+        </div>
       </div>
-    </aside>
+    </main>
   );
 }

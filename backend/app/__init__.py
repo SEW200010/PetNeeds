@@ -47,7 +47,7 @@ def create_app():
     from app.routes.event_routes import event_bp
     from app.routes.user_routes import user_bp
     from app.routes.monitoringStudents_routes import monitoringstudent_bp
-
+    from app.routes.user_event_routes import user_event_bp  
     from app.routes.course_routes import course_bp
 
     from app.routes.participant_routes import participant_bp
@@ -68,7 +68,7 @@ def create_app():
     app.register_blueprint(notify_bp)
     app.register_blueprint(feedback_bp)
     app.register_blueprint(profile_bp)
-
+    app.register_blueprint(user_event_bp)  # Register user_event_bp with a URL prefix
     @app.route('/uploads/<path:filename>')
     def serve_uploaded_file(filename):
         return send_from_directory(os.path.join(os.getcwd(), 'uploads'), filename)

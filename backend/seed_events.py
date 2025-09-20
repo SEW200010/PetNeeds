@@ -39,6 +39,26 @@ with app.app_context():
             "participants": {"registered_users": [], "confirmed_users": []},
             "speakers": ["Coach Michael"]
         },
+        {
+            "_id": ObjectId(),
+            "name": "Mindfulness Session",
+            "description": "Live mindfulness and stress relief session",
+            "start_time": SL_TZ.localize(datetime(2025, 9, 20, 23, 0)),
+            "end_time": SL_TZ.localize(datetime(2025, 9, 20, 23, 30)),
+            "venue": "Room 201",
+            "participants": {"registered_users": [], "confirmed_users": []},
+            "speakers": ["Coach Michael"]
+        },
+        {
+            "_id": ObjectId(),
+            "name": "Mindfulness Session",
+            "description": "Live mindfulness and stress relief session",
+            "start_time": SL_TZ.localize(datetime(2025, 9, 21, 13, 0)),
+            "end_time": SL_TZ.localize(datetime(2025, 9, 21, 15, 0)),
+            "venue": "Room 201",
+            "participants": {"registered_users": [], "confirmed_users": []},
+            "speakers": ["Coach Michael"]
+        },
     ]
 
     mongo.db.events.delete_many({})

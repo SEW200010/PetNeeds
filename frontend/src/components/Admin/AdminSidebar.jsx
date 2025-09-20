@@ -2,64 +2,103 @@
 import React from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+
+import {
+  User,
+  Settings,
+  Calendar as CalendarIcon,
+  Users,
+  GraduationCap,
+  Bot,
+  DollarSign,
+  BarChart3,
+  ChevronRight,
+} from "lucide-react";
+
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import img from "../../assets/Admin/image.png";
 
+// Menu Items for Admin
+const menuItems = [
+  { icon: User, label: "Dashboard", path: "/admin-dashboard", hasChevron: true },
+  { icon: Users, label: "User Management", path: "/user-management", hasChevron: true },
+  { icon: CalendarIcon, label: "Event Management", path: "/event-management", hasChevron: true },
+  { icon: GraduationCap, label: "Monitor Students", path: "/monitor-students", hasChevron: true },
+  { icon: Bot, label: "Explore Model", path: "/explore-model", hasChevron: true },
+  { icon: DollarSign, label: "Manage Fundraising", path: "/fundraising", hasChevron: true },
+  { icon: BarChart3, label: "Monitor Sessions", path: "/monitor-sessions", hasChevron: true },
+  { icon: Settings, label: "Settings", path: "/settings", hasChevron: true },
+];
+
 const AdminSidebar = ({ date, setDate, eventDates }) => {
+  const navigate = useNavigate();
+
   return (
-    <div className="w-full md:w-1/4 bg-white p-4 md:p-6 shadow-md">
-      {/* Profile */}
-      <div className="bg-gray-100 p-4 rounded-lg shadow mb-6 flex items-center">
-        <img
-          src={img}
-          alt="Profile"
-          className="w-12 h-12 rounded-full mr-4"
-        />
-        <div>
-          <p className="text-lg font-semibold text-gray-800">John Doe</p>
-          <p className="text-sm text-gray-500">Admin</p>
+    <main className="w-full md:w-1/4 bg-white shadow-lg border-r border-gray-200 rounded-xl">
+      <div className="p-6">
+        {/* Profile Section */}
+        <div className="flex items-center space-x-3 mb-8">
+          <Avatar className="h-12 w-12">
+            <AvatarImage src={img} alt="Admin" />
+            <AvatarFallback>AD</AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="font-medium text-gray-900">Admin</p>
+            <p className="text-sm text-gray-500">admin@admin.com</p>
+          </div>
+        </div>
+
+        {/* Sidebar Title */}
+        <div className="text-xl font-bold mt-6 mb-6 text-gray-800">
+          Admin Menu
+        </div>
+
+        {/* Navigation Menu */}
+        <nav className="space-y-2">
+          {menuItems.map((item, index) => {
+            const IconComponent = item.icon;
+            return (
+              <Button
+                key={index}
+                variant="ghost"
+                className="w-full justify-between text-left font-normal text-gray-700 hover:bg-gray-50"
+                onClick={() => item.path && navigate(item.path)}
+              >
+                <div className="flex items-center space-x-3">
+                  <IconComponent className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </div>
+                {item.hasChevron && <ChevronRight className="h-4 w-4" />}
+              </Button>
+            );
+          })}
+        </nav>
+
+        {/* Calendar Section */}
+        <div className="mt-10 border border-gray-200 rounded-lg p-4">
+          <h2 className="text-lg font-bold text-gray-800 mb-3">
+            📆 Upcoming Events
+          </h2>
+          <Calendar
+            onChange={setDate}
+            value={date}
+            tileClassName={({ date: day, view }) =>
+              view === "month" &&
+              Array.isArray(eventDates) &&
+              eventDates.find((d) => d.toDateString() === day.toDateString())
+                ? "highlighted-day"
+                : null
+            }
+          />
         </div>
       </div>
-
-      {/* Sidebar Menu */}
-      <h2 className="text-xl font-bold mb-4 text-gray-800">Admin Menu</h2>
-      <div className="border border-gray-300 rounded-lg p-4 space-y-2">
-        {[
-          { label: "🏠 Dashboard", href: "/admin-dashboard" },
-          { label: "👤 User Management", href: "/user-management" },
-          { label: "📅 Event Management", href: "/event-management" },
-          { label: "🎓 Monitor Students", href: "/monitor-students" },
-          { label: "🤖 Explore Model", href: "/explore-model" },
-          { label: "💰 Manage Fundraising", href: "/fundraising" },
-          { label: "📊 Monitor Sessions", href: "/monitor-sessions" },
-          { label: "📝 Create Forms", href: "/create-forms" },
-          { label: "⚙️ Settings", href: "/settings" },
-        ].map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            className="block px-4 py-2 rounded-md text-gray-700 bg-gray-100 border border-gray-300 hover:bg-[#5CBFA0] hover:border-green-400 font-medium"
-          >
-            {item.label}
-          </a>
-        ))}
-      </div>
-
-      {/* Calendar */}
-      <div className="mt-6 border border-gray-300 rounded-lg p-4">
-        <h2 className="text-lg font-bold text-gray-800 mb-3">📆 Upcoming Events</h2>
-        <Calendar
-          onChange={setDate}
-          value={date}
-          tileClassName={({ date: day, view }) =>
-            view === "month" &&
-            Array.isArray(eventDates) &&
-            eventDates.find((d) => d.toDateString() === day.toDateString())
-              ? "highlighted-day"
-              : null
-          }
-        />
-      </div>
-    </div>
+    </main>
   );
 };
 
