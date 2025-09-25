@@ -53,11 +53,50 @@ with app.app_context():
             "_id": ObjectId(),
             "name": "Mindfulness Session",
             "description": "Live mindfulness and stress relief session",
-            "start_time": SL_TZ.localize(datetime(2025, 9, 21, 13, 0)),
-            "end_time": SL_TZ.localize(datetime(2025, 9, 21, 15, 0)),
+            "start_time": SL_TZ.localize(datetime(2025, 9, 29, 13, 0)),
+            "end_time": SL_TZ.localize(datetime(2025, 9, 29, 15, 0)),
             "venue": "Room 201",
             "participants": {"registered_users": [], "confirmed_users": []},
             "speakers": ["Coach Michael"]
+        },
+        {
+            "_id": ObjectId(),
+            "name": "Ongoing Research Workshop",
+            "description": "Hands-on workshop on AI and Data Science",
+            "start_time": SL_TZ.localize(datetime(2025, 9, 21, 17, 0)),
+            "end_time": SL_TZ.localize(datetime(2025, 9, 21, 22, 0)),  # spans 3 days
+            "venue": "Main Auditorium",
+            "participants": {"registered_users": [], "confirmed_users": []},
+            "speakers": ["Prof. M. Siyamalan"]
+        },
+        {
+            "_id": ObjectId(),
+            "name": "Career Guidance Talk",
+            "description": "Session on taking ideas from lab to market",
+            "start_time": SL_TZ.localize(datetime(2025, 9, 21, 19, 0)),
+            "end_time": SL_TZ.localize(datetime(2025, 9, 21, 23, 0)),
+            "venue": "Conference Room B",
+            "participants": {"registered_users": [], "confirmed_users": []},
+            "speakers": ["Dr. Sabesan Sithamparanathan"]
+        },{
+            "_id": ObjectId(),
+            "name": "Team Building Session",
+            "description": "Interactive session to improve teamwork skills",
+            "start_time": SL_TZ.localize(datetime(2025, 9, 28, 14, 0)),
+            "end_time": SL_TZ.localize(datetime(2025, 9, 28, 17, 0)),
+            "venue": "Sports Complex",
+            "participants": {"registered_users": [], "confirmed_users": []},
+            "speakers": ["Coach Anura"]
+        },
+        {
+            "_id": ObjectId(),
+            "name": "Innovation Pitch Competition",
+            "description": "Students present their startup ideas",
+            "start_time": SL_TZ.localize(datetime(2025, 9, 25, 9, 30)),
+            "end_time": SL_TZ.localize(datetime(2025, 9, 25, 12, 30)),
+            "venue": "Innovation Hub",
+            "participants": {"registered_users": [], "confirmed_users": []},
+            "speakers": ["Industry Experts"]
         },
     ]
 

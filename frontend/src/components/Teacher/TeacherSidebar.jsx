@@ -13,7 +13,9 @@ import "react-calendar/dist/Calendar.css";
 const menuItems = [
   { icon: User, label: "Dashboard", path: "/teacher-dashboard", hasChevron: true },
   { icon: User, label: "My Profile", path: "/profile", hasChevron: true },
-  { icon: CalendarIcon, label: "My Events", hasChevron: true },
+  { icon: CalendarIcon, label: "My Courses", path: "/manage-course", hasChevron: true },
+  { icon: CalendarIcon, label: "Create Event", path: "/create-events", hasChevron: true },
+  { icon: CalendarIcon, label: "My Supervisions", path: "/monitor-students-teacher", hasChevron: true },
   { icon: Settings, label: "Settings", hasChevron: true },
   { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
   { icon: LogOut, label: "Log Out", hasChevron: false },
@@ -62,7 +64,7 @@ export default function UserSidebar({ date, setDate, eventDates }) {
 
         {/* Sidebar Title */}
         <div className="text-xl font-bold mt-6 mb-6 text-gray-800">
-          User Menu
+          Teacher Menu
         </div>
 
         {/* Navigation Menu */}
