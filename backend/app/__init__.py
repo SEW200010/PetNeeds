@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
 from flask import send_from_directory
 import os
+from flask_mail import Mail
 
 # from dotenv import load_dotenv
 # import os
@@ -19,6 +20,7 @@ import os
 
 mongo = PyMongo()  # Initialize MongoDB
 jwt = JWTManager()
+mail = Mail()
 
 def create_app():
     app = Flask(__name__)
@@ -28,9 +30,9 @@ def create_app():
     # Set a secret key for JWTs
     app.config['JWT_SECRET_KEY'] = 'your-super-secret-key'  # change this to a strong key
     #app.config["JWT_SECRET_KEY"] = "my_dev_secret_123"  # change this to a strong secret!
-    #jwt.init_app(app)
+    jwt.init_app(app)
     # Initialize JWTManager
-    jwt = JWTManager(app)
+    #jwt = JWTManager(app)
 
     # MongoDB configuration
 
@@ -45,7 +47,7 @@ def create_app():
     from app.routes.event_routes import event_bp
     from app.routes.user_routes import user_bp
     from app.routes.monitoringStudents_routes import monitoringstudent_bp
-
+    from app.routes.user_event_routes import user_event_bp  
     from app.routes.course_routes import course_bp
 
     from app.routes.participant_routes import participant_bp
@@ -66,7 +68,7 @@ def create_app():
     app.register_blueprint(notify_bp)
     app.register_blueprint(feedback_bp)
     app.register_blueprint(profile_bp)
-
+    app.register_blueprint(user_event_bp)  # Register user_event_bp with a URL prefix
     @app.route('/uploads/<path:filename>')
     def serve_uploaded_file(filename):
         return send_from_directory(os.path.join(os.getcwd(), 'uploads'), filename)

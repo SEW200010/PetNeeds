@@ -336,7 +336,7 @@ const FundRaising = () => {
           {/* left panel- Sidebar */}
           <AdminSidebar />
 
-          <div className="w-full md:w-3/4 bg-white p-6 rounded shadow border border-gray-900">
+          <div className="w-full md:w-3/4 bg-white p-6 rounded shadow ">
             <h1 className="text-2xl font-bold mb-6">Financial Details</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

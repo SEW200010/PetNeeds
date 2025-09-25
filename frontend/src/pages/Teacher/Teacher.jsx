@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import TeacherSidebar from "../../components/Teacher/TeacherSidebar";
-import Header from '@/components/Header';
+import Header from '@/components/Admin/Header';
+
 import SelectActionCard from '@/components/Teacher/ActionCard';
 import { useNavigate } from 'react-router-dom';
 

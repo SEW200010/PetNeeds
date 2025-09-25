@@ -363,10 +363,21 @@ const EventManagement = () => {
     setFilteredEvents(sortedEvents);
   };
 
-  function parseDate(str) {
-    const [day, month, year] = str.split("/");
-    return new Date(year, month - 1, day);
+ function parseDate(str) {
+  if (!str || typeof str !== "string") {
+    console.error("Invalid date string:", str);
+    return null;
   }
+
+  const parts = str.split("/");
+  if (parts.length !== 3) {
+    console.error("Date format should be dd/mm/yyyy:", str);
+    return null;
+  }
+
+  const [day, month, year] = parts.map(Number); // convert to numbers
+  return new Date(year, month - 1, day);
+}
 
   const processedEvents = filteredEvents
     .filter((event) => (filterStatus === "All" ? true : event.status === filterStatus))
