@@ -28,6 +28,7 @@ import ProfileEditPage from "./pages/User/ProfileEditPage";
 import UpcomingEvents from "./pages/User/UserEvent/UpcomingEvents";
 import OngoingEvents from "./pages/User/UserEvent/OngoingEvents";
 import CompletedEventsPage from "./pages/User/UserEvent/CompletedEventsPage";
+import CoordinatorDashboard from "./pages/Coordinator/CoordinatorDashboard"; // ✅ new import
 
 const App = () => {
   return (
@@ -64,7 +65,8 @@ const App = () => {
          <Route path="/upcoming-events" element={<UpcomingEvents />} />
         <Route path="/ongoing-events" element={<OngoingEvents />} />
         <Route path="/completed-events" element={<CompletedEventsPage />} />
-        
+        <Route path="/coordinator-dashboard" element={<CoordinatorDashboard />} /> {/* ✅ New Coordinator Route */}
+
       </Routes>
     </Router>
   );

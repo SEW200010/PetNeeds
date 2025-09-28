@@ -19,7 +19,10 @@ def register():
     email = data.get("email")
     password = data.get("password")
     user_type = data.get("user_type", "user")  # default role is "user"
-    location = data.get("location")
+    province = data.get("province") 
+    district = data.get("district") 
+    zone = data.get("zone")
+    address = data.get("location")
     school = data.get("school")
     contact = data.get("contact")
     status = "Pending"
@@ -27,7 +30,7 @@ def register():
     # Get current date as joinedDate
     joinedDate = datetime.now().strftime("%Y-%m-%d")  # e.g., "2025-08-20"
 
-    if not all([name, email, password, user_type]):
+    if not all([[name, email, password, user_type, province, district, zone]]):
         return jsonify({"error": "All fields are required"}), 400
 
     # Check if email already exists
@@ -44,7 +47,10 @@ def register():
         "role": user_type,
         "status": status,
         "joinedDate": joinedDate,
-        "location": location,
+        "province": province, 
+        "district": district,
+        "zone": zone,
+        "location": address,
         "school": school,
         "contact": contact,
         "profileImage": default_profile_image
@@ -74,7 +80,8 @@ def login():
             "message": "Admin login successful",
             "access_token": access_token,
             "user_id": "admin",
-            "role": "admin"
+            "role": "admin",
+            
         }), 200
 
     # ✅ Normal user login from MongoDB
@@ -84,15 +91,21 @@ def login():
         user_id = str(user["_id"])
         role = user.get("role", "").strip()  # remove extra spaces
         name = user.get("fullName", "Unknown")  # get the teacher's name
+        province = user.get("province", "")
+        district = user.get("district", "")
+        zone = user.get("zone", "")
 
         # Debug print
-        print(f"Login -> Name: '{name}', Role: '{role}'")
+        print(f"Login -> Name: '{name}', Role: '{role}',, Province: '{province}', District: '{district}', Zone: '{zone}'")
 
         access_token = create_access_token(
             identity=user_id,
             additional_claims={
                 "role": role,
-                "name": name  # include name in JWT
+                "name": name , # include name in JWT
+                "province": province,
+                "district": district,
+                "zone": zone
             },
             expires_delta=timedelta(hours=2)
         )
@@ -102,7 +115,10 @@ def login():
             "access_token": access_token,
             "user_id": user_id,
             "role": role,
-            "name": name
+            "name": name,
+            "province": province,
+            "district": district,
+            "zone": zone
         }), 200
 
     return jsonify({"message": "Invalid credentials"}), 401

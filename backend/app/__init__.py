@@ -54,6 +54,7 @@ def create_app():
     from app.routes.notification import notify_bp
     from app.routes.feedback import feedback_bp
     from app.routes.profile_routes import profile_bp
+    from app.routes.coordinator_bp import coordinator_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(transaction_bp)
@@ -63,7 +64,7 @@ def create_app():
     app.register_blueprint(monitoringstudent_bp)
 
     app.register_blueprint(course_bp, url_prefix="/courses")
-
+    app.register_blueprint(coordinator_bp)
     app.register_blueprint(participant_bp)
     app.register_blueprint(notify_bp)
     app.register_blueprint(feedback_bp)
