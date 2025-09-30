@@ -39,17 +39,25 @@ const Login = () => {
   const decoded = jwtDecode(data.access_token);
   const role = decoded.role;
   const name = decoded.name || decoded.identity; // make sure backend includes this
+  const province = decoded.province || ""; 
+  const district = decoded.district || ""; 
+  const zone = decoded.zone || "";
 
   // ✅ Store in localStorage
   localStorage.setItem("role", role);
   localStorage.setItem("name", name);
-localStorage.setItem("token", data.access_token);
+  localStorage.setItem("token", data.access_token);
+  localStorage.setItem("province", province); 
+  localStorage.setItem("district", district); 
+  localStorage.setItem("zone", zone);
 
   // ✅ Navigate based on role
   if (role === "admin") {
     navigate("/admin-dashboard");
   } else if (role === "teacher-in-charge") {
     navigate("/teacher-dashboard");
+  } else if (role === "coordination") { 
+    navigate("/coordinator-dashboard");
   } else {
     navigate("/upcoming-events"); // student or parent
   }

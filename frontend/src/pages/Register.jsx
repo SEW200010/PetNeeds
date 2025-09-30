@@ -6,13 +6,15 @@ import Footer from "../components/Footer";
 const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    user_type: 'student', // student, parent, teacher-in-charge
-    location: "",
-    school: "",
-    contact: ""
+   name: '',
+  email: '',
+  password: '',
+  user_type: 'student', // student, parent, teacher-in-charge, coordination
+  province: '',
+  district: '',
+  zone: '',
+  school: '',
+  contact: ''
   });
 
   const handleChange = (e) => {
@@ -79,19 +81,15 @@ const Register = () => {
             className="w-full px-4 py-2 mb-4 border rounded"
           />
 
-          <label className="block mb-2 font-medium">User Type</label>
-          <select
-            name="user_type"
-            value={formData.user_type}
-            onChange={handleChange}
-            className="w-full px-4 py-2 mb-6 border rounded"
-          >
-            <option value="student">Student</option>
-            <option value="parent">Parent</option>
-            <option value="teacher-in-charge">Teacher In Charge</option>
-          </select>
+          <label className="block mb-2 font-medium">User Type</label> <select name="user_type" value={formData.user_type} onChange={handleChange} className="w-full px-4 py-2 mb-6 border rounded" > <option value="student">Student</option> <option value="parent">Parent</option> <option value="teacher-in-charge">Teacher In Charge</option> <option value="coordination">Coordination</option> </select>
 
-          <label className="block mb-2 font-medium">Location</label>
+{/* Province */} <label className="block mb-2 font-medium">Province</label> <select name="province" value={formData.province} onChange={handleChange} className="w-full px-4 py-2 mb-4 border rounded" > <option value="">Select Province</option> <option value="Northern">Northern</option> <option value="Eastern">Eastern</option> <option value="Western">Western</option> <option value="Central">Central</option> <option value="Southern">Southern</option> <option value="North Western">North Western</option> <option value="North Central">North Central</option> <option value="Uva">Uva</option> <option value="Sabaragamuwa">Sabaragamuwa</option> </select>
+
+{/* District */} <label className="block mb-2 font-medium">District</label> <select name="district" value={formData.district} onChange={handleChange} className="w-full px-4 py-2 mb-4 border rounded" > <option value="">Select District</option> <option value="Jaffna">Jaffna</option> <option value="Kilinochchi">Kilinochchi</option> <option value="Mannar">Mannar</option> <option value="Mullaitivu">Mullaitivu</option> <option value="Vavuniya">Vavuniya</option> {/* Add other districts as needed */} </select>
+
+{/* Zone */} <label className="block mb-2 font-medium">Zone</label> <select name="zone" value={formData.zone} onChange={handleChange} className="w-full px-4 py-2 mb-4 border rounded" > <option value="">Select Zone</option> <option value="North Zone">North Zone</option> <option value="East Zone">East Zone</option> <option value="West Zone">West Zone</option> <option value="South Zone">South Zone</option> </select>
+
+          <label className="block mb-2 font-medium">Address</label>
           <input
             type="text"
             name="location"
