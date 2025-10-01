@@ -7,7 +7,7 @@ from flask_bcrypt import Bcrypt
 from flask import send_from_directory
 import os
 from flask_mail import Mail
-
+from dotenv import load_dotenv
 # from dotenv import load_dotenv
 # import os
 
@@ -38,8 +38,18 @@ def create_app():
 
     # app.config["MONGO_URI"] = os.getenv("DB_URI")
     app.config["MONGO_URI"] = "mongodb://localhost:27017/lifeskill"
+    load_dotenv()
+    # Flask-Mail configuration
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = os.getenv("EMAIL_USER")
+    app.config['MAIL_PASSWORD'] = os.getenv("EMAIL_PASS")
+    app.config['MAIL_DEFAULT_SENDER'] = os.getenv("EMAIL_USER")
+    
+    
     mongo.init_app(app)
-
+    mail.init_app(app)
     # Register Blueprints
     from app.routes.auth_routes import auth_bp
     from app.routes.transaction_routes import transaction_bp
@@ -55,7 +65,9 @@ def create_app():
     from app.routes.feedback import feedback_bp
     from app.routes.profile_routes import profile_bp
     from app.routes.coordinator_bp import coordinator_bp
-
+    from app.routes.subscriber_routes import subscribe_bp
+    from app.routes.reset_password_routes import password_bp
+    
     app.register_blueprint(auth_bp)
     app.register_blueprint(transaction_bp)
     app.register_blueprint(session_bp)
@@ -70,6 +82,9 @@ def create_app():
     app.register_blueprint(feedback_bp)
     app.register_blueprint(profile_bp)
     app.register_blueprint(user_event_bp)  # Register user_event_bp with a URL prefix
+    app.register_blueprint(subscribe_bp)
+    app.register_blueprint(password_bp)
+    
     @app.route('/uploads/<path:filename>')
     def serve_uploaded_file(filename):
         return send_from_directory(os.path.join(os.getcwd(), 'uploads'), filename)
