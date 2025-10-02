@@ -361,3 +361,60 @@ def delete_event_media(event_id, filename):
         return jsonify({"message": "Media file deleted successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# Get all districts, optionally filtered by province
+@event_bp.route('/districts', methods=['GET'])
+def get_districts():
+    try:
+        province = request.args.get('province')  # optional query param
+
+        query = {}
+        if province:
+            query['province'] = province
+
+        districts_cursor = mongo.db.districts.find(query)
+        districts = []
+        for d in districts_cursor:
+            districts.append({
+                "_id": str(d.get("_id")),
+                "name": d.get("name"),
+                "province": d.get("province")
+            })
+
+        response = jsonify(districts)
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response, 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Get all zones, optionally filtered by district
+@event_bp.route('/zones', methods=['GET'])
+def get_zones():
+    try:
+        district_id = request.args.get('district_id')  # optional query param
+
+        query = {}
+        if district_id:
+            from bson import ObjectId
+            try:
+                query['district_id'] = ObjectId(district_id)
+            except Exception:
+                return jsonify({"error": "Invalid district_id"}), 400
+
+        zones_cursor = mongo.db.zones.find(query)
+        zones = []
+        for z in zones_cursor:
+            zones.append({
+                "_id": str(z.get("_id")),
+                "name": z.get("name"),
+                "district_id": str(z.get("district_id")),
+                "district_name": z.get("district_name")
+            })
+
+        response = jsonify(zones)
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response, 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

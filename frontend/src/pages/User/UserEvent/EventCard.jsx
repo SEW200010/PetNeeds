@@ -22,7 +22,7 @@ export default function EventCard({ event, userId, onJoinSuccess, completed }) {
     try {
       const res = await axios.post("http://localhost:5000/join-event", {
         user_id: userId,
-        event_id: event._id,
+        event_id: event._id,c
       });
 
       if (res.data.message === "Event joined successfully") {

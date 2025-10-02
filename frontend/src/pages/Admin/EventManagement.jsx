@@ -4,7 +4,6 @@ import AdminSidebar from "../../components/Admin/AdminSidebar";
 import { FaUsers, FaBookmark, FaPlay, FaStar } from "react-icons/fa";
 import { Search } from "lucide-react";
 import StickyHeadTable from "../../components/Admin/StickyHeadTable";
-import { Add, Remove } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Button,
@@ -57,20 +56,15 @@ const EventManagement = () => {
   const [totalAvgRating, setTotalAvgRating] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const [districts, setDistricts] = useState([]);
+const [provinceList, setProvinceList] = useState([]);
+const [filteredDistricts, setFilteredDistricts] = useState([]);
+const [zones, setZones] = useState([]);
+const [filteredZones, setFilteredZones] = useState([]);
+
 
   const [formData, setFormData] = useState({
-    event_id: "",
-    name: "",
-    date: "",
-    time: "",
-    description: "",
-    venue: "",
-    schedule: [{ startTime: "", endTime: "", activity: "" }],
-    status: "Drafted",
-    speakers: [],
-    participants: { registered: "", confirmed: "" },
-    numberOfSlots: "",
-    eventMedia: [],
+    name: "", date: "", description: "", start_time: "", end_time: "", venue: "", status: "Drafted", speakers: [], province: "", district: "", zone_id: "", participants: { registered_users: [], confirmed_users: [] }, numberOfSlots: "", eventMedia: [],
   });
 
   const fetchEvents = () => {
@@ -84,9 +78,43 @@ const EventManagement = () => {
       .catch((err) => console.error("Error fetching events:", err));
   };
 
+  const handleDistrictChange = (e) => {
+  const selectedDistrict = e.target.value;
+  setFormData({ ...formData, district: selectedDistrict, zone_id: "" }); // reset zone
+
+  // Filter zones from your backend
+  fetch(`http://localhost:5000/zones?district_id=${selectedDistrict}`)
+    .then((res) => res.json())
+    .then((data) => {
+      setFilteredZones(data); // store zones for selected district
+    })
+    .catch((err) => console.error("Error fetching zones:", err));
+};
+
+
   useEffect(() => {
     fetchEvents();
+
+    fetch("http://localhost:5000/districts") // your API to get districts
+    .then((res) => res.json())
+    .then((data) => {
+      setDistricts(data);
+      // extract unique provinces
+      const provinces = [...new Set(data.map(d => d.province))];
+      setProvinceList(provinces);
+    })
+    .catch(err => console.error(err));
+
+    
   }, []);
+
+  const handleProvinceChange = (e) => {
+  const selectedProvince = e.target.value;
+  setFormData({ ...formData, province: selectedProvince, district: "" }); // reset district
+  const filtered = districts.filter(d => d.province === selectedProvince);
+  setFilteredDistricts(filtered);
+};
+
 
   useEffect(() => {
     fetch("http://localhost:5000/all_feedback")
@@ -123,32 +151,49 @@ const EventManagement = () => {
     );
   }, [searchQuery, events]);
 
-  const handleEditClick = (event) => {
-    setFormData({
-      event_id: event.event_id || 0,
-      name: event.name || "",
-      date: event.date || "",
-      time: event.time || "",
-      description: event.description || "",
-      venue: event.venue || "",
-      schedule: Array.isArray(event.schedule)
-        ? event.schedule.map((item) => ({
-            startTime: item.startTime || "",
-            endTime: item.endTime || "",
-            activity: item.activity || "",
-          }))
-        : [{ startTime: "", endTime: "", activity: "" }],
-      status: typeof event.status === "string" ? event.status : "Drafted",
-      speakers: Array.isArray(event.speakers) ? event.speakers : [],
-      participants: event.participants || { registered: "", confirmed: "" },
-      numberOfSlots: event.numberOfSlots || "",
-      eventMedia: [], // Reset to avoid loading files
-    });
-    setEditingEventId(event._id);
-    setSpeakers((event.speakers || []).join(", "));
-    setIsEditMode(true);
-    setShowForm(true);
-  };
+ const handleEditClick = (event) => {
+  setFormData({
+    name: event.name || "",
+    date: event.date || "",
+    description: event.description || "",
+    start_time: event.start_time || "",
+    end_time: event.end_time || "",
+    venue: event.venue || "",
+    status: typeof event.status === "string" ? event.status : "Drafted",
+    speakers: Array.isArray(event.speakers) ? event.speakers : [],
+    province: event.province || "",
+    district: event.district || "",
+    zone_id: event.zone_id || "",
+    participants: event.participants || { registered_users: [], confirmed_users: [] },
+    numberOfSlots: event.numberOfSlots || "",
+    eventMedia: [], // Reset so no old uploads stay
+  });
+  setEditingEventId(event._id);
+  setSpeakers((event.speakers || []).join(", "));
+  setIsEditMode(true);
+  setShowForm(true);
+};
+
+const resetForm = () => {
+  setFormData({
+    name: "",
+    date: "",
+    description: "",
+    start_time: "",
+    end_time: "",
+    venue: "",
+    status: "Drafted",
+    speakers: [],
+    province: "",
+    district: "",
+    zone_id: "",
+    participants: { registered_users: [], confirmed_users: [] },
+    numberOfSlots: "",
+    eventMedia: [],
+  });
+  setSpeakers("");
+};
+
   
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -170,23 +215,7 @@ const EventManagement = () => {
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      event_id: 0,
-      name: "",
-      date: "",
-      time: "",
-      description: "",
-      venue: "",
-      schedule: [{ startTime: "", endTime: "", activity: "" }],
-      status: "Drafted",
-      speakers: [],
-      participants: { registered: "", confirmed: "" },
-      numberOfSlots: "",
-      eventMedia: [],
-    });
-    setSpeakers("");
-  };
+   
 
   const [formError, setFormError] = React.useState("");
 
@@ -203,16 +232,13 @@ const EventManagement = () => {
     e.preventDefault();
     setFormError("");
 
-    // Helper function to validate positive integers
-    const isPositiveInteger = (value) => {
-      return Number.isInteger(value) && value >= 0;
-    };
 
     // Validate required fields
     if (
       !formData.name ||
       !formData.date ||
-      !formData.time ||
+      !formData.start_time ||
+      !formData.end_time ||
       !formData.description ||
       !formData.venue ||
       !formData.status
@@ -246,18 +272,7 @@ const EventManagement = () => {
       return;
     }
 
-    // Validate schedule items
-    for (let i = 0; i < formData.schedule.length; i++) {
-      const item = formData.schedule[i];
-      if (!item.startTime || !item.endTime || !item.activity) {
-        setFormError(`Schedule item ${i + 1} is incomplete.`);
-        return;
-      }
-      if (item.startTime >= item.endTime) {
-        setFormError(`Schedule item ${i + 1} start time must be before end time.`);
-        return;
-      }
-    }
+ 
 
     // Validate speakers input (comma separated)
     const speakersArray = speakers
@@ -281,10 +296,10 @@ const EventManagement = () => {
     }
 
     const jsonData = {
-      event_id: eventIdToSend || uuidv4(),
+      
       name: formData.name,
       date: formData.date,
-      time: formData.time,
+      time: formData.start_time,
       description: formData.description,
       venue: formData.venue,
       status: formData.status,
@@ -294,7 +309,7 @@ const EventManagement = () => {
         confirmed: Number(formData.participants.confirmed) || 0,
       },
       speakers: speakersArray,
-      schedule: formData.schedule,
+     
       eventMedia: formData.eventMedia || [],
     };
 
@@ -325,30 +340,12 @@ const EventManagement = () => {
       });
   };
 
-  const handleScheduleChange = (index, field, value) => {
-    const updatedSchedule = [...formData.schedule];
-    updatedSchedule[index][field] = value;
-    setFormData((prev) => ({ ...prev, schedule: updatedSchedule }));
-  };
+
 
   const totalRegistered = events.reduce((sum, e) => {
     return sum + (e.participants?.registered || 0);
   }, 0);
 
-  const addScheduleItem = () => {
-    setFormData((prev) => ({
-      ...prev,
-      schedule: [...prev.schedule, { startTime: "", endTime: "", activity: "" }],
-    }));
-  };
-
-  const removeScheduleItem = (index) => {
-    const updatedSchedule = [...formData.schedule];
-    if (updatedSchedule.length > 1) {
-      updatedSchedule.splice(index, 1);
-      setFormData((prev) => ({ ...prev, schedule: updatedSchedule }));
-    }
-  };
 
   const handleFilterChange = (status) => setFilterStatus(status);
 
@@ -596,189 +593,239 @@ const EventManagement = () => {
                   {isMinimized ? "Maximize" : "Minimize"}
                 </Button>
               </DialogTitle>
-              <form onSubmit={handleAddOrUpdateEvent}>
-                {!isMinimized && (
-                  <DialogContent dividers>
-                    {formError && (
-                      <div className="mb-4 text-red-600 font-semibold">{formError}</div>
-                    )}
-                    <TextField
-                      margin="dense"
-                      label="Event Title"
-                      name="name"
-                      fullWidth
-                      required
-                      value={formData.name}
-                      onChange={handleInputChange}
-                    />
-                    <TextField
-                      margin="dense"
-                      type="date"
-                      label="Date"
-                      name="date"
-                      fullWidth
-                      required
-                      InputLabelProps={{ shrink: true }}
-                      value={formData.date}
-                      onChange={handleInputChange}
-                    />
-                    <TextField
-                      margin="dense"
-                      type="time"
-                      label="Time"
-                      name="time"
-                      fullWidth
-                      required
-                      InputLabelProps={{ shrink: true }}
-                      value={formData.time}
-                      onChange={handleInputChange}
-                    />
-                    <TextField
-                      margin="dense"
-                      label="Description"
-                      name="description"
-                      fullWidth
-                      required
-                      multiline
-                      rows={3}
-                      value={formData.description}
-                      onChange={handleInputChange}
-                    />
-                     <TextField
-                      margin="dense"
-                      label="Number of Slots"
-                      name="numberOfSlots"
-                      type="number"
-                      fullWidth
-                      value={formData.numberOfSlots}
-                      onChange={handleInputChange}
-                    />
-                    
-                    <div className="flex gap-4 my-4">
-                      <TextField
-                        margin="dense"
-                        label="Registered Participants"
-                        name="registered"
-                        type="number"
-                        fullWidth
-                        required
-                        value={formData.participants.registered}
-                        onChange={(e) =>
-                          handleInputChange({
-                            target: { name: "registered", value: e.target.value },
-                          })
-                        }
-                      />
-                      <TextField
-                        margin="dense"
-                        label="Confirmed Participants"
-                        name="confirmed"
-                        type="number"
-                        fullWidth
-                        required
-                        value={formData.participants.confirmed}
-                        onChange={(e) =>
-                          handleInputChange({
-                            target: { name: "confirmed", value: e.target.value },
-                          })
-                        }
-                      />
-                    </div>
+<form onSubmit={handleAddOrUpdateEvent}>
+  {!isMinimized && (
+    <DialogContent dividers>
+      {formError && (
+        <div className="mb-4 text-red-600 font-semibold">{formError}</div>
+      )}
 
-                    <TextField
-                      margin="dense"
-                      label="Venue"
-                      name="venue"
-                      fullWidth
-                      required
-                      value={formData.venue}
-                      onChange={handleInputChange}
-                    />
+      <TextField
+        margin="dense"
+        label="Event Title"
+        name="name"
+        fullWidth
+        required
+        value={formData.name}
+        onChange={handleInputChange}
+      />
 
-                    <TextField
-                      margin="dense"
-                      label="Speakers (comma separated)"
-                      name="speakers"
-                      fullWidth
-                      value={speakers}
-                      onChange={(e) => setSpeakers(e.target.value)}
-                    />
+      <TextField
+        margin="dense"
+        type="date"
+        label="Date"
+        name="date"
+        fullWidth
+        required
+        InputLabelProps={{ shrink: true }}
+        value={formData.date}
+        onChange={handleInputChange}
+      />
 
-                    {/* Schedule Inputs */}
-                    <div className="my-4">
-                      <label className="block font-semibold mb-2">Schedule</label>
-                      {formData.schedule.map((item, idx) => (
-                        <div key={idx} className="flex gap-3 mb-2">
-                          <TextField
-                            label="Start Time"
-                            type="time"
-                            required
-                            value={item.startTime}
-                            onChange={(e) =>
-                              handleScheduleChange(idx, "startTime", e.target.value)
-                            }
-                          />
-                          <TextField
-                            label="End Time"
-                            type="time"
-                            required
-                            value={item.endTime}
-                            onChange={(e) =>
-                              handleScheduleChange(idx, "endTime", e.target.value)
-                            }
-                          />
-                          <TextField
-                            label="Activity"
-                            required
-                            value={item.activity}
-                            onChange={(e) =>
-                              handleScheduleChange(idx, "activity", e.target.value)
-                            }
-                            sx={{ flex: 1 }}
-                          />
-                          <IconButton onClick={() => removeScheduleItem(idx)}>
-                            <Remove />
-                          </IconButton>
-                        </div>
-                      ))}
-                      <Button onClick={addScheduleItem} startIcon={<Add />}>
-                        Add Schedule Item
-                      </Button>
-                    </div>
-                        
-                    {/* Status Select */}
-                    <FormControl fullWidth margin="dense" required>
-                      <InputLabel>Status</InputLabel>
-                      <Select
-                        label="Status"
-                        name="status"
-                        value={formData.status}
-                        onChange={handleInputChange}
-                      >
-                        <MenuItem value="Drafted">Drafted</MenuItem>
-                        <MenuItem value="Upcoming">Upcoming</MenuItem>
-                        <MenuItem value="Ongoing">Ongoing</MenuItem>
-                        <MenuItem value="Completed">Completed</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </DialogContent>
-                )}
+      <TextField
+        margin="dense"
+        type="time"
+        label="Start Time"
+        name="start_time"
+        fullWidth
+        required
+        InputLabelProps={{ shrink: true }}
+        value={formData.start_time}
+        onChange={handleInputChange}
+      />
 
-                <DialogActions>
-                  <Button
-                    onClick={() => {
-                      setShowForm(false);
-                      setIsEditMode(false);
-                      resetForm();
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" variant="contained" sx={{ backgroundColor: "#4B9E8B" }}>
-                    {isEditMode ? "Update Event" : "Create Event"}
-                  </Button>
-                </DialogActions>
-              </form>
+      <TextField
+        margin="dense"
+        type="time"
+        label="End Time"
+        name="end_time"
+        fullWidth
+        required
+        InputLabelProps={{ shrink: true }}
+        value={formData.end_time}
+        onChange={handleInputChange}
+      />
+
+      <TextField
+        margin="dense"
+        label="Description"
+        name="description"
+        fullWidth
+        required
+        multiline
+        rows={3}
+        value={formData.description}
+        onChange={handleInputChange}
+      />
+
+      <TextField
+        margin="dense"
+        label="Number of Slots"
+        name="numberOfSlots"
+        type="number"
+        fullWidth
+        value={formData.numberOfSlots}
+        onChange={handleInputChange}
+      />
+
+      <div className="flex gap-4 my-4">
+        <TextField
+          margin="dense"
+          label="Registered Users"
+          name="registered_users"
+          fullWidth
+          value={formData.participants.registered_users.join(", ")}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              participants: {
+                ...formData.participants,
+                registered_users: e.target.value.split(",").map((s) => s.trim()),
+              },
+            })
+          }
+        />
+        <TextField
+          margin="dense"
+          label="Confirmed Users"
+          name="confirmed_users"
+          fullWidth
+          value={formData.participants.confirmed_users.join(", ")}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              participants: {
+                ...formData.participants,
+                confirmed_users: e.target.value.split(",").map((s) => s.trim()),
+              },
+            })
+          }
+        />
+      </div>
+
+      <TextField
+        margin="dense"
+        label="Venue"
+        name="venue"
+        fullWidth
+        required
+        value={formData.venue}
+        onChange={handleInputChange}
+      />
+
+      <TextField
+        margin="dense"
+        label="Speakers (comma separated)"
+        name="speakers"
+        fullWidth
+        value={speakers}
+        onChange={(e) => setSpeakers(e.target.value)}
+      />
+
+     <FormControl fullWidth margin="dense" required>
+  <InputLabel>Province</InputLabel>
+  <Select
+    label="Province"
+    name="province"
+    value={formData.province}
+    onChange={handleProvinceChange}
+  >
+    {provinceList.map((prov) => (
+      <MenuItem key={prov} value={prov}>
+        {prov}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
+
+<FormControl fullWidth margin="dense" required>
+  <InputLabel>District</InputLabel>
+  <Select
+    label="District"
+    name="district"
+    value={formData.district}
+    onChange={handleDistrictChange}
+    disabled={!formData.province} // disable until a province is selected
+  >
+    {filteredDistricts.map((d) => (
+      <MenuItem key={d._id} value={d._id}>
+        {d.name}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
+
+
+      <FormControl fullWidth margin="dense" required>
+  <InputLabel>Zone</InputLabel>
+  <Select
+    label="Zone"
+    name="zone_id"
+    value={formData.zone_id}
+    onChange={(e) => setFormData({ ...formData, zone_id: e.target.value })}
+    disabled={!formData.district} // disabled until a district is selected
+  >
+    {filteredZones.map((z) => (
+      <MenuItem key={z._id} value={z._id}>
+        {z.name}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
+
+
+      {/* Event Media URLs */}
+      <TextField
+        margin="dense"
+        label="Event Media URL (comma separated)"
+        name="eventMedia"
+        fullWidth
+        value={formData.eventMedia.map((m) => m.url).join(", ")}
+        onChange={(e) => {
+          const urls = e.target.value.split(",").map((url) => url.trim());
+          setFormData({
+            ...formData,
+            eventMedia: urls.map((url) => ({ type: "image", url })),
+          });
+        }}
+      />
+
+      {/* Status Select */}
+      <FormControl fullWidth margin="dense" required>
+        <InputLabel>Status</InputLabel>
+        <Select
+          label="Status"
+          name="status"
+          value={formData.status}
+          onChange={handleInputChange}
+        >
+          <MenuItem value="Drafted">Drafted</MenuItem>
+          <MenuItem value="Upcoming">Upcoming</MenuItem>
+          <MenuItem value="Ongoing">Ongoing</MenuItem>
+          <MenuItem value="Completed">Completed</MenuItem>
+          <MenuItem value="Published">Published</MenuItem>
+        </Select>
+      </FormControl>
+    </DialogContent>
+  )}
+
+  <DialogActions>
+    <Button
+      onClick={() => {
+        setShowForm(false);
+        setIsEditMode(false);
+        resetForm();
+      }}
+    >
+      Cancel
+    </Button>
+    <Button type="submit" variant="contained" sx={{ backgroundColor: "#4B9E8B" }}>
+      {isEditMode ? "Update Event" : "Create Event"}
+    </Button>
+  </DialogActions>
+</form>
+
+
             </Dialog>
           </div>
         </main>
