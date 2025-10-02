@@ -30,6 +30,7 @@ import OngoingEvents from "./pages/User/UserEvent/OngoingEvents";
 import CompletedEventsPage from "./pages/User/UserEvent/CompletedEventsPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import ConfirmSubscription from "./components/ConfirmSubscription";
 
 const App = () => {
   return (
@@ -68,7 +69,7 @@ const App = () => {
         <Route path="/completed-events" element={<CompletedEventsPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-
+        <Route path="/confirm-subscription/:token" element={<ConfirmSubscription />} />
       </Routes>
     </Router>
   );
