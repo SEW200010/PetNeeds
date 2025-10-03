@@ -98,13 +98,23 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit }) => {
     setFormData({ ...formData, modules: updatedModules });
   };
 
+  // Combine date + time and convert to ISO with +00:00
+  const combineDateTime = (date, time) => {
+    if (!date || !time) return null;
+    const dt = new Date(`${date}T${time}:00Z`); // UTC
+    return dt.toISOString().replace('Z', '+00:00'); // Convert Zulu to +00:00
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    
     const payload = {
       ...formData,
       facilitator: formData.facilitator.map((f) => f._id),
       participants: { registered: formData.participants.registered_users.length || 0 },
+      start_time: combineDateTime(formData.date, formData.start_time),
+    end_time: combineDateTime(formData.date, formData.end_time),
     };
 
     try {

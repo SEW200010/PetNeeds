@@ -7,6 +7,8 @@ import os
 import json
 from werkzeug.utils import secure_filename
 from flask import send_from_directory
+from datetime import datetime
+from pytz import timezone
 
 event_bp = Blueprint('event_bp', __name__)
 
@@ -102,6 +104,7 @@ def download_file(filename):
 @event_bp.route('/events/university', methods=['POST'])
 def create_university_event():
     data = request.get_json()
+    
     if not data:
         return jsonify({"error": "Missing JSON data"}), 400
 
@@ -109,9 +112,12 @@ def create_university_event():
     required_fields = ["name", "date", "start_time", "end_time", "description", "venue", 
                        "status", "University", "faculty", "facilitator"]
     
+    
     for field in required_fields:
         if not data.get(field):
             return jsonify({"error": f"Missing required field: {field}"}), 400
+
+   
 
     # Get next auto-increment event_id
     event_id = get_next_event_id()

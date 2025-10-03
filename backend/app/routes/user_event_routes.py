@@ -128,13 +128,32 @@ def get_completed_events():
 
         # Get all events
         events = list(mongo.db.events.find())
+        print(f"Total events fetched: {len(events)}")
+        completed_events = []
 
-        # Filter events that have ended
-        completed_events = [
-            e for e in events
-            if e.get("end_time") and e["end_time"].replace(tzinfo=timezone.utc) < datetime.now(timezone.utc)
-        ]
+        for e in events:
+            end_time_value = e.get("end_time")
+            if end_time_value:
+                try:
+                    # If it's already a datetime object
+                    if isinstance(end_time_value, datetime):
+                        end_time = end_time_value
+                    # If it's a string, convert it
+                    elif isinstance(end_time_value, str):
+                        end_time = datetime.fromisoformat(end_time_value)
+                    else:
+                        # Skip invalid types
+                        print(f"Invalid end_time type for event {e.get('_id')}: {type(end_time_value)}")
+                        continue
 
+                    # Compare with current UTC time
+                    if end_time < datetime.now(timezone.utc):
+                        completed_events.append(e)
+
+                except Exception as err:
+                    print(f"Error parsing end_time for event {e.get('_id')}: {err}")
+                    continue
+                
         serialized = [serialize_event(e) for e in completed_events]
         return jsonify(serialized), 200
 
