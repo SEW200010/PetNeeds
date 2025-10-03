@@ -98,69 +98,110 @@ def download_file(filename):
         )
     except FileNotFoundError:
         return jsonify({"error": "File not found"}), 404
-# Create Event
-@event_bp.route('/events', methods=['POST'])
-def create_event():
-    content_type = request.headers.get('Content-Type', '')
-    if not content_type.lower().startswith('application/json'):
-        return jsonify({"error": "Did not attempt to load JSON data because the request Content-Type was not 'application/json'."}), 415
 
+@event_bp.route('/events/university', methods=['POST'])
+def create_university_event():
     data = request.get_json()
     if not data:
         return jsonify({"error": "Missing JSON data"}), 400
 
-    # Auto-increment event_id
-    event_id = get_next_event_id()
-
-    try:
-        schedule = data.get("schedule", [])
-        if isinstance(schedule, str):
-            schedule = json.loads(schedule)
-        speakers = data.get("speakers", [])
-        if isinstance(speakers, str):
-            speakers = json.loads(speakers)
-        participants = data.get("participants", {})
-        if isinstance(participants, str):
-            participants = json.loads(participants)
-    except json.JSONDecodeError:
-        return jsonify({"error": "Invalid JSON format in schedule, speakers, or participants"}), 400
-
-    required_fields = ["name", "date", "time", "description", "venue", "status"]
+    # Required fields for university events
+    required_fields = ["name", "date", "start_time", "end_time", "description", "venue", 
+                       "status", "University", "faculty", "facilitator"]
+    
     for field in required_fields:
         if not data.get(field):
             return jsonify({"error": f"Missing required field: {field}"}), 400
 
-    if not isinstance(schedule, list) or not isinstance(speakers, list):
-        return jsonify({"error": "'schedule' and 'speakers' must be arrays"}), 400
-    if not all(isinstance(s, str) for s in speakers):
-        return jsonify({"error": "Speakers must be strings"}), 400
+    # Get next auto-increment event_id
+    event_id = get_next_event_id()
 
-    registered = int(participants.get("registered", 0))
-    confirmed = int(participants.get("confirmed", 0))
-    try:
-        numberOfSlots = int(data.get("numberOfSlots", 0))
-    except ValueError:
-        numberOfSlots = 0
+    # Ensure facilitator is a list
+    facilitators = data.get("facilitator", [])
+    if not isinstance(facilitators, list):
+        return jsonify({"error": "Facilitator must be a list"}), 400
+
+    # Participants default
+    participants = data.get("participants", {"registered": 0})
+
+    # Modules validation
+    modules = data.get("modules", [])
+    if not isinstance(modules, list):
+        return jsonify({"error": "'modules' must be a list of objects with moduleName and enrollmentKey"}), 400
+    for mod in modules:
+        if not isinstance(mod, dict) or "moduleName" not in mod or "enrollmentKey" not in mod:
+            return jsonify({"error": "Each module must include 'moduleName' and 'enrollmentKey'"}), 400
 
     mongo.db.events.insert_one({
         "event_id": event_id,
+        "type": "university",
         "name": data["name"],
         "date": data["date"],
-        "time": data["time"],
+        "start_time": data["start_time"],
+        "end_time": data["end_time"],
         "description": data["description"],
         "status": data["status"],
         "venue": data["venue"],
-        "schedule": schedule,
-        "speakers": speakers,
-        "participants": {
-            "registered": registered,
-            "confirmed": confirmed
-        },
-        "numberOfSlots": numberOfSlots,
+        "University": data["University"],
+        "faculty": data["faculty"],
+        "facilitator": facilitators,
+        "participants": participants,
+        "modules": modules,  # store modules with enrollment keys
         "eventMedia": []
     })
 
-    return jsonify({"message": "Event created successfully", "event_id": event_id}), 201
+    return jsonify({"message": "University event created successfully", "event_id": event_id}), 201
+
+@event_bp.route('/events/school', methods=['POST'])
+def create_school_event():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Missing JSON data"}), 400
+
+    # Required fields for school events
+    required_fields = ["name", "date", "start_time", "end_time", "description", "venue", 
+                       "status", "district", "zone", "school", "facilitator"]
+    
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({"error": f"Missing required field: {field}"}), 400
+
+    event_id = get_next_event_id()
+
+    facilitators = data.get("facilitator", [])
+    if not isinstance(facilitators, list):
+        return jsonify({"error": "Facilitator must be a list"}), 400
+
+# Modules validation
+    modules = data.get("modules", [])
+    if not isinstance(modules, list):
+        return jsonify({"error": "'modules' must be a list of objects with moduleName and enrollmentKey"}), 400
+    for mod in modules:
+        if not isinstance(mod, dict) or "moduleName" not in mod or "enrollmentKey" not in mod:
+            return jsonify({"error": "Each module must include 'moduleName' and 'enrollmentKey'"}), 400
+        
+    participants = data.get("participants", {"registered": 0, })
+
+    mongo.db.events.insert_one({
+        "event_id": event_id,
+        "type": "school",
+        "name": data["name"],
+        "date": data["date"],
+        "start_time": data["start_time"],
+        "end_time": data["end_time"],
+        "description": data["description"],
+        "status": data["status"],
+        "venue": data["venue"],
+        "district": data["district"],
+        "zone": data["zone"],
+        "school": data["school"],
+        "facilitator": facilitators,
+        "participants": participants,
+        "modules": modules, 
+        "eventMedia": []
+    })
+
+    return jsonify({"message": "School event created successfully", "event_id": event_id}), 201
 
 
 # Get all events
@@ -416,5 +457,16 @@ def get_zones():
         response.headers.add("Access-Control-Allow-Origin", "*")
         return response, 200
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@event_bp.route('/facilitators', methods=['GET'])
+def get_facilitators():
+    try:
+        facilitators = list(mongo.db.facilitators.find({"role": "facilitator"}))
+        for f in facilitators:
+            f["_id"] = str(f["_id"])
+        return jsonify(facilitators), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
