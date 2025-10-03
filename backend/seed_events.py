@@ -59,6 +59,40 @@ with app.app_context():
             "numberOfSlots": 30,
             "eventMedia": []
         },
+        {
+            "_id": ObjectId(),
+            "name": "Mindfulness Session",
+            "description": "Live mindfulness and stress relief session",
+            "date": "2025-10-2",
+            "start_time": SL_TZ.localize(datetime(2025, 10, 2, 17, 0)),
+            "end_time": SL_TZ.localize(datetime(2025, 10, 2, 19, 0)),
+            "venue": "Room 201",
+            "status": "Drafted",
+            "participants": {"registered_users": [], "confirmed_users": []},
+            "speakers": ["Coach Michael"],
+            "province": "Northern",
+            "district": "Kilinochchi",
+            "zone_id": ObjectId("68d8f86ce69824652f3ccd1f"),
+            "numberOfSlots": 30,
+            "eventMedia": []
+        },
+        {
+            "_id": ObjectId(),
+            "name": "Mindfulness Session",
+            "description": "Live mindfulness and stress relief session",
+            "date": "2025-10-21",
+            "start_time": SL_TZ.localize(datetime(2025, 10, 21, 13, 0)),
+            "end_time": SL_TZ.localize(datetime(2025, 10, 21, 15, 0)),
+            "venue": "Room 201",
+            "status": "Drafted",
+            "participants": {"registered_users": [], "confirmed_users": []},
+            "speakers": ["Coach Michael"],
+            "province": "Northern",
+            "district": "Kilinochchi",
+            "zone_id": ObjectId("68d8f86ce69824652f3ccd1f"),
+            "numberOfSlots": 30,
+            "eventMedia": []
+        },
         # ... continue the same for all events ...
     ]
 
