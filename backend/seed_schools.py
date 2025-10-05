@@ -2,7 +2,7 @@ from pymongo import MongoClient
 
 # Connect to MongoDB
 client = MongoClient("mongodb://localhost:27017/")
-db = client["your_database_name"]   # change to your DB name
+db = client["lifeskill"]   # change to your DB name
 
 # Drop existing collection (optional - for a clean seed)
 db.schools.drop()

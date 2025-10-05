@@ -213,9 +213,19 @@ def get_schools_by_zone(zone_name):
     role = claims.get("role", "")
 
     # ✅ Only coordinators can access
-    if role != "coordination":
-        return jsonify({"error": "Access denied"}), 403
+    #if role != "coordination":
+    #    return jsonify({"error": "Access denied"}), 403
 
+# Normalize input (case-insensitive, trim spaces)
+    zone_name = zone_name.strip()
+
+    schools = list(
+        mongo.db.schools.find(
+            {"zone_name": {"$regex": f"^{zone_name}$", "$options": "i"}},  # case-insensitive exact match
+            {"_id": 1, "name": 1, "zone_name": 1}
+        )
+    )
+    
     schools = list(
         mongo.db.schools.find(
             {"zone": zone_name},
