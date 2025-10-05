@@ -8,31 +8,43 @@ import { useNavigate } from "react-router-dom";
 
 const CoordinatorActionCard = () => {
   const navigate = useNavigate();
-  const [zones, setZones] = useState([]);
+  const [items, setItems] = useState([]); // Faculties or Schools
   const [coordinator, setCoordinator] = useState({});
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    //const districtId = localStorage.getItem("district_id");
     const name = localStorage.getItem("name");
-    const province = localStorage.getItem("province");
-    const district = localStorage.getItem("district");
+    
+    const organizationUnit = localStorage.getItem("organization_unit");
+    const universityName = localStorage.getItem("university_name");
+    const zone = localStorage.getItem("zone");
 
     console.log("===== Coordinator Dashboard Debug =====");
-    console.log("Token from localStorage:", token);
-  
-    console.log("Coordinator Info from localStorage:", { name, province, district });
+    console.log("Coordinator Info:", {
+      token,
+      name,
+      organizationUnit,
+      universityName,
+      zone,
+    });
 
-    if (!token ) {
-      console.warn("Missing token or districtId, cannot fetch zones.");
+    if (!token || !organizationUnit) {
+      console.warn("Missing token or organization unit, cannot fetch data.");
       return;
     }
 
-    setCoordinator({ name, province, district });
+    setCoordinator({ name, organizationUnit , universityName, zone });
 
-    fetch(`http://localhost:5000/coordinator/zones/${district}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    let apiUrl = "";
+    if (organizationUnit.toLowerCase() === "university") {
+      apiUrl = `http://localhost:5000/faculties/${encodeURIComponent(universityName)}`;
+    } else if (organizationUnit.toLowerCase() === "school") {
+      apiUrl = `http://localhost:5000/schools/${encodeURIComponent(zone)}`;
+    }
+
+    if (!apiUrl) return;
+
+    fetch(apiUrl, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => {
         console.log("API Response Status:", res.status);
         return res.json();
@@ -40,18 +52,18 @@ const CoordinatorActionCard = () => {
       .then((data) => {
         console.log("API Response Data:", data);
         if (!data.error) {
-          setZones(data.zones);
+          setItems(data.items || []); // Backend should return { items: [...] }
         } else {
           console.error("API returned error:", data.error);
         }
       })
-      .catch((err) => console.error("Failed to fetch zones:", err));
+      .catch((err) => console.error("Failed to fetch items:", err));
   }, []);
 
   return (
     <div>
       <Typography variant="h4" sx={{ mb: 3 }}>
-        Welcome, {coordinator.name} ({coordinator.province} - {coordinator.district})
+        Welcome, {coordinator.name} ({coordinator.organizationUnit} - {coordinator.universityName || coordinator.zone })
       </Typography>
 
       <Box
@@ -62,20 +74,32 @@ const CoordinatorActionCard = () => {
           gap: 3,
         }}
       >
-        {zones.length > 0 ? (
-          zones.map((zone) => (
-            <Card key={zone.id}>
+        {items.length > 0 ? (
+          items.map((item, idx) => (
+            <Card key={idx}>
               <CardActionArea
-                onClick={() => navigate(`/zone/${zone.id}/events`)}
+                onClick={() => {
+                  if (coordinator.organizationUnit === "university") {
+                    navigate(`/faculty/${item._id}/events`);
+                  } else {
+                    navigate(`/school/${item._id}/events`);
+                  }
+                }}
                 sx={{
                   height: "100%",
                   "&:hover": { backgroundColor: "action.selectedHover" },
                 }}
               >
                 <CardContent>
-                  <Typography variant="h5">{zone.name}</Typography>
+                  <Typography variant="h5">
+                    {coordinator.organizationUnit === "university"
+                      ? item.faculty_name
+                      : item.school_name}
+                  </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Manage events and activities for this zone
+                    {coordinator.organizationUnit === "university"
+                      ? "Manage events and activities for this faculty"
+                      : "Manage events and activities for this school"}
                   </Typography>
                 </CardContent>
               </CardActionArea>
@@ -83,7 +107,7 @@ const CoordinatorActionCard = () => {
           ))
         ) : (
           <Typography variant="body1" color="text.secondary">
-            No zones available for this district.
+            No {coordinator.organizationUnit === "university" ? "faculties" : "schools"} available.
           </Typography>
         )}
       </Box>

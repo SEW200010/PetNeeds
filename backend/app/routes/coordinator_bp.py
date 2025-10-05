@@ -161,3 +161,77 @@ def get_events_by_zone_id(zone_id):
     }), 200
 
 
+
+from flask import Blueprint, jsonify
+from flask_jwt_extended import jwt_required, get_jwt
+from bson import ObjectId
+from app import mongo
+
+coordinator_bp = Blueprint("coordinator_bp", __name__)
+
+# -------------------------
+# ✅ Get Faculties by University Name
+# -------------------------
+@coordinator_bp.route("/faculties/<university_name>", methods=["GET"])
+@jwt_required()
+def get_faculties_by_university(university_name):
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    # ✅ Only coordinators can access
+   # if role != "coordination":
+    #    return jsonify({"error": "Access denied"}), 403
+
+    faculties = list(
+        mongo.db.faculties.find(
+            {"university_name": university_name},
+            {"_id": 1, "faculty_name": 1, "university_name": 1}
+        )
+    )
+
+    if not faculties:
+        return jsonify({"error": f"No faculties found for {university_name}"}), 404
+
+    faculties_list = [
+        {"id": str(f["_id"]), "faculty_name": f["faculty_name"]}
+        for f in faculties
+    ]
+
+    return jsonify({
+        "university": university_name,
+        "items": faculties_list
+    }), 200
+
+
+# -------------------------
+# ✅ Get Schools by Zone
+# -------------------------
+@coordinator_bp.route("/schools/<zone_name>", methods=["GET"])
+@jwt_required()
+def get_schools_by_zone(zone_name):
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    # ✅ Only coordinators can access
+    if role != "coordination":
+        return jsonify({"error": "Access denied"}), 403
+
+    schools = list(
+        mongo.db.schools.find(
+            {"zone": zone_name},
+            {"_id": 1, "school_name": 1, "zone": 1, "district": 1}
+        )
+    )
+
+    if not schools:
+        return jsonify({"error": f"No schools found in zone '{zone_name}'"}), 404
+
+    schools_list = [
+        {"id": str(s["_id"]), "school_name": s["school_name"]}
+        for s in schools
+    ]
+
+    return jsonify({
+        "zone": zone_name,
+        "items": schools_list
+    }), 200
