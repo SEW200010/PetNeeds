@@ -17,7 +17,7 @@ auth_bp = Blueprint('auth_bp', __name__)
 # -------------------------
 # Send Confirmation Email
 # -------------------------
-def send_confirmation_email(to_email, name):
+def send_confirmation_email(to_email, fullname):
     smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
     smtp_port = int(os.getenv("SMTP_PORT", 587))
     smtp_user = os.getenv("SMTP_USER")
@@ -25,7 +25,7 @@ def send_confirmation_email(to_email, name):
 
     subject = "Registration Successful"
     body = f"""
-    Hi {name},
+    Hi {fullname},
 
     🎉 Thank you for registering on our platform!
     Your account has been created successfully. You can now log in with your credentials.
@@ -53,7 +53,7 @@ def send_confirmation_email(to_email, name):
 # -------------------------
 # Send Facilitator Verified Email
 # -------------------------
-def send_facilitator_verified_email(to_email, name):
+def send_facilitator_verified_email(to_email, fullname):
     smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
     smtp_port = int(os.getenv("SMTP_PORT", 587))
     smtp_user = os.getenv("SMTP_USER")
@@ -61,7 +61,7 @@ def send_facilitator_verified_email(to_email, name):
 
     subject = "Your Facilitator Account is Verified ✅"
     body = f"""
-    Hi {name},
+    Hi {fullname},
 
     Your facilitator account has been verified by the admin.
     You can now log in and access your account.
@@ -92,30 +92,30 @@ def send_facilitator_verified_email(to_email, name):
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    name = data.get("name")
+    fullname = data.get("fullname")
     email = data.get("email")
     password = data.get("password")
-    user_type = data.get("user_type", "user")
-    location = data.get("location")
-    organization = data.get("organization")
+    role = data.get("role", "user")
+    organization_unit = data.get("organization_unit")
     school_name = data.get("school_name")
-    educational_zone = data.get("educational_zone")
+    zone = data.get("zone")
     district = data.get("district")
     university_name = data.get("university_name")
-    faculty = data.get("faculty")
+    faculty_name = data.get("faculty_name")
     contact = data.get("contact")
+    address = data.get("address")
     joinedDate = datetime.utcnow()
 
     # Required fields
-    if not all([name, email, password, user_type, organization]):
+    if not all([fullname, email, password, role, organization_unit]):
         return jsonify({"error": "All required fields are missing"}), 400
 
     # Conditional required fields
-    if organization == "school":
-        if not all([school_name, educational_zone, district]):
+    if organization_unit == "school":
+        if not all([school_name, zone, district]):
             return jsonify({"error": "All school fields are required"}), 400
-    elif organization == "university":
-        if not all([university_name, faculty]):
+    elif organization_unit == "university":
+        if not all([university_name, faculty_name]):
             return jsonify({"error": "All university fields are required"}), 400
 
     # Email format
@@ -135,26 +135,26 @@ def register():
 
     # Insert user
     mongo.db.users.insert_one({
-        "fullName": name,
+        "fullname": fullname,
         "email": email.lower().strip(),
         "password": hashed_password,
-        "role": user_type.lower().strip(),
-        "isVerified": False if user_type.lower() == "facilitator" else True,
+        "role": role.lower().strip(),
+        "isVerified": False if role.lower() == "facilitator" else True,
         "joinedDate": joinedDate,
-        "location": location,
-        "organization": organization,
+        "organization_unit": organization_unit,
         "school_name": school_name,
-        "educational_zone": educational_zone,
+        "zone": zone,
         "district": district,
         "university_name": university_name,
-        "faculty": faculty,
+        "faculty_name": faculty_name,
+        "address": address,
         "contact": contact,
         "profileImage": default_profile_image
     })
 
     # Send confirmation email for non-facilitators
-    if user_type.lower() != "facilitator":
-        send_confirmation_email(email, name)
+    if role.lower() != "facilitator":
+        send_confirmation_email(email, fullname)
 
     return jsonify({"message": "User registered successfully"}), 201
 
@@ -196,11 +196,11 @@ def login():
 
         if check_password_hash(user.get("password", ""), password):
             user_id = str(user["_id"])
-            name = user.get("fullName", "Unknown")
+            fullname = user.get("fullname", "Unknown")
 
             access_token = create_access_token(
                 identity=user_id,
-                additional_claims={"role": role, "name": name},
+                additional_claims={"role": role, "fullname": fullname},
                 expires_delta=timedelta(hours=2)
             )
 
@@ -215,7 +215,7 @@ def login():
                 "access_token": access_token,
                 "user_id": user_id,
                 "role": role,
-                "name": name
+                "fullname": fullname
             }), 200
 
     return jsonify({"error": "Invalid credentials"}), 401
@@ -241,6 +241,6 @@ def verify_facilitator(user_id):
         {"$set": {"isVerified": True, "verifiedAt": datetime.utcnow()}}
     )
 
-    send_facilitator_verified_email(user["email"], user["fullName"])
+    send_facilitator_verified_email(user["email"], user["fullname"])
 
     return jsonify({"message": "Facilitator verified successfully"}), 200

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BiUser, BiLock, BiHide, BiShow } from "react-icons/bi";
 import { Link, useNavigate } from "react-router-dom";
-import jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -16,20 +16,26 @@ const Login = () => {
       try {
         const decoded = jwtDecode(token);
         const currentTime = Math.floor(Date.now() / 1000);
+
         if (decoded.exp && decoded.exp < currentTime) {
-          localStorage.clear();
-          sessionStorage.clear();
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          sessionStorage.removeItem("token");
+          sessionStorage.removeItem("user");
           return;
         }
 
         const role = decoded.role;
         if (role === "admin") navigate("/admin-dashboard");
-        else if (role === "student") navigate("/teacher-dashboard");
+        else if (role === "teacher-in-charge") navigate("/teacher-dashboard");
         else if (role === "coordination") navigate("/coordinator-dashboard");
         else navigate("/upcoming-events");
-      } catch {
-        localStorage.clear();
-        sessionStorage.clear();
+      } catch (error) {
+        console.error("Token decoding error:", error);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("user");
       }
     }
   }, [navigate]);
@@ -65,10 +71,19 @@ const Login = () => {
       } else {
         alert(data.error || "Login failed");
       }
-    } catch {
+    } catch (error) {
+      console.error("Login error:", error);
       alert("Something went wrong. Please try again.");
     }
   };
+
+  // Tailwind classes for modern input hover + focus effect
+  const inputClass = `
+    w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400
+    focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1
+    hover:bg-gray-700 hover:ring-2 hover:ring-emerald-500 hover:shadow-lg
+    transition duration-300
+  `;
 
   return (
     <div
@@ -101,7 +116,7 @@ const Login = () => {
                 onChange={handleChange}
                 placeholder="Enter Email"
                 required
-                className="w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400"
+                className={inputClass}
               />
             </div>
           </div>
@@ -118,11 +133,12 @@ const Login = () => {
                 onChange={handleChange}
                 placeholder="Enter Password"
                 required
-                className="w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400"
+                className={inputClass}
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition duration-300"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <BiHide size={20} /> : <BiShow size={20} />}
@@ -132,10 +148,10 @@ const Login = () => {
 
           {/* Remember Me */}
           <div className="flex justify-between items-center text-md text-white mb-6">
-            <label className="flex items-center">
+            <label className="flex items-center cursor-pointer hover:text-emerald-400 transition duration-300">
               <input
                 type="checkbox"
-                className="mr-2"
+                className="mr-2 accent-emerald-500 w-4 h-4"
                 checked={rememberMe}
                 onChange={() => setRememberMe(!rememberMe)}
               />
@@ -144,16 +160,23 @@ const Login = () => {
             <Link to="/forgot-password" className="text-green-400 hover:underline">Forgot Password</Link>
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-emerald-600 hover:bg-green-600 text-white py-3 rounded-lg font-semibold transition duration-300"
+            className="w-full bg-emerald-600 hover:bg-green-600 text-white py-3 rounded-lg font-semibold
+                       transition duration-300 transform hover:scale-105 hover:shadow-lg"
           >
             Sign In
           </button>
 
           <p className="text-white text-center text-md mt-4">
             Don't have an account?{" "}
-            <Link to="/register" className="text-[#27987A] font-semibold hover:underline">Register here</Link>
+            <Link
+              to="/register"
+              className="text-[#27987A] font-semibold hover:underline hover:text-emerald-400 transition duration-300"
+            >
+              Register here
+            </Link>
           </p>
         </form>
       </div>
