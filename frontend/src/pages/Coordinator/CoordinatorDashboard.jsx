@@ -29,7 +29,7 @@ const CoordinatorDashboard = () => {
           <CoordinatorSidebar />
           <div className="w-full md:w-3/4 p-6">
             <div className="text-2xl font-bold pb-10">
-              Welcome, {coordinatorName}!
+              
             </div>
            <CoordinatorActionCards/>
           </div>

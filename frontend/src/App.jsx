@@ -31,6 +31,9 @@ import EventDetailsPage from "./pages/User/UserEvent/EventDetailsPage";
 import CompletedEventsPage from "./pages/User/UserEvent/CompletedEventsPage";
 import CoordinatorDashboard from "./pages/Coordinator/CoordinatorDashboard"; // ✅ new import
 import ZoneEventsPage from "./pages/Coordinator/ZoneEventsPage";
+// ✅ New import for Modules page
+import ModulesPage from "./pages/User/UserEvent/ModulesPage";
+
 const App = () => {
   return (
     <Router>
@@ -68,6 +71,7 @@ const App = () => {
         <Route path="/completed-events" element={<CompletedEventsPage />} />
         <Route path="/coordinator-dashboard" element={<CoordinatorDashboard />} /> {/* ✅ New Coordinator Route */}
         <Route path="/event/:eventId" element={<EventDetailsPage />} />
+         <Route path="/modules/:eventId" element={<ModulesPage />} />
         <Route path="/zone/:zoneId/events" element={<ZoneEventsPage />} />
       </Routes>
     </Router>

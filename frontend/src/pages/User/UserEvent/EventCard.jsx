@@ -3,10 +3,12 @@ import axios from "axios";
 import EventImage from "../../../assets/User/Event.jpg";
 import { Button } from "../../../components/ui/button";
 import { Card, CardContent } from "../../../components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 export default function EventCard({ event, userId, onJoinSuccess, completed }) {
   const [isJoining, setIsJoining] = useState(false);
   const [joined, setJoined] = useState(false);
+  const navigate = useNavigate();
 
   // Only check joined state if not completed
   useEffect(() => {
@@ -22,7 +24,7 @@ export default function EventCard({ event, userId, onJoinSuccess, completed }) {
     try {
       const res = await axios.post("http://localhost:5000/join-event", {
         user_id: userId,
-        event_id: event._id,
+        event_id: event._id
       });
 
       if (res.data.message === "Event joined successfully") {
@@ -38,6 +40,12 @@ export default function EventCard({ event, userId, onJoinSuccess, completed }) {
       setIsJoining(false);
     }
   };
+
+    // Navigate to modules page
+  const handleGoToModules = () => {
+    navigate(`/modules/${event._id}`);
+  };
+
 
   // Convert UTC ISO string to SLST (UTC+5:30)
   const formatToSLST = (utcDate) => {
@@ -80,13 +88,13 @@ export default function EventCard({ event, userId, onJoinSuccess, completed }) {
               ? "bg-orange-500 hover:bg-orange-600 text-white w-full cursor-not-allowed"
               : "bg-teal-600 hover:bg-teal-700 text-white w-full"
           }
-          onClick={handleJoin}
-          disabled={completed || joined || isJoining}
+          onClick={joined ? handleGoToModules : handleJoin}
+          disabled={completed  || isJoining}
         >
           {completed
             ? "Completed"
             : joined
-            ? "Joined"
+            ? "go to modules"
             : isJoining
             ? "Joining..."
             : "Join"}
