@@ -1,86 +1,234 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useState, forwardRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import CoordinatorSidebar from "@/components/Coordinator/CoordinatorSidebar";
 import Header from "@/components/Admin/Header";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Divider from "@mui/material/Divider";
 import CircularProgress from "@mui/material/CircularProgress";
 import Button from "@mui/material/Button";
 import { DataGrid } from "@mui/x-data-grid";
+import Stack from "@mui/material/Stack";
+import IconButton from "@mui/material/IconButton";
+import { Edit, Delete, Visibility } from "@mui/icons-material";
+import {
+  FormControl,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Select,
+  MenuItem,
+  Slide,
+} from "@mui/material";
+
+import CreateUniversityEvent from "../../components/Admin/CreateUniversityEvent";
+import CreateSchoolEvent from "../../components/Admin/CreateSchoolEvent";
+import EditUniversityEvent from "../../components/Admin/EditUniversityEvent";
+import UserForm from "../../components/Admin/UserForm";
+
+const Transition = forwardRef(function Transition(props, ref) {
+  return <Slide direction="down" ref={ref} {...props} />;
+});
+
+const API_BASE = "http://localhost:5000";
 
 const CoordinatorUnitView = () => {
   const navigate = useNavigate();
   const { faculty_name, university_name, school_name, zone } = useParams();
+
   const [events, setEvents] = useState([]);
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [unitType, setUnitType] = useState(""); // 'faculty' or 'school'
-    
+  const [unitType, setUnitType] = useState("");
+  const [error, setError] = useState(null);
+
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [schoolFormOpen, setSchoolFormOpen] = useState(false);
+  const [universityFormOpen, setUniversityFormOpen] = useState(false);
+  const [universityEditOpen, setUniversityEditOpen] = useState(false);
+
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUserRole, setSelectedUserRole] = useState("");
+  const [userFormOpen, setUserFormOpen] = useState(false);
+
+  const [usersCoordinator, setUsersCoordinator] = useState([]);
+  const [usersFacilitator, setUsersFacilitator] = useState([]);
+  const [usersStudent, setUsersStudent] = useState([]);
+
+  const userColumns = [
+    { field: "name", headerName: "Name", flex: 2 },
+    { field: "email", headerName: "Email", flex: 3 },
+    { field: "role", headerName: "Role", flex: 1 },
+    {
+      field: "actions",
+      headerName: "Actions",
+      flex: 1.5,
+      sortable: false,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          <IconButton color="primary" size="small" onClick={() => handleViewUser(params.row)}>
+            <Visibility />
+          </IconButton>
+          <IconButton color="secondary" size="small" onClick={() => handleEditUser(params.row)}>
+            <Edit />
+          </IconButton>
+          <IconButton color="error" size="small" onClick={() => handleDeleteUser(params.row.id)}>
+            <Delete />
+          </IconButton>
+        </Stack>
+      ),
+    },
+  ];
+
   const eventColumns = [
-  { field: "title", headerName: "Event Title", flex: 2 },
-  { field: "date", headerName: "Date", flex: 1 },
-  { field: "location", headerName: "Venue", flex: 2 },
-];
+    { field: "title", headerName: "Event Title", flex: 2 },
+    { field: "date", headerName: "Date", flex: 1 },
+    { field: "location", headerName: "Venue", flex: 2 },
+    {
+      field: "actions",
+      headerName: "Actions",
+      flex: 1.5,
+      sortable: false,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          <IconButton color="primary" size="small" onClick={() => handleViewEvent(params.row)}>
+            <Visibility />
+          </IconButton>
+          <IconButton color="secondary" size="small" onClick={() => handleEditEvent(params.row)}>
+            <Edit />
+          </IconButton>
+          <IconButton color="error" size="small" onClick={() => handleDeleteEvent(params.row.id)}>
+            <Delete />
+          </IconButton>
+        </Stack>
+      ),
+    },
+  ];
+
+  const handleCreateClick = () => {
+    document.activeElement?.blur();
+    setCategoryDialogOpen(true);
+  };
+
+  const handleCategorySelect = (category) => {
+    setCategoryDialogOpen(false);
+    if (category === "School") setSchoolFormOpen(true);
+    if (category === "University") setUniversityFormOpen(true);
+  };
+
+  const handleEditEvent = (row) => {
+    setSelectedEvent(row);
+    if (unitType === "university") setUniversityEditOpen(true);
+  };
+
+  const handleViewEvent = (event) => alert(`Viewing event: ${event.title}`);
+
+  const handleDeleteEvent = async (eventId) => {
+    if (!window.confirm("Are you sure you want to delete this event?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/events/${eventId}`, { method: "DELETE" });
+      if (res.ok) setEvents((prev) => prev.filter((e) => e.id !== eventId));
+    } catch (err) {
+      console.error("Error deleting event:", err);
+    }
+  };
+
+  const handleSubmitForm = (formData) => {
+    setEvents((prev) => [...prev, { id: prev.length + 1, ...formData }]);
+    setSchoolFormOpen(false);
+    setUniversityFormOpen(false);
+  };
+
+  const safeFetch = async (url, token) => {
+    try {
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (err) {
+      console.error("Network error fetching:", url, err);
+      return null;
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     const organizationUnit = localStorage.getItem("organization_unit");
-
-    console.log("===== EventsAndUsers Debug =====");
-    console.log("Token:", token);
-    console.log("Organization Unit:", organizationUnit);
-    console.log("Params:", { faculty_name, university_name, school_name, zone });
     if (!token || !organizationUnit) {
-      console.warn("Missing token or organization unit.");
+      setError("Missing authentication token or organization unit.");
+      setLoading(false);
       return;
     }
 
     const type = organizationUnit.toLowerCase();
     setUnitType(type);
 
-    const baseUrl = "http://localhost:5000";
-
+    const baseUrl = API_BASE;
     let eventsUrl = "";
     let usersUrl = "";
 
     if (type === "university") {
-      // Faculty route
-      eventsUrl = `${baseUrl}/faculty/${encodeURIComponent(
-        university_name
-      )}/${encodeURIComponent(faculty_name)}/events`;
-      usersUrl = `${baseUrl}/faculty/${encodeURIComponent(
-        university_name
-      )}/${encodeURIComponent(faculty_name)}/users`;
+      eventsUrl = `${baseUrl}/faculty/${encodeURIComponent(university_name)}/${encodeURIComponent(
+        faculty_name
+      )}/events`;
+      usersUrl = `${baseUrl}/faculty/${encodeURIComponent(university_name)}/${encodeURIComponent(
+        faculty_name
+      )}/users`;
     } else {
-      // School route
-      eventsUrl = `${baseUrl}/school/${encodeURIComponent(
-        zone
-      )}/${encodeURIComponent(school_name)}/events`;
-      usersUrl = `${baseUrl}/school/${encodeURIComponent(
-        zone
-      )}/${encodeURIComponent(school_name)}/users`;
+      eventsUrl = `${baseUrl}/school/${encodeURIComponent(zone)}/${encodeURIComponent(
+        school_name
+      )}/events`;
+      usersUrl = `${baseUrl}/school/${encodeURIComponent(zone)}/${encodeURIComponent(
+        school_name
+      )}/users`;
     }
 
-    Promise.all([
-      fetch(eventsUrl, { headers: { Authorization: `Bearer ${token}` } }).then(
-        (res) => res.json()
-      ),
-      fetch(usersUrl, { headers: { Authorization: `Bearer ${token}` } }).then(
-        (res) => res.json()
-      ),
-    ])
-      .then(([eventData, userData]) => {
-        setEvents(eventData.events || []);
-        setUsers(userData.users || []);
-      })
-      .catch((err) => console.error("Error fetching data:", err))
-      .finally(() => setLoading(false));
-      console.log("Fetched Events:", events);
-      console.log("Fetched Users:", users); 
+    const fetchData = async () => {
+      setLoading(true);
+      const [eventData, userData] = await Promise.all([
+        safeFetch(eventsUrl, token),
+        safeFetch(usersUrl, token),
+      ]);
+      setEvents(eventData?.events || []);
+      const allUsers = userData?.users || [];
+      setUsersCoordinator(allUsers.filter((u) => u.role === "coordinator"));
+      setUsersFacilitator(allUsers.filter((u) => u.role === "facilitator"));
+      setUsersStudent(allUsers.filter((u) => u.role === "student"));
+      setLoading(false);
+    };
+
+    fetchData();
   }, [faculty_name, school_name, university_name, zone]);
+
+  const handleViewUser = (user) => alert(`Viewing user: ${user.name}`);
+  const handleEditUser = (user) => {
+    setSelectedUser(user);
+    setSelectedUserRole(user.role);
+    setUserFormOpen(true);
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/users/${userId}`, { method: "DELETE" });
+      if (res.ok) {
+        setUsersCoordinator((p) => p.filter((u) => u.id !== userId));
+        setUsersFacilitator((p) => p.filter((u) => u.id !== userId));
+        setUsersStudent((p) => p.filter((u) => u.id !== userId));
+      }
+    } catch (err) {
+      console.error("Error deleting user:", err);
+    }
+  };
+
+  const handleAddUser = (role) => {
+    setSelectedUserRole(role);
+    setSelectedUser(null);
+    setUserFormOpen(true);
+  };
+
+  const handleUserFormSubmit = () => {
+    setUserFormOpen(false);
+  };
 
   if (loading)
     return (
@@ -89,18 +237,60 @@ const CoordinatorUnitView = () => {
       </div>
     );
 
+  if (error)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Typography color="error">{error}</Typography>
+      </div>
+    );
+
   const unitTitle =
     unitType === "university"
       ? `${faculty_name} (${university_name})`
       : `${school_name} (${zone})`;
 
+  const eventRows = events.map((e, index) => ({
+    id: e.id || index,
+    title: e.title,
+    date: e.date,
+    location: e.location || "",
+  }));
 
-      const eventRows = events.map((e, index) => ({
-  id: index,  // DataGrid needs a unique `id`
-  title: e.title,
-  date: e.date,
-  location: e.location || "",
-}));
+  const renderUserSection = (users, roleName, color) => (
+    <Box sx={{ mt: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+        <Typography variant="h5">{roleName}</Typography>
+        <Button
+          variant="contained"
+          sx={{
+            backgroundColor: color,
+            "&:hover": { backgroundColor: "dark" + color },
+          }}
+          onClick={() => handleAddUser(roleName.toLowerCase())}
+        >
+          Add {roleName}
+        </Button>
+      </Box>
+      {users.length > 0 ? (
+        <div style={{ height: 300, width: "100%" }}>
+          <DataGrid
+            rows={users.map((u, i) => ({
+              id: u.id || i,
+              name: u.name,
+              email: u.email,
+              role: u.role,
+            }))}
+            columns={userColumns}
+            pageSize={5}
+            rowsPerPageOptions={[5]}
+            disableSelectionOnClick
+          />
+        </div>
+      ) : (
+        <Typography color="text.secondary">No {roleName.toLowerCase()} found.</Typography>
+      )}
+    </Box>
+  );
 
   return (
     <div>
@@ -110,80 +300,103 @@ const CoordinatorUnitView = () => {
           <CoordinatorSidebar />
 
           <div className="flex-1 p-6">
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 3,
-              }}
-            >
+            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
               <Typography variant="h4">Events — {unitTitle}</Typography>
               <Button variant="outlined" onClick={() => navigate(-1)}>
                 Back
               </Button>
             </Box>
 
-            {/* Events Section */}
-            <Typography variant="h5" sx={{ mb: 2 }}>
-              Events
-            </Typography>
+            {/* Events */}
+            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+              <Typography variant="h5">Events</Typography>
+              <Button
+                variant="contained"
+                sx={{
+                  backgroundColor: "green",
+                  "&:hover": { backgroundColor: "darkgreen" },
+                }}
+                onClick={handleCreateClick}
+              >
+                Add Event
+              </Button>
+            </Box>
 
             {events.length > 0 ? (
-              events.map((event, index) => (
-                <Card key={index} sx={{ mb: 2 }}>
-                  <CardContent>
-                    <Typography variant="h6">{event.title}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {event.date}{" "}
-                      {event.location ? `— ${event.location}` : ""}
-                    </Typography>
-                  </CardContent>
-                </Card>
-
-                
-              ))
+              <div style={{ height: 400, width: "100%" }}>
+                <DataGrid
+                  rows={eventRows}
+                  columns={eventColumns}
+                  pageSize={5}
+                  rowsPerPageOptions={[5, 10]}
+                  disableSelectionOnClick
+                />
+              </div>
             ) : (
               <Typography color="text.secondary">No events found.</Typography>
             )}
 
-{events.length > 0 ? (
-  <div style={{ height: 400, width: "100%" }}>
-    <DataGrid
-      rows={eventRows}
-      columns={eventColumns}
-      pageSize={5}
-      rowsPerPageOptions={[5, 10]}
-      disableSelectionOnClick
-    />
-  </div>
-) : (
-  <Typography color="text.secondary">No events found.</Typography>
-)}
+            {/* Three separate user sections */}
+            {renderUserSection(usersCoordinator, "Coordinator", "teal")}
+            {renderUserSection(usersFacilitator, "Facilitator", "blue")}
+            {renderUserSection(usersStudent, "Student", "purple")}
 
-            <Divider sx={{ my: 3 }} />
+            {/* Dialogs */}
+            <Dialog
+              open={categoryDialogOpen}
+              onClose={() => setCategoryDialogOpen(false)}
+              TransitionComponent={Transition}
+              fullWidth
+              maxWidth="sm"
+            >
+              <DialogTitle>Select Event Category</DialogTitle>
+              <DialogContent>
+                <FormControl fullWidth>
+                  <Select defaultValue="" onChange={(e) => handleCategorySelect(e.target.value)}>
+                    <MenuItem value="School">School</MenuItem>
+                    <MenuItem value="University">University</MenuItem>
+                  </Select>
+                </FormControl>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setCategoryDialogOpen(false)} color="error">
+                  Cancel
+                </Button>
+              </DialogActions>
+            </Dialog>
 
-            {/* Users Section */}
-            <Typography variant="h5" sx={{ mb: 2 }}>
-              Registered Users
-            </Typography>
+            <UserForm
+              open={userFormOpen}
+              onClose={() => setUserFormOpen(false)}
+              onSubmit={handleUserFormSubmit}
+              initialData={selectedUser}
+              role={selectedUserRole}
+            />
 
-            {users.length > 0 ? (
-              users.map((user, index) => (
-                <Card key={index} sx={{ mb: 2 }}>
-                  <CardContent>
-                    <Typography variant="h6">{user.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {user.email}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <Typography color="text.secondary">
-                No registered users found.
-              </Typography>
-            )}
+            <CreateSchoolEvent
+              open={schoolFormOpen}
+              onClose={() => setSchoolFormOpen(false)}
+              onSubmit={handleSubmitForm}
+              zone={zone}
+              school={school_name}
+              initialData={selectedEvent}
+            />
+
+            <CreateUniversityEvent
+              open={universityFormOpen}
+              onClose={() => setUniversityFormOpen(false)}
+              onSubmit={handleSubmitForm}
+              university={university_name}
+              faculty={faculty_name}
+              initialData={selectedEvent}
+            />
+
+            <EditUniversityEvent
+              open={universityEditOpen}
+              onClose={() => setUniversityEditOpen(false)}
+              initialData={selectedEvent}
+              onUpdate={() => {}}
+            />
           </div>
         </div>
       </main>
