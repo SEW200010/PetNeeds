@@ -90,35 +90,36 @@ def login():
     if user and check_password_hash(user["password"], password):
         user_id = str(user["_id"])
         role = user.get("role", "").strip()  # remove extra spaces
-        name = user.get("fullName", "Unknown")  # get the teacher's name
-        province = user.get("province", "")
-        district = user.get("district", "")
+        name = user.get("fullname", "Unknown")  # get the teacher's name
+        organization_unit = user.get("organization_unit", "")  # 🆕 added
+        university = user.get("university_name", "")  # 🆕 added
         zone = user.get("zone", "")
-
-        # Debug print
-        print(f"Login -> Name: '{name}', Role: '{role}',, Province: '{province}', District: '{district}', Zone: '{zone}'")
-
+   
+# Debug print 
+        print(f"Login -> Name: '{name}', Role: '{role}',, Province: '{organization_unit}', District: '{university}', Zone: '{zone}'")
         access_token = create_access_token(
             identity=user_id,
             additional_claims={
                 "role": role,
-                "name": name , # include name in JWT
-                "province": province,
-                "district": district,
-                "zone": zone
+                "name": name,
+                "zone": zone,
+                "organization_unit": organization_unit,  # 🆕 include in token
+                "university": university  # 🆕 include in token
             },
             expires_delta=timedelta(hours=2)
         )
 
         return jsonify({
+            
             "message": f"{role.capitalize()} login successful",
             "access_token": access_token,
             "user_id": user_id,
             "role": role,
             "name": name,
-            "province": province,
-            "district": district,
-            "zone": zone
+        
+            "zone": zone,
+            "organization_unit": organization_unit,  # 🆕 include in response
+            "university": university  # 🆕 include in response
         }), 200
 
     return jsonify({"message": "Invalid credentials"}), 401
