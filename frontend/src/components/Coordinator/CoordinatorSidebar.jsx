@@ -18,6 +18,7 @@ import UserImg from "@/assets/User/DefaultUser.png";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
+
 const menuItems = [
   { icon: User, label: "Dashboard", path: "/coordinator-dashboard", hasChevron: true },
   { icon: User, label: "My Profile", path: "/profile", hasChevron: true },
@@ -33,9 +34,9 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
   const [user, setUser] = useState({
     fullName: "",
     email: "",
-    province: "",
-    district: "",
     zone: "",
+    organization_unit: "",
+    university_name:""
   });
 
   const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
@@ -56,9 +57,9 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
           setUser({
             fullName: res.data.fullName,
             email: res.data.email,
-            province: res.data.province,
-            district: res.data.district,
-            zone: res.data.zone,
+            organization_unit: res.data.organization_unit || "",
+            zone: res.data.zone || "",
+            university_name: res.data.university_name || "" 
           })
         )
         .catch((err) => console.error("Failed to fetch user info", err));
@@ -89,9 +90,8 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
           <h3 className="text-md font-semibold text-gray-800 flex items-center mb-2">
             <MapPin className="h-4 w-4 mr-2" /> Location Info
           </h3>
-          <p className="text-sm text-gray-700"><strong>Province:</strong> {user.province || "N/A"}</p>
-          <p className="text-sm text-gray-700"><strong>District:</strong> {user.district || "N/A"}</p>
-          <p className="text-sm text-gray-700"><strong>Zone:</strong> {user.zone || "N/A"}</p>
+          <p className="text-sm text-gray-700"><strong>Organization Unit:</strong> {user.organization_unit || "N/A"}</p>
+          <p className="text-sm text-gray-700"><strong>Zone:</strong> {user.zone ||user.university_name}</p>
         </div>
 
         {/* Sidebar Title */}
