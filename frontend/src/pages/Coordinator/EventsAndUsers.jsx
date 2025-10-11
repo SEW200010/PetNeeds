@@ -4,9 +4,6 @@ import CoordinatorSidebar from "@/components/Coordinator/CoordinatorSidebar";
 import Header from "@/components/Admin/Header";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Divider from "@mui/material/Divider";
 import CircularProgress from "@mui/material/CircularProgress";
 import Button from "@mui/material/Button";
 import { DataGrid } from "@mui/x-data-grid";
@@ -27,6 +24,7 @@ import {
 import CreateUniversityEvent from "../../components/Admin/CreateUniversityEvent";
 import CreateSchoolEvent from "../../components/Admin/CreateSchoolEvent";
 import EditUniversityEvent from "../../components/Admin/EditUniversityEvent";
+import UserForm from "../../components/Admin/UserForm";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
@@ -37,8 +35,8 @@ const API_BASE = "http://localhost:5000";
 const CoordinatorUnitView = () => {
   const navigate = useNavigate();
   const { faculty_name, university_name, school_name, zone } = useParams();
+
   const [events, setEvents] = useState([]);
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [unitType, setUnitType] = useState("");
   const [error, setError] = useState(null);
@@ -46,34 +44,42 @@ const CoordinatorUnitView = () => {
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [schoolFormOpen, setSchoolFormOpen] = useState(false);
   const [universityFormOpen, setUniversityFormOpen] = useState(false);
+  const [universityEditOpen, setUniversityEditOpen] = useState(false);
 
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [editMode, setEditMode] = useState(false);
-  const [viewMode, setViewMode] = useState(false);
-  const [universityEditOpen, setUniversityEditOpen] = useState(false);
-  const [schoolEditOpen, setSchoolEditOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUserRole, setSelectedUserRole] = useState("");
+  const [userFormOpen, setUserFormOpen] = useState(false);
 
   const [usersCoordinator, setUsersCoordinator] = useState([]);
   const [usersFacilitator, setUsersFacilitator] = useState([]);
   const [usersStudent, setUsersStudent] = useState([]);
 
-
-  // ✅ Users Columns for DataGrid
   const userColumns = [
     { field: "name", headerName: "Name", flex: 2 },
     { field: "email", headerName: "Email", flex: 3 },
     { field: "role", headerName: "Role", flex: 1 },
+    {
+      field: "actions",
+      headerName: "Actions",
+      flex: 1.5,
+      sortable: false,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          <IconButton color="primary" size="small" onClick={() => handleViewUser(params.row)}>
+            <Visibility />
+          </IconButton>
+          <IconButton color="secondary" size="small" onClick={() => handleEditUser(params.row)}>
+            <Edit />
+          </IconButton>
+          <IconButton color="error" size="small" onClick={() => handleDeleteUser(params.row.id)}>
+            <Delete />
+          </IconButton>
+        </Stack>
+      ),
+    },
   ];
 
-  // ✅ Users Rows
-  const userRows = users.map((u, index) => ({
-    id: u.id || index,
-    name: u.name,
-    email: u.email,
-    role: u.role || "N/A",
-  }));
-
-  // ✅ Event columns
   const eventColumns = [
     { field: "title", headerName: "Event Title", flex: 2 },
     { field: "date", headerName: "Date", flex: 1 },
@@ -85,25 +91,13 @@ const CoordinatorUnitView = () => {
       sortable: false,
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
-          <IconButton
-            color="primary"
-            size="small"
-            onClick={() => handleViewEvent(params.row)}
-          >
+          <IconButton color="primary" size="small" onClick={() => handleViewEvent(params.row)}>
             <Visibility />
           </IconButton>
-          <IconButton
-            color="secondary"
-            size="small"
-            onClick={() => handleEditEvent(params.row)}
-          >
+          <IconButton color="secondary" size="small" onClick={() => handleEditEvent(params.row)}>
             <Edit />
           </IconButton>
-          <IconButton
-            color="error"
-            size="small"
-            onClick={() => handleDeleteEvent(params.row.id)}
-          >
+          <IconButton color="error" size="small" onClick={() => handleDeleteEvent(params.row.id)}>
             <Delete />
           </IconButton>
         </Stack>
@@ -111,7 +105,6 @@ const CoordinatorUnitView = () => {
     },
   ];
 
-  // ✅ Handle Add Event
   const handleCreateClick = () => {
     document.activeElement?.blur();
     setCategoryDialogOpen(true);
@@ -119,48 +112,24 @@ const CoordinatorUnitView = () => {
 
   const handleCategorySelect = (category) => {
     setCategoryDialogOpen(false);
-    setSelectedEvent(null);
-    setEditMode(false);
     if (category === "School") setSchoolFormOpen(true);
     if (category === "University") setUniversityFormOpen(true);
   };
 
-  // ✅ Edit Event
   const handleEditEvent = (row) => {
-    const event = events.find((e) => e.id === row.id);
-    setSelectedEvent(event);
-
-    if (unitType === "university") {
-      setUniversityFormOpen(false);
-      setSchoolFormOpen(false);
-      setEditMode(true);
-      setUniversityEditOpen(true);
-    } else {
-      setSchoolFormOpen(false);
-      setUniversityFormOpen(false);
-      setEditMode(true);
-      setSchoolEditOpen(true);
-    }
+    setSelectedEvent(row);
+    if (unitType === "university") setUniversityEditOpen(true);
   };
 
-  // ✅ View Event
-  const handleViewEvent = (event) => {
-    setSelectedEvent(event);
-    setViewMode(true);
-  };
+  const handleViewEvent = (event) => alert(`Viewing event: ${event.title}`);
 
-  // ✅ Delete Event (safe)
   const handleDeleteEvent = async (eventId) => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
     try {
       const res = await fetch(`${API_BASE}/events/${eventId}`, { method: "DELETE" });
-      if (!res.ok) {
-        console.warn(`Failed to delete event: ${res.status}`);
-        return;
-      }
-      setEvents((prev) => prev.filter((e) => e.id !== eventId));
+      if (res.ok) setEvents((prev) => prev.filter((e) => e.id !== eventId));
     } catch (err) {
-      console.error("Network error while deleting event:", err);
+      console.error("Error deleting event:", err);
     }
   };
 
@@ -170,32 +139,20 @@ const CoordinatorUnitView = () => {
     setUniversityFormOpen(false);
   };
 
-  // ✅ Safe Fetch helper
   const safeFetch = async (url, token) => {
     try {
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        console.warn(`⚠️ Fetch failed for ${url}: ${res.status} ${res.statusText}`);
-        return null;
-      }
-      const data = await res.json().catch(() => {
-        console.warn(`⚠️ Failed to parse JSON from ${url}`);
-        return null;
-      });
-      return data;
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) return null;
+      return await res.json();
     } catch (err) {
-      console.error(`❌ Network error fetching ${url}:`, err);
+      console.error("Network error fetching:", url, err);
       return null;
     }
   };
 
-  // ✅ Fetch events + users safely
   useEffect(() => {
     const token = localStorage.getItem("token");
     const organizationUnit = localStorage.getItem("organization_unit");
-
     if (!token || !organizationUnit) {
       setError("Missing authentication token or organization unit.");
       setLoading(false);
@@ -210,19 +167,19 @@ const CoordinatorUnitView = () => {
     let usersUrl = "";
 
     if (type === "university") {
-      eventsUrl = `${baseUrl}/faculty/${encodeURIComponent(
-        university_name
-      )}/${encodeURIComponent(faculty_name)}/events`;
-      usersUrl = `${baseUrl}/faculty/${encodeURIComponent(
-        university_name
-      )}/${encodeURIComponent(faculty_name)}/users`;
+      eventsUrl = `${baseUrl}/faculty/${encodeURIComponent(university_name)}/${encodeURIComponent(
+        faculty_name
+      )}/events`;
+      usersUrl = `${baseUrl}/faculty/${encodeURIComponent(university_name)}/${encodeURIComponent(
+        faculty_name
+      )}/users`;
     } else {
-      eventsUrl = `${baseUrl}/school/${encodeURIComponent(
-        zone
-      )}/${encodeURIComponent(school_name)}/events`;
-      usersUrl = `${baseUrl}/school/${encodeURIComponent(
-        zone
-      )}/${encodeURIComponent(school_name)}/users`;
+      eventsUrl = `${baseUrl}/school/${encodeURIComponent(zone)}/${encodeURIComponent(
+        school_name
+      )}/events`;
+      usersUrl = `${baseUrl}/school/${encodeURIComponent(zone)}/${encodeURIComponent(
+        school_name
+      )}/users`;
     }
 
     const fetchData = async () => {
@@ -231,21 +188,47 @@ const CoordinatorUnitView = () => {
         safeFetch(eventsUrl, token),
         safeFetch(usersUrl, token),
       ]);
-
       setEvents(eventData?.events || []);
-      // Split users by role
       const allUsers = userData?.users || [];
-      setUsersCoordinator(allUsers.filter(u => u.role === "coordinator"));
-      setUsersFacilitator(allUsers.filter(u => u.role === "facilitator"));
-      setUsersStudent(allUsers.filter(u => u.role === "student"));
-
-      setUsers(userData?.users || []);
-
+      setUsersCoordinator(allUsers.filter((u) => u.role === "coordinator"));
+      setUsersFacilitator(allUsers.filter((u) => u.role === "facilitator"));
+      setUsersStudent(allUsers.filter((u) => u.role === "student"));
       setLoading(false);
     };
 
     fetchData();
   }, [faculty_name, school_name, university_name, zone]);
+
+  const handleViewUser = (user) => alert(`Viewing user: ${user.name}`);
+  const handleEditUser = (user) => {
+    setSelectedUser(user);
+    setSelectedUserRole(user.role);
+    setUserFormOpen(true);
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/users/${userId}`, { method: "DELETE" });
+      if (res.ok) {
+        setUsersCoordinator((p) => p.filter((u) => u.id !== userId));
+        setUsersFacilitator((p) => p.filter((u) => u.id !== userId));
+        setUsersStudent((p) => p.filter((u) => u.id !== userId));
+      }
+    } catch (err) {
+      console.error("Error deleting user:", err);
+    }
+  };
+
+  const handleAddUser = (role) => {
+    setSelectedUserRole(role);
+    setSelectedUser(null);
+    setUserFormOpen(true);
+  };
+
+  const handleUserFormSubmit = () => {
+    setUserFormOpen(false);
+  };
 
   if (loading)
     return (
@@ -273,15 +256,25 @@ const CoordinatorUnitView = () => {
     location: e.location || "",
   }));
 
-  const renderUserTable = (usersArray, roleName) => (
-    <>
-      <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>
-        {roleName}
-      </Typography>
-      {usersArray.length > 0 ? (
+  const renderUserSection = (users, roleName, color) => (
+    <Box sx={{ mt: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+        <Typography variant="h5">{roleName}</Typography>
+        <Button
+          variant="contained"
+          sx={{
+            backgroundColor: color,
+            "&:hover": { backgroundColor: "dark" + color },
+          }}
+          onClick={() => handleAddUser(roleName.toLowerCase())}
+        >
+          Add {roleName}
+        </Button>
+      </Box>
+      {users.length > 0 ? (
         <div style={{ height: 300, width: "100%" }}>
           <DataGrid
-            rows={usersArray.map((u, i) => ({
+            rows={users.map((u, i) => ({
               id: u.id || i,
               name: u.name,
               email: u.email,
@@ -296,7 +289,7 @@ const CoordinatorUnitView = () => {
       ) : (
         <Typography color="text.secondary">No {roleName.toLowerCase()} found.</Typography>
       )}
-    </>
+    </Box>
   );
 
   return (
@@ -307,38 +300,27 @@ const CoordinatorUnitView = () => {
           <CoordinatorSidebar />
 
           <div className="flex-1 p-6">
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 3,
-              }}
-            >
+            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
               <Typography variant="h4">Events — {unitTitle}</Typography>
-              <Box sx={{ display: "flex", gap: 1 }}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleCreateClick}
-                  sx={{
-                    backgroundColor: "green",
-                    "&:hover": { backgroundColor: "darkgreen" },
-                    color: "white",
-                  }}
-                >
-                  Add Event
-                </Button>
-                <Button variant="outlined" onClick={() => navigate(-1)}>
-                  Back
-                </Button>
-              </Box>
+              <Button variant="outlined" onClick={() => navigate(-1)}>
+                Back
+              </Button>
             </Box>
 
-            {/* ✅ Events Table */}
-            <Typography variant="h5" sx={{ mb: 2 }}>
-              Events
-            </Typography>
+            {/* Events */}
+            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+              <Typography variant="h5">Events</Typography>
+              <Button
+                variant="contained"
+                sx={{
+                  backgroundColor: "green",
+                  "&:hover": { backgroundColor: "darkgreen" },
+                }}
+                onClick={handleCreateClick}
+              >
+                Add Event
+              </Button>
+            </Box>
 
             {events.length > 0 ? (
               <div style={{ height: 400, width: "100%" }}>
@@ -354,50 +336,46 @@ const CoordinatorUnitView = () => {
               <Typography color="text.secondary">No events found.</Typography>
             )}
 
-            {/* Users Tables */}
-            {renderUserTable(usersCoordinator, "Coordinators")}
-            {renderUserTable(usersFacilitator, "Facilitators")}
-            {renderUserTable(usersStudent, "Students")}
-            {/* ✅ Category Selection Dialog */}
+            {/* Three separate user sections */}
+            {renderUserSection(usersCoordinator, "Coordinator", "teal")}
+            {renderUserSection(usersFacilitator, "Facilitator", "blue")}
+            {renderUserSection(usersStudent, "Student", "purple")}
+
+            {/* Dialogs */}
             <Dialog
               open={categoryDialogOpen}
               onClose={() => setCategoryDialogOpen(false)}
               TransitionComponent={Transition}
               fullWidth
               maxWidth="sm"
-              PaperProps={{
-                sx: { width: "500px", maxWidth: "80%", padding: 2 },
-              }}
             >
               <DialogTitle>Select Event Category</DialogTitle>
               <DialogContent>
                 <FormControl fullWidth>
-                  <Select
-                    defaultValue=""
-                    onChange={(e) => handleCategorySelect(e.target.value)}
-                  >
+                  <Select defaultValue="" onChange={(e) => handleCategorySelect(e.target.value)}>
                     <MenuItem value="School">School</MenuItem>
                     <MenuItem value="University">University</MenuItem>
                   </Select>
                 </FormControl>
               </DialogContent>
               <DialogActions>
-                <Button
-                  onClick={() => setCategoryDialogOpen(false)}
-                  color="error"
-                >
+                <Button onClick={() => setCategoryDialogOpen(false)} color="error">
                   Cancel
                 </Button>
               </DialogActions>
             </Dialog>
 
-            {/* ✅ Create / Edit Dialogs */}
+            <UserForm
+              open={userFormOpen}
+              onClose={() => setUserFormOpen(false)}
+              onSubmit={handleUserFormSubmit}
+              initialData={selectedUser}
+              role={selectedUserRole}
+            />
+
             <CreateSchoolEvent
               open={schoolFormOpen}
-              onClose={() => {
-                setSchoolFormOpen(false);
-                setEditMode(false);
-              }}
+              onClose={() => setSchoolFormOpen(false)}
               onSubmit={handleSubmitForm}
               zone={zone}
               school={school_name}
@@ -406,10 +384,7 @@ const CoordinatorUnitView = () => {
 
             <CreateUniversityEvent
               open={universityFormOpen}
-              onClose={() => {
-                setUniversityFormOpen(false);
-                setEditMode(false);
-              }}
+              onClose={() => setUniversityFormOpen(false)}
               onSubmit={handleSubmitForm}
               university={university_name}
               faculty={faculty_name}
@@ -418,21 +393,9 @@ const CoordinatorUnitView = () => {
 
             <EditUniversityEvent
               open={universityEditOpen}
-              onClose={() => {
-                setUniversityEditOpen(false);
-                setEditMode(false);
-                setSelectedEvent(null);
-              }}
+              onClose={() => setUniversityEditOpen(false)}
               initialData={selectedEvent}
-              onUpdate={async () => {
-                const res = await fetch(
-                  `${API_BASE}/faculty/${encodeURIComponent(
-                    university_name
-                  )}/${encodeURIComponent(faculty_name)}/events`
-                );
-                const data = await res.json();
-                setEvents(data.events || []);
-              }}
+              onUpdate={() => {}}
             />
           </div>
         </div>

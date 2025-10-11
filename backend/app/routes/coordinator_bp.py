@@ -1,8 +1,9 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify ,request
+from werkzeug.security import generate_password_hash
 from flask_jwt_extended import jwt_required, get_jwt
 from app import mongo
 from bson import ObjectId
-
+from datetime import datetime
 
 
 coordinator_bp = Blueprint("coordinator_bp", __name__)
@@ -357,5 +358,86 @@ def get_school_users(zone, school_name):
         ]
     }), 200
 
+# -------------------------
+# ✅ Add New User (Faculty or School)
+# -------------------------
+@coordinator_bp.route("/users/add", methods=["POST"])
+@jwt_required()
+def add_user():
+    """Add a new user under a faculty or school."""
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    data = request.get_json()
+
+    required_fields = ["fullname", "email", "password", "role"]
+    if not all(field in data for field in required_fields):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    # Check duplicate email
+    if mongo.db.users.find_one({"email": data["email"]}):
+        return jsonify({"error": "Email already exists"}), 400
+
+    user_data = {
+        "fullname": data["fullname"],
+        "email": data["email"],
+        "password": generate_password_hash(data["password"]),
+        "role": data["role"],
+        "university_name": data.get("university_name"),
+        "faculty_name": data.get("faculty_name"),
+        "zone": data.get("zone"),
+        "school_name": data.get("school_name"),
+        "created_at": datetime.utcnow(),
+    }
+
+    result = mongo.db.users.insert_one(user_data)
+
+    return jsonify({
+        "message": "User added successfully",
+        "id": str(result.inserted_id)
+    }), 201
+
+
+# -------------------------
+# ✅ Edit Existing User
+# -------------------------
+@coordinator_bp.route("/users/<user_id>/edit", methods=["PUT"])
+@jwt_required()
+def edit_user(user_id):
+    """Edit an existing user's details."""
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    data = request.get_json()
+    try:
+        user_obj_id = ObjectId(user_id)
+    except:
+        return jsonify({"error": "Invalid user ID"}), 400
+
+    update_data = {}
+
+    # Allow updating name, email, role, password, and associations
+    for field in ["fullname", "email", "role", "university_name", "faculty_name", "zone", "school_name"]:
+        if field in data:
+            update_data[field] = data[field]
+
+    if "password" in data and data["password"]:
+        update_data["password"] = generate_password_hash(data["password"])
+
+    if not update_data:
+        return jsonify({"error": "No valid fields to update"}), 400
+
+    result = mongo.db.users.update_one({"_id": user_obj_id}, {"$set": update_data})
+
+    if result.matched_count == 0:
+        return jsonify({"error": "User not found"}), 404
+
+    return jsonify({"message": "User updated successfully"}), 200
 
    
