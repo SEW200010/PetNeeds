@@ -64,7 +64,8 @@ const Login = () => {
 
       if (res.ok) {
         const decoded = jwtDecode(data.access_token);
-
+        console.log("Decoded JWT:", decoded);
+  
         // ✅ Store token and decoded info in localStorage
         localStorage.setItem("token", data.access_token);
         localStorage.setItem("role", decoded.role);
@@ -73,6 +74,15 @@ const Login = () => {
         localStorage.setItem("university_name", decoded.university || "");
         localStorage.setItem("zone", decoded.zone || "");
 
+        console.log("Stored in localStorage:", {
+          token: data.access_token,
+          role: decoded.role, 
+          name: decoded.name || decoded.identity || "",
+          organization_unit: decoded.organization_unit || "",
+          university_name: decoded.university || "",
+          zone: decoded.zone || "",
+        });
+        
         // ✅ Navigate based on role
         const role = decoded.role;
         if (role === "admin") navigate("/admin-dashboard");

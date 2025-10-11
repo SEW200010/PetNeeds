@@ -169,6 +169,9 @@ def login():
     user = mongo.db.users.find_one({"email": email})
     if user:
         role = user.get("role", "").strip()
+        
+
+         
 
         # Facilitator must be verified
         if role == "facilitator" and not user.get("isVerified", False):
@@ -177,10 +180,24 @@ def login():
         if check_password_hash(user.get("password", ""), password):
             user_id = str(user["_id"])
             fullname = user.get("fullname", "Unknown")
+            user_id = str(user["_id"])
+            role = user.get("role", "").strip()  # remove extra spaces
+            name = user.get("fullname", "Unknown")  # get the teacher's name
+            organization_unit = user.get("organization_unit", "")  # 🆕 added
+            university = user.get("university_name", "")  # 🆕 added
+            zone = user.get("zone", "")
 
+            print(f"Login -> Name: '{name}', Role: '{role}',, Province: '{organization_unit}', District: '{university}', Zone: '{zone}'") 
+            
             access_token = create_access_token(
                 identity=user_id,
-                additional_claims={"role": role, "fullname": fullname},
+                 additional_claims={
+                "role": role,
+                "name": name,
+                "zone": zone,
+                "organization_unit": organization_unit,  # 🆕 include in token
+                "university": university  # 🆕 include in token
+            },
                 expires_delta=timedelta(hours=2)
             )
 
@@ -192,10 +209,14 @@ def login():
 
             return jsonify({
                 "message": f"{role.capitalize()} login successful",
-                "access_token": access_token,
-                "user_id": user_id,
-                "role": role,
-                "fullname": fullname
+            "access_token": access_token,
+            "user_id": user_id,
+            "role": role,
+            "name": name,
+        
+            "zone": zone,
+            "organization_unit": organization_unit,  # 🆕 include in response
+            "university": university  # 🆕 include in response
             }), 200
 
     return jsonify({"error": "Invalid credentials"}), 401
