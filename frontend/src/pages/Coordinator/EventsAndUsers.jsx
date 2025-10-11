@@ -28,7 +28,6 @@ import CreateUniversityEvent from "../../components/Admin/CreateUniversityEvent"
 import CreateSchoolEvent from "../../components/Admin/CreateSchoolEvent";
 import EditUniversityEvent from "../../components/Admin/EditUniversityEvent";
 
-
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
 });
@@ -42,6 +41,8 @@ const CoordinatorUnitView = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [unitType, setUnitType] = useState("");
+  const [error, setError] = useState(null);
+
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [schoolFormOpen, setSchoolFormOpen] = useState(false);
   const [universityFormOpen, setUniversityFormOpen] = useState(false);
@@ -49,9 +50,28 @@ const CoordinatorUnitView = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [viewMode, setViewMode] = useState(false);
-const [universityEditOpen, setUniversityEditOpen] = useState(false);
-const [schoolEditOpen, setSchoolEditOpen] = useState(false);
+  const [universityEditOpen, setUniversityEditOpen] = useState(false);
+  const [schoolEditOpen, setSchoolEditOpen] = useState(false);
 
+  const [usersCoordinator, setUsersCoordinator] = useState([]);
+  const [usersFacilitator, setUsersFacilitator] = useState([]);
+  const [usersStudent, setUsersStudent] = useState([]);
+
+
+  // ✅ Users Columns for DataGrid
+  const userColumns = [
+    { field: "name", headerName: "Name", flex: 2 },
+    { field: "email", headerName: "Email", flex: 3 },
+    { field: "role", headerName: "Role", flex: 1 },
+  ];
+
+  // ✅ Users Rows
+  const userRows = users.map((u, index) => ({
+    id: u.id || index,
+    name: u.name,
+    email: u.email,
+    role: u.role || "N/A",
+  }));
 
   // ✅ Event columns
   const eventColumns = [
@@ -93,37 +113,35 @@ const [schoolEditOpen, setSchoolEditOpen] = useState(false);
 
   // ✅ Handle Add Event
   const handleCreateClick = () => {
-    document.activeElement?.blur(); // prevent ARIA warning
+    document.activeElement?.blur();
     setCategoryDialogOpen(true);
   };
 
   const handleCategorySelect = (category) => {
     setCategoryDialogOpen(false);
-    setSelectedEvent(null); // reset event data
+    setSelectedEvent(null);
     setEditMode(false);
     if (category === "School") setSchoolFormOpen(true);
     if (category === "University") setUniversityFormOpen(true);
   };
 
- const handleEditEvent = (row) => {
-  const event = events.find((e) => e.id === row.id);
-  setSelectedEvent(event);
+  // ✅ Edit Event
+  const handleEditEvent = (row) => {
+    const event = events.find((e) => e.id === row.id);
+    setSelectedEvent(event);
 
-  // Open correct form based on unit type
-  if (unitType === "university") {
-    setUniversityFormOpen(false); // close create dialog if open
-    setSchoolFormOpen(false);
-    setEditMode(true);
-    setUniversityEditOpen(true); // new state for edit dialog
-  } else {
-    setSchoolFormOpen(false);
-    setUniversityFormOpen(false);
-    setEditMode(true);
-    setSchoolEditOpen(true); // new state for school edit dialog
-  }
-};
-
-
+    if (unitType === "university") {
+      setUniversityFormOpen(false);
+      setSchoolFormOpen(false);
+      setEditMode(true);
+      setUniversityEditOpen(true);
+    } else {
+      setSchoolFormOpen(false);
+      setUniversityFormOpen(false);
+      setEditMode(true);
+      setSchoolEditOpen(true);
+    }
+  };
 
   // ✅ View Event
   const handleViewEvent = (event) => {
@@ -131,27 +149,58 @@ const [schoolEditOpen, setSchoolEditOpen] = useState(false);
     setViewMode(true);
   };
 
-  // ✅ Delete Event
+  // ✅ Delete Event (safe)
   const handleDeleteEvent = async (eventId) => {
-    if (window.confirm("Are you sure you want to delete this event?")) {
-      await fetch(`${API_BASE}/events/${eventId}`, { method: "DELETE" });
+    if (!window.confirm("Are you sure you want to delete this event?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/events/${eventId}`, { method: "DELETE" });
+      if (!res.ok) {
+        console.warn(`Failed to delete event: ${res.status}`);
+        return;
+      }
       setEvents((prev) => prev.filter((e) => e.id !== eventId));
+    } catch (err) {
+      console.error("Network error while deleting event:", err);
     }
   };
 
- const handleSubmitForm = (formData) => {
-  // Only for creating new events
-  setEvents((prev) => [...prev, { id: prev.length + 1, ...formData }]);
-  setSchoolFormOpen(false);
-  setUniversityFormOpen(false);
-};
+  const handleSubmitForm = (formData) => {
+    setEvents((prev) => [...prev, { id: prev.length + 1, ...formData }]);
+    setSchoolFormOpen(false);
+    setUniversityFormOpen(false);
+  };
 
-  // ✅ Fetch events and users
+  // ✅ Safe Fetch helper
+  const safeFetch = async (url, token) => {
+    try {
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        console.warn(`⚠️ Fetch failed for ${url}: ${res.status} ${res.statusText}`);
+        return null;
+      }
+      const data = await res.json().catch(() => {
+        console.warn(`⚠️ Failed to parse JSON from ${url}`);
+        return null;
+      });
+      return data;
+    } catch (err) {
+      console.error(`❌ Network error fetching ${url}:`, err);
+      return null;
+    }
+  };
+
+  // ✅ Fetch events + users safely
   useEffect(() => {
     const token = localStorage.getItem("token");
     const organizationUnit = localStorage.getItem("organization_unit");
 
-    if (!token || !organizationUnit) return;
+    if (!token || !organizationUnit) {
+      setError("Missing authentication token or organization unit.");
+      setLoading(false);
+      return;
+    }
 
     const type = organizationUnit.toLowerCase();
     setUnitType(type);
@@ -176,26 +225,39 @@ const [schoolEditOpen, setSchoolEditOpen] = useState(false);
       )}/${encodeURIComponent(school_name)}/users`;
     }
 
-    Promise.all([
-      fetch(eventsUrl, { headers: { Authorization: `Bearer ${token}` } }).then(
-        (res) => res.json()
-      ),
-      fetch(usersUrl, { headers: { Authorization: `Bearer ${token}` } }).then(
-        (res) => res.json()
-      ),
-    ])
-      .then(([eventData, userData]) => {
-        setEvents(eventData.events || []);
-        setUsers(userData.users || []);
-      })
-      .catch((err) => console.error("Error fetching data:", err))
-      .finally(() => setLoading(false));
+    const fetchData = async () => {
+      setLoading(true);
+      const [eventData, userData] = await Promise.all([
+        safeFetch(eventsUrl, token),
+        safeFetch(usersUrl, token),
+      ]);
+
+      setEvents(eventData?.events || []);
+      // Split users by role
+      const allUsers = userData?.users || [];
+      setUsersCoordinator(allUsers.filter(u => u.role === "coordinator"));
+      setUsersFacilitator(allUsers.filter(u => u.role === "facilitator"));
+      setUsersStudent(allUsers.filter(u => u.role === "student"));
+
+      setUsers(userData?.users || []);
+
+      setLoading(false);
+    };
+
+    fetchData();
   }, [faculty_name, school_name, university_name, zone]);
 
   if (loading)
     return (
       <div className="flex items-center justify-center h-screen">
         <CircularProgress />
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Typography color="error">{error}</Typography>
       </div>
     );
 
@@ -210,6 +272,32 @@ const [schoolEditOpen, setSchoolEditOpen] = useState(false);
     date: e.date,
     location: e.location || "",
   }));
+
+  const renderUserTable = (usersArray, roleName) => (
+    <>
+      <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>
+        {roleName}
+      </Typography>
+      {usersArray.length > 0 ? (
+        <div style={{ height: 300, width: "100%" }}>
+          <DataGrid
+            rows={usersArray.map((u, i) => ({
+              id: u.id || i,
+              name: u.name,
+              email: u.email,
+              role: u.role,
+            }))}
+            columns={userColumns}
+            pageSize={5}
+            rowsPerPageOptions={[5]}
+            disableSelectionOnClick
+          />
+        </div>
+      ) : (
+        <Typography color="text.secondary">No {roleName.toLowerCase()} found.</Typography>
+      )}
+    </>
+  );
 
   return (
     <div>
@@ -266,30 +354,10 @@ const [schoolEditOpen, setSchoolEditOpen] = useState(false);
               <Typography color="text.secondary">No events found.</Typography>
             )}
 
-            <Divider sx={{ my: 3 }} />
-
-            {/* ✅ Users Section */}
-            <Typography variant="h5" sx={{ mb: 2 }}>
-              Registered Users
-            </Typography>
-
-            {users.length > 0 ? (
-              users.map((user, index) => (
-                <Card key={index} sx={{ mb: 2 }}>
-                  <CardContent>
-                    <Typography variant="h6">{user.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {user.email}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <Typography color="text.secondary">
-                No registered users found.
-              </Typography>
-            )}
-
+            {/* Users Tables */}
+            {renderUserTable(usersCoordinator, "Coordinators")}
+            {renderUserTable(usersFacilitator, "Facilitators")}
+            {renderUserTable(usersStudent, "Students")}
             {/* ✅ Category Selection Dialog */}
             <Dialog
               open={categoryDialogOpen}
@@ -298,11 +366,7 @@ const [schoolEditOpen, setSchoolEditOpen] = useState(false);
               fullWidth
               maxWidth="sm"
               PaperProps={{
-                sx: {
-                  width: "500px",
-                  maxWidth: "80%",
-                  padding: 2,
-                },
+                sx: { width: "500px", maxWidth: "80%", padding: 2 },
               }}
             >
               <DialogTitle>Select Event Category</DialogTitle>
@@ -318,63 +382,58 @@ const [schoolEditOpen, setSchoolEditOpen] = useState(false);
                 </FormControl>
               </DialogContent>
               <DialogActions>
-                <Button onClick={() => setCategoryDialogOpen(false)} color="error">
+                <Button
+                  onClick={() => setCategoryDialogOpen(false)}
+                  color="error"
+                >
                   Cancel
                 </Button>
               </DialogActions>
             </Dialog>
 
+            {/* ✅ Create / Edit Dialogs */}
             <CreateSchoolEvent
-  open={schoolFormOpen}
-  onClose={() => {
-    setSchoolFormOpen(false);
-    setEditMode(false);
-  }}
-  onSubmit={handleSubmitForm}
-  zone={zone}
-  school={school_name}
-  initialData={selectedEvent} // now contains full event object
-/>
-
-<CreateUniversityEvent
-  open={universityFormOpen}
-  onClose={() => {
-    setUniversityFormOpen(false);
-    setEditMode(false);
-  }}
-  onSubmit={handleSubmitForm}
-  university={university_name}
-  faculty={faculty_name}
-  initialData={selectedEvent} // full object
-/>
-
-<EditUniversityEvent
-  open={universityEditOpen}
-  onClose={() => {
-    setUniversityEditOpen(false);
-    setEditMode(false);
-    setSelectedEvent(null);
-  }}
-  initialData={selectedEvent}
-  onUpdate={async () => {
-    // Refresh events after update
-    const res = await fetch(`${API_BASE}/faculty/${encodeURIComponent(university_name)}/${encodeURIComponent(faculty_name)}/events`);
-    const data = await res.json();
-    setEvents(data.events || []);
-  }}
-/>
+              open={schoolFormOpen}
+              onClose={() => {
+                setSchoolFormOpen(false);
+                setEditMode(false);
+              }}
+              onSubmit={handleSubmitForm}
+              zone={zone}
+              school={school_name}
+              initialData={selectedEvent}
+            />
 
             <CreateUniversityEvent
-  open={universityFormOpen}
-  onClose={() => {
-    setUniversityFormOpen(false);
-    setEditMode(false);
-  }}
-  onSubmit={handleSubmitForm}
-  university={university_name}
-  faculty={faculty_name}
-  initialData={selectedEvent} // full object
-/>
+              open={universityFormOpen}
+              onClose={() => {
+                setUniversityFormOpen(false);
+                setEditMode(false);
+              }}
+              onSubmit={handleSubmitForm}
+              university={university_name}
+              faculty={faculty_name}
+              initialData={selectedEvent}
+            />
+
+            <EditUniversityEvent
+              open={universityEditOpen}
+              onClose={() => {
+                setUniversityEditOpen(false);
+                setEditMode(false);
+                setSelectedEvent(null);
+              }}
+              initialData={selectedEvent}
+              onUpdate={async () => {
+                const res = await fetch(
+                  `${API_BASE}/faculty/${encodeURIComponent(
+                    university_name
+                  )}/${encodeURIComponent(faculty_name)}/events`
+                );
+                const data = await res.json();
+                setEvents(data.events || []);
+              }}
+            />
           </div>
         </div>
       </main>

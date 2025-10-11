@@ -283,18 +283,32 @@ def get_faculty_events(university_name, faculty_name):
 @jwt_required()
 def get_faculty_users(university_name, faculty_name):
     """Get users under a specific faculty of a university."""
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    # Only coordinators can access
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
     users = list(mongo.db.users.find({
         "university_name": {"$regex": f"^{university_name}$", "$options": "i"},
         "faculty_name": {"$regex": f"^{faculty_name}$", "$options": "i"}
-    }, {"_id": 1, "name": 1, "email": 1}))
+    }, {"_id": 1, "fullname": 1, "email": 1 ,"role":1}))
+
+    print({"users":users})
+    if not users:
+        return jsonify({"error": f"No users found for {faculty_name} in {university_name}"}), 404
+
+
+    users_list = [
+        {"id": str(u["_id"]), "name": u["fullname"], "email": u.get("email", "") , "role": u.get("role", "")}
+        for u in users
+    ]
 
     return jsonify({
         "university": university_name,
         "faculty": faculty_name,
-        "users": [
-            {"id": str(u["_id"]), "name": u["name"], "email": u.get("email", "")}
-            for u in users
-        ]
+        "users": users_list
     }), 200
 
 
