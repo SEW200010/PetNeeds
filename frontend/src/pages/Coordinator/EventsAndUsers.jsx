@@ -1,5 +1,5 @@
-import React, { useEffect, useState , forwardRef } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useState, forwardRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import CoordinatorSidebar from "@/components/Coordinator/CoordinatorSidebar";
 import Header from "@/components/Admin/Header";
 import Typography from "@mui/material/Typography";
@@ -10,28 +10,30 @@ import Divider from "@mui/material/Divider";
 import CircularProgress from "@mui/material/CircularProgress";
 import Button from "@mui/material/Button";
 import { DataGrid } from "@mui/x-data-grid";
-import Stack from "@mui/material/Stack"; // ✅ for horizontal button layout
+import Stack from "@mui/material/Stack";
 import IconButton from "@mui/material/IconButton";
-import { Edit, Delete, Visibility } from "@mui/icons-material"; // ✅ MUI icons
+import { Edit, Delete, Visibility } from "@mui/icons-material";
 import {
   FormControl,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-
   Select,
   MenuItem,
   Slide,
-  TextField,
-  InputAdornment,
 } from "@mui/material";
 
 import CreateUniversityEvent from "../../components/Admin/CreateUniversityEvent";
 import CreateSchoolEvent from "../../components/Admin/CreateSchoolEvent";
+import EditUniversityEvent from "../../components/Admin/EditUniversityEvent";
+
+
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
 });
+
+const API_BASE = "http://localhost:5000";
 
 const CoordinatorUnitView = () => {
   const navigate = useNavigate();
@@ -43,14 +45,15 @@ const CoordinatorUnitView = () => {
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [schoolFormOpen, setSchoolFormOpen] = useState(false);
   const [universityFormOpen, setUniversityFormOpen] = useState(false);
-//const [events, setEvents] = useState([]);
-const [selectedEvent, setSelectedEvent] = useState(null);
-const [editMode, setEditMode] = useState(false);
-const [viewMode, setViewMode] = useState(false);
+
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [viewMode, setViewMode] = useState(false);
+const [universityEditOpen, setUniversityEditOpen] = useState(false);
+const [schoolEditOpen, setSchoolEditOpen] = useState(false);
 
 
-
-  // ✅ Define event table columns
+  // ✅ Event columns
   const eventColumns = [
     { field: "title", headerName: "Event Title", flex: 2 },
     { field: "date", headerName: "Date", flex: 1 },
@@ -65,21 +68,21 @@ const [viewMode, setViewMode] = useState(false);
           <IconButton
             color="primary"
             size="small"
-            onClick={() => handleViewEvent(event)}
+            onClick={() => handleViewEvent(params.row)}
           >
             <Visibility />
           </IconButton>
           <IconButton
             color="secondary"
             size="small"
-            onClick={() => handleEditEvent(event)}
+            onClick={() => handleEditEvent(params.row)}
           >
             <Edit />
           </IconButton>
           <IconButton
             color="error"
             size="small"
-             onClick={() => handleDeleteEvent(event.id)}
+            onClick={() => handleDeleteEvent(params.row.id)}
           >
             <Delete />
           </IconButton>
@@ -88,70 +91,72 @@ const [viewMode, setViewMode] = useState(false);
     },
   ];
 
-
-  const handleEditEvent = (event) => {
-  setSelectedEvent(event);
-  setEditMode(true);
-};
-
-const handleViewEvent = (event) => {
-  setSelectedEvent(event);
-  setViewMode(true);
-};
-
-const handleDeleteEvent = async (eventId) => {
-  if (window.confirm("Are you sure you want to delete this event?")) {
-    await fetch(`${API_BASE}/events/${eventId}`, { method: "DELETE" });
-    setEvents(events.filter((e) => e.id !== eventId));
-  }
-};
-
-  // ✅ Action Handlers
-  const handleAdd = () => {
-    navigate("/coordinator/add-event");
-  };
-
-  const handleView = (row) => {
-    navigate(`/coordinator/event/${row.id}`); // customize route as needed
-  };
-
-  const handleEdit = (row) => {
-    navigate(`/coordinator/edit-event/${row.id}`);
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this event?")) {
-      setEvents((prev) => prev.filter((event, index) => index !== id));
-      // optional: also call DELETE API here
-    }
-  };
-     const handleCreateClick = () => {
+  // ✅ Handle Add Event
+  const handleCreateClick = () => {
+    document.activeElement?.blur(); // prevent ARIA warning
     setCategoryDialogOpen(true);
   };
 
-    const handleCategorySelect = (category) => {
+  const handleCategorySelect = (category) => {
     setCategoryDialogOpen(false);
+    setSelectedEvent(null); // reset event data
+    setEditMode(false);
     if (category === "School") setSchoolFormOpen(true);
     if (category === "University") setUniversityFormOpen(true);
   };
+
+ const handleEditEvent = (row) => {
+  const event = events.find((e) => e.id === row.id);
+  setSelectedEvent(event);
+
+  // Open correct form based on unit type
+  if (unitType === "university") {
+    setUniversityFormOpen(false); // close create dialog if open
+    setSchoolFormOpen(false);
+    setEditMode(true);
+    setUniversityEditOpen(true); // new state for edit dialog
+  } else {
+    setSchoolFormOpen(false);
+    setUniversityFormOpen(false);
+    setEditMode(true);
+    setSchoolEditOpen(true); // new state for school edit dialog
+  }
+};
+
+
+
+  // ✅ View Event
+  const handleViewEvent = (event) => {
+    setSelectedEvent(event);
+    setViewMode(true);
+  };
+
+  // ✅ Delete Event
+  const handleDeleteEvent = async (eventId) => {
+    if (window.confirm("Are you sure you want to delete this event?")) {
+      await fetch(`${API_BASE}/events/${eventId}`, { method: "DELETE" });
+      setEvents((prev) => prev.filter((e) => e.id !== eventId));
+    }
+  };
+
+ const handleSubmitForm = (formData) => {
+  // Only for creating new events
+  setEvents((prev) => [...prev, { id: prev.length + 1, ...formData }]);
+  setSchoolFormOpen(false);
+  setUniversityFormOpen(false);
+};
+
+  // ✅ Fetch events and users
   useEffect(() => {
     const token = localStorage.getItem("token");
     const organizationUnit = localStorage.getItem("organization_unit");
 
-    if (!token || !organizationUnit) {
-      console.warn("Missing token or organization unit.");
-      return;
-    }
-
-     const handleCreateClick = () => {
-    setCategoryDialogOpen(true);
-  };
+    if (!token || !organizationUnit) return;
 
     const type = organizationUnit.toLowerCase();
     setUnitType(type);
 
-    
-    const baseUrl = "http://localhost:5000";
+    const baseUrl = API_BASE;
     let eventsUrl = "";
     let usersUrl = "";
 
@@ -200,16 +205,11 @@ const handleDeleteEvent = async (eventId) => {
       : `${school_name} (${zone})`;
 
   const eventRows = events.map((e, index) => ({
-    id: index,
+    id: e.id || index,
     title: e.title,
     date: e.date,
     location: e.location || "",
   }));
-
-   const handleSubmitForm = (formData) => {
-    console.log("Form Submitted:", formData);
-    // TODO: call API to save event
-  };
 
   return (
     <div>
@@ -219,7 +219,6 @@ const handleDeleteEvent = async (eventId) => {
           <CoordinatorSidebar />
 
           <div className="flex-1 p-6">
-            {/* ✅ Top section with title + buttons */}
             <Box
               sx={{
                 display: "flex",
@@ -233,18 +232,15 @@ const handleDeleteEvent = async (eventId) => {
                 <Button
                   variant="contained"
                   color="primary"
-                   onClick={handleCreateClick}
-                              
-                              sx={{
-                                backgroundColor: "green",
-                                "&:hover": { backgroundColor: "darkgreen" },
-                                color: "white",
-                              }}
+                  onClick={handleCreateClick}
+                  sx={{
+                    backgroundColor: "green",
+                    "&:hover": { backgroundColor: "darkgreen" },
+                    color: "white",
+                  }}
                 >
                   Add Event
-                </Button >
-
-          
+                </Button>
                 <Button variant="outlined" onClick={() => navigate(-1)}>
                   Back
                 </Button>
@@ -267,14 +263,12 @@ const handleDeleteEvent = async (eventId) => {
                 />
               </div>
             ) : (
-              <Typography color="text.secondary">
-                No events found.
-              </Typography>
+              <Typography color="text.secondary">No events found.</Typography>
             )}
 
             <Divider sx={{ my: 3 }} />
 
-            {/* Users Section */}
+            {/* ✅ Users Section */}
             <Typography variant="h5" sx={{ mb: 2 }}>
               Registered Users
             </Typography>
@@ -296,59 +290,91 @@ const handleDeleteEvent = async (eventId) => {
               </Typography>
             )}
 
-                      <Dialog
-  open={categoryDialogOpen}
-  onClose={() => setCategoryDialogOpen(false)}
-  TransitionComponent={Transition}
-  fullWidth
-  maxWidth="sm" // can be 'xs', 'sm', 'md', 'lg', 'xl' for predefined widths
-  PaperProps={{
-    sx: {
-      width: "500px",  // custom width
-      maxWidth: "80%", // make it responsive
-      padding: 2,
-    },
-  }}
->
-  <DialogTitle>Select Event Category</DialogTitle>
-  <DialogContent>
-    <FormControl fullWidth>
-      <Select
-        defaultValue=""
-        onChange={(e) => handleCategorySelect(e.target.value)}
-      >
-        <MenuItem value="School">School</MenuItem>
-        <MenuItem value="University">University</MenuItem>
-      </Select>
-    </FormControl>
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={() => setCategoryDialogOpen(false)} color="error">
-      Cancel
-    </Button>
-  </DialogActions>
-</Dialog>
+            {/* ✅ Category Selection Dialog */}
+            <Dialog
+              open={categoryDialogOpen}
+              onClose={() => setCategoryDialogOpen(false)}
+              TransitionComponent={Transition}
+              fullWidth
+              maxWidth="sm"
+              PaperProps={{
+                sx: {
+                  width: "500px",
+                  maxWidth: "80%",
+                  padding: 2,
+                },
+              }}
+            >
+              <DialogTitle>Select Event Category</DialogTitle>
+              <DialogContent>
+                <FormControl fullWidth>
+                  <Select
+                    defaultValue=""
+                    onChange={(e) => handleCategorySelect(e.target.value)}
+                  >
+                    <MenuItem value="School">School</MenuItem>
+                    <MenuItem value="University">University</MenuItem>
+                  </Select>
+                </FormControl>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setCategoryDialogOpen(false)} color="error">
+                  Cancel
+                </Button>
+              </DialogActions>
+            </Dialog>
 
-
-          {/* School Event Form */}
-          {/* School Event Form */}
-<CreateSchoolEvent
+            <CreateSchoolEvent
   open={schoolFormOpen}
-  onClose={() => setSchoolFormOpen(false)}
+  onClose={() => {
+    setSchoolFormOpen(false);
+    setEditMode(false);
+  }}
   onSubmit={handleSubmitForm}
   zone={zone}
   school={school_name}
+  initialData={selectedEvent} // now contains full event object
 />
 
-{/* University Event Form */}
 <CreateUniversityEvent
   open={universityFormOpen}
-  onClose={() => setUniversityFormOpen(false)}
+  onClose={() => {
+    setUniversityFormOpen(false);
+    setEditMode(false);
+  }}
   onSubmit={handleSubmitForm}
   university={university_name}
   faculty={faculty_name}
+  initialData={selectedEvent} // full object
 />
 
+<EditUniversityEvent
+  open={universityEditOpen}
+  onClose={() => {
+    setUniversityEditOpen(false);
+    setEditMode(false);
+    setSelectedEvent(null);
+  }}
+  initialData={selectedEvent}
+  onUpdate={async () => {
+    // Refresh events after update
+    const res = await fetch(`${API_BASE}/faculty/${encodeURIComponent(university_name)}/${encodeURIComponent(faculty_name)}/events`);
+    const data = await res.json();
+    setEvents(data.events || []);
+  }}
+/>
+
+            <CreateUniversityEvent
+  open={universityFormOpen}
+  onClose={() => {
+    setUniversityFormOpen(false);
+    setEditMode(false);
+  }}
+  onSubmit={handleSubmitForm}
+  university={university_name}
+  faculty={faculty_name}
+  initialData={selectedEvent} // full object
+/>
           </div>
         </div>
       </main>
