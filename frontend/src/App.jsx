@@ -27,6 +27,7 @@ import ChangePasswordPage from "./pages/User/ChangePasswordPage";
 import ProfileEditPage from "./pages/User/ProfileEditPage";
 import UpcomingEvents from "./pages/User/UserEvent/UpcomingEvents";
 import OngoingEvents from "./pages/User/UserEvent/OngoingEvents";
+import EventDetailsPage from "./pages/User/UserEvent/EventDetailsPage";
 import CompletedEventsPage from "./pages/User/UserEvent/CompletedEventsPage";
 
 import ForgotPassword from "./pages/ForgotPassword";
