@@ -5,7 +5,7 @@ import EventImage from "@/assets/User/Event.jpg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import CoordinatorSidebar from "@/components/Coordinator/CoordinatorSidebar";
-
+import Header from "@/components/Admin/Header";
 export default function ZoneEventsPage() {
   const { zoneId } = useParams();
   const [events, setEvents] = useState([]);
@@ -63,6 +63,8 @@ export default function ZoneEventsPage() {
   if (!events.length) return <p className="p-6">No events found for this zone.</p>;
 
   return (
+    <div className="min-h-screen bg-gray-50 relative">
+      <Header />
     <main className="pt-[65px] min-h-screen">
       <div className="flex flex-col md:flex-row">
         <CoordinatorSidebar />
@@ -74,7 +76,7 @@ export default function ZoneEventsPage() {
             const completed = event.completed || false;
 
             return (
-              <Card key={event._id} className="overflow-hidden shadow-xl hover:shadow-xl transition-shadow border-0 py-2">
+              <Card key={event._id} className="overflow-hidden shadow-xl w-55 h-80 hover:shadow-xl transition-shadow border-0 py-2">
                 <div className="aspect-[4/3] relative">
                   <img
                     src={EventImage}
@@ -108,5 +110,6 @@ export default function ZoneEventsPage() {
         </div>
       </div>
     </main>
+    </div>
   );
 }

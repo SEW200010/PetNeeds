@@ -59,7 +59,7 @@ def create_app():
     from app.routes.monitoringStudents_routes import monitoringstudent_bp
     from app.routes.user_event_routes import user_event_bp  
     from app.routes.course_routes import course_bp
-
+    from app.routes.student_routes import student_bp
     from app.routes.participant_routes import participant_bp
     from app.routes.notification import notify_bp
     from app.routes.feedback import feedback_bp
@@ -74,7 +74,7 @@ def create_app():
     app.register_blueprint(event_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(monitoringstudent_bp)
-
+    app.register_blueprint(student_bp)
     app.register_blueprint(course_bp, url_prefix="/courses")
     app.register_blueprint(coordinator_bp)
     app.register_blueprint(participant_bp)

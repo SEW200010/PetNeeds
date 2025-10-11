@@ -12,7 +12,7 @@ const CoordinatorDashboard = () => {
     const role = localStorage.getItem("role");
     const name = localStorage.getItem("name");
 
-    if (!role || role !== "coordination") {
+    if (!role || role !== "coordinator") {
       alert("Access denied. Only coordinators can access this page.");
       navigate("/login");
       return;
@@ -29,7 +29,7 @@ const CoordinatorDashboard = () => {
           <CoordinatorSidebar />
           <div className="w-full md:w-3/4 p-6">
             <div className="text-2xl font-bold pb-10">
-              Welcome, {coordinatorName}!
+              
             </div>
            <CoordinatorActionCards/>
           </div>
