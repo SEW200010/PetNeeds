@@ -15,95 +15,77 @@ import os
 auth_bp = Blueprint('auth_bp', __name__)
 
 # -------------------------
-# Send Confirmation Email
+# Email Helper
 # -------------------------
-def send_confirmation_email(to_email, fullname):
+def send_email(to_email, subject, body):
     smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
     smtp_port = int(os.getenv("SMTP_PORT", 587))
     smtp_user = os.getenv("SMTP_USER")
     smtp_pass = os.getenv("SMTP_PASS")
 
+    msg = MIMEMultipart()
+    msg["From"] = smtp_user
+    msg["To"] = to_email
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain"))
+
+    try:
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.send_message(msg)
+        print(f"✅ Email sent to {to_email}")
+    except Exception as e:
+        print(f"❌ Failed to send email to {to_email}: {e}")
+
+def send_confirmation_email(to_email, fullname):
     subject = "Registration Successful"
     body = f"""
-    Hi {fullname},
+Hi {fullname},
 
-    🎉 Thank you for registering on our platform!
-    Your account has been created successfully. You can now log in with your credentials.
+🎉 Thank you for registering on our platform!
+Your account has been created successfully. You can now log in with your credentials.
 
-    Regards,
-    The Team
-    Varappu - Life Skills Education
-    """
+Regards,
+The Team
+Varappu - Life Skills Education
+"""
+    send_email(to_email, subject, body)
 
-    msg = MIMEMultipart()
-    msg["From"] = smtp_user
-    msg["To"] = to_email
-    msg["Subject"] = subject
-    msg.attach(MIMEText(body, "plain"))
-
-    try:
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
-            server.starttls()
-            server.login(smtp_user, smtp_pass)
-            server.send_message(msg)
-        print(f"✅ Confirmation email sent to {to_email}")
-    except Exception as e:
-        print(f"❌ Failed to send email: {e}")
-
-# -------------------------
-# Send Facilitator Verified Email
-# -------------------------
 def send_facilitator_verified_email(to_email, fullname):
-    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", 587))
-    smtp_user = os.getenv("SMTP_USER")
-    smtp_pass = os.getenv("SMTP_PASS")
-
     subject = "Your Facilitator Account is Verified ✅"
     body = f"""
-    Hi {fullname},
+Hi {fullname},
 
-    Your facilitator account has been verified by the admin.
-    You can now log in and access your account.
+Your facilitator account has been verified by the admin.
+You can now log in and access your account.
 
-    Regards,
-    The Team
-    Varappu - Life Skills Education
-    """
-
-    msg = MIMEMultipart()
-    msg["From"] = smtp_user
-    msg["To"] = to_email
-    msg["Subject"] = subject
-    msg.attach(MIMEText(body, "plain"))
-
-    try:
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
-            server.starttls()
-            server.login(smtp_user, smtp_pass)
-            server.send_message(msg)
-        print(f"✅ Facilitator verification email sent to {to_email}")
-    except Exception as e:
-        print(f"❌ Failed to send facilitator verification email: {e}")
+Regards,
+The Team
+Varappu - Life Skills Education
+"""
+    send_email(to_email, subject, body)
 
 # -------------------------
 # Register Route
 # -------------------------
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    fullname = data.get("fullname")
-    email = data.get("email")
-    password = data.get("password")
-    role = data.get("role", "user")
-    organization_unit = data.get("organization_unit")
-    school_name = data.get("school_name")
-    zone = data.get("zone")
-    district = data.get("district")
-    university_name = data.get("university_name")
-    faculty_name = data.get("faculty_name")
-    contact = data.get("contact")
-    address = data.get("address")
+    data = request.get_json() or {}
+
+    # Normalize and trim fields
+    fullname = (data.get("fullname") or "").strip()
+    email = (data.get("email") or "").strip().lower()
+    password = data.get("password") or ""
+    role = (data.get("role") or "user").strip().lower()
+    organization_unit = (data.get("organization_unit") or "").strip().lower()
+    school_name = (data.get("school_name") or "").strip()
+    zone = (data.get("zone") or "").strip()
+    district = (data.get("district") or "").strip()
+    university_name = (data.get("university_name") or "").strip()
+    faculty_name = (data.get("faculty_name") or "").strip()
+    contact = (data.get("contact") or "").strip()
+    address = (data.get("address") or "").strip()
     joinedDate = datetime.utcnow()
 
     # Required fields
@@ -111,12 +93,10 @@ def register():
         return jsonify({"error": "All required fields are missing"}), 400
 
     # Conditional required fields
-    if organization_unit == "school":
-        if not all([school_name, zone, district]):
-            return jsonify({"error": "All school fields are required"}), 400
-    elif organization_unit == "university":
-        if not all([university_name, faculty_name]):
-            return jsonify({"error": "All university fields are required"}), 400
+    if organization_unit == "school" and not all([school_name, zone, district]):
+        return jsonify({"error": "All school fields are required"}), 400
+    elif organization_unit == "university" and not all([university_name, faculty_name]):
+        return jsonify({"error": "All university fields are required"}), 400
 
     # Email format
     if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
@@ -127,7 +107,7 @@ def register():
         return jsonify({"error": "Contact must be 10 digits"}), 400
 
     # Check if email exists
-    if mongo.db.users.find_one({"email": email.lower().strip()}):
+    if mongo.db.users.find_one({"email": email}):
         return jsonify({"error": "Email already registered"}), 409
 
     hashed_password = generate_password_hash(password)
@@ -136,10 +116,10 @@ def register():
     # Insert user
     mongo.db.users.insert_one({
         "fullname": fullname,
-        "email": email.lower().strip(),
+        "email": email,
         "password": hashed_password,
-        "role": role.lower().strip(),
-        "isVerified": False if role.lower() == "facilitator" else True,
+        "role": role,
+        "isVerified": False if role == "facilitator" else True,
         "joinedDate": joinedDate,
         "organization_unit": organization_unit,
         "school_name": school_name,
@@ -153,7 +133,7 @@ def register():
     })
 
     # Send confirmation email for non-facilitators
-    if role.lower() != "facilitator":
+    if role != "facilitator":
         send_confirmation_email(email, fullname)
 
     return jsonify({"message": "User registered successfully"}), 201
@@ -165,14 +145,14 @@ def register():
 def login():
     data = request.get_json() or {}
 
-    email = data.get("email")
-    password = data.get("password")
+    email = (data.get("email") or "").strip().lower()
+    password = data.get("password") or ""
 
     if not email or not password:
         return jsonify({"error": "Email and password are required"}), 400
 
     # Hardcoded admin login
-    if email.lower().strip() == "admin@admin.com" and password == "admin123":
+    if email == "admin@admin.com" and password == "admin123":
         access_token = create_access_token(
             identity="admin",
             additional_claims={"role": "admin"},
@@ -186,13 +166,13 @@ def login():
         }), 200
 
     # Normal user login
-    user = mongo.db.users.find_one({"email": email.lower().strip()})
+    user = mongo.db.users.find_one({"email": email})
     if user:
         role = user.get("role", "").strip()
 
         # Facilitator must be verified
         if role == "facilitator" and not user.get("isVerified", False):
-            return jsonify({"error": "facilitator_not_verified"}), 403
+            return jsonify({"error": "Your account is awaiting admin verification."}), 403
 
         if check_password_hash(user.get("password", ""), password):
             user_id = str(user["_id"])

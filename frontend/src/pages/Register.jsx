@@ -5,24 +5,83 @@ import { BiUser, BiEnvelope, BiLock, BiMap, BiPhone, BiHide, BiShow } from "reac
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
+const universities = [
+  "University of Colombo",
+  "University of Peradeniya",
+  "University of Sri Jayewardenepura",
+  "University of Kelaniya",
+  "University of Moratuwa",
+  "University of Jaffna",
+  "University of Ruhuna",
+  "Eastern University, Sri Lanka",
+  "South Eastern University of Sri Lanka",
+  "Rajarata University of Sri Lanka",
+  "Sabaragamuwa University of Sri Lanka",
+  "Wayamba University of Sri Lanka",
+  "Uva Wellassa University of Sri Lanka",
+  "University of the Visual and Performing Arts",
+  "Gampaha Wickramarachchi University of Indigenous Medicine",
+  "University of Vavuniya",
+  "other"
+];
+
+const faculties = {
+  "University of Jaffna": [
+    "Faculty of Agriculture",
+    "Faculty of Allied Health Sciences",
+    "Faculty of Arts",
+    "Faculty of Engineering",
+    "Faculty of Graduate Studies",
+    "Faculty of Hindu Studies",
+    "Faculty of Management Studies and Commerce",
+    "Faculty of Medicine",
+    "Faculty of Science",
+    "Faculty of Technology",
+    "Sir Ponnambalam Ramanathan Faculty of Performing & Visual Arts",
+  ],
+  "University of Vavuniya": [
+    "Faculty of Applied Science",
+    "Faculty of Business Studies",
+    "Faculty of Technological Studies",
+  ],
+  "Eastern University, Sri Lanka": [
+    "Faculty of Agriculture",
+    "Faculty of Arts and Culture",
+    "Faculty of Commerce and Management",
+    "Faculty of Health Care Sciences",
+    "Faculty of Science",
+    "Faculty of Technology",
+    "Faculty of Communication and Business Studies (Trincomalee Campus)",
+    "Faculty of Applied Sciences (Trincomalee Campus)",
+    "Swamy Vipulananda Institute of Aesthetic Studies",
+  ],
+  "South Eastern University of Sri Lanka": [
+    "Faculty of Applied Sciences",
+    "Faculty of Arts and Culture",
+    "Faculty of Islamic Studies and Arabic Language",
+    "Faculty of Management and Commerce",
+    "Faculty of Engineering",
+    "Faculty of Technology",
+  ],
+};
+
+const initialFormData = {
+  fullname: "",
+  email: "",
+  password: "",
+  role: "",
+  organization_unit: "",
+  district: "",
+  zone: "",
+  school_name: "",
+  university_name: "",
+  faculty_name: "",
+  address: "",
+  contact: "",
+};
+
 const Register = () => {
   const navigate = useNavigate();
-
-  const initialFormData = {
-    fullname: "",
-    email: "",
-    password: "",
-    role: "",
-    organization_unit: "",
-    district: "",
-    zone: "",
-    school_name: "",
-    university_name: "",
-    faculty_name: "",
-    address: "",
-    contact: "",
-  };
-
   const [formData, setFormData] = useState(initialFormData);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -30,39 +89,29 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [passwordScore, setPasswordScore] = useState(0);
 
-  // Refs
-  const refs = {
-    fullname: useRef(),
-    email: useRef(),
-    password: useRef(),
-    role: useRef(),
-    organization_unit: useRef(),
-    district: useRef(),
-    zone: useRef(),
-    school_name: useRef(),
-    university_name: useRef(),
-    faculty_name: useRef(),
-    address: useRef(),
-    contact: useRef(),
-  };
+  const refs = Object.keys(initialFormData).reduce((acc, key) => {
+    acc[key] = useRef();
+    return acc;
+  }, {});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: value };
+      if (name === "university_name") updated.faculty_name = "";
+      return updated;
+    });
     setErrors((prev) => ({ ...prev, [name]: "" }));
     if (name === "password") setPasswordScore(zxcvbn(value).score);
   };
 
   const validateForm = () => {
     const newErrors = {};
-
     if (!formData.fullname) newErrors.fullname = "Full name is required";
     if (!formData.email) newErrors.email = "Email is required";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = "Invalid email";
-
     if (!formData.password) newErrors.password = "Password is required";
     else if (passwordScore < 2) newErrors.password = "Password too weak";
-
     if (!formData.role) newErrors.role = "Role is required";
     if (!formData.organization_unit) newErrors.organization_unit = "Organization unit is required";
 
@@ -81,7 +130,6 @@ const Register = () => {
 
     setErrors(newErrors);
 
-    // Scroll & focus first error
     if (Object.keys(newErrors).length > 0) {
       const firstError = Object.keys(newErrors)[0];
       const ref = refs[firstError];
@@ -118,11 +166,14 @@ const Register = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
       const result = await res.json();
 
       if (res.ok) {
         alert(result.message || "Registration successful! Please check your email.");
+        setFormData(initialFormData);
+        setPasswordScore(0);
+        setShowPassword(false);
+        setErrors({});
         navigate("/login");
       } else {
         setMessage(result.error || result.message || "Registration failed");
@@ -131,17 +182,55 @@ const Register = () => {
       console.error(err);
       alert("Unexpected error occurred");
     } finally {
-      setFormData(initialFormData);
-      setErrors({});
-      setPasswordScore(0);
-      setShowPassword(false);
       setLoading(false);
     }
   };
 
   const passwordStrength = getPasswordStrength();
 
-  const inputClass = `w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 hover:bg-gray-700 hover:ring-2 hover:ring-emerald-500 hover:shadow-lg transition duration-300`;
+  const baseInputClass = `w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 transition duration-300`;
+  const getInputClass = (fieldName) =>
+    errors[fieldName]
+      ? `${baseInputClass} border-2 border-red-500 focus:ring-0 hover:ring-0`
+      : `${baseInputClass} focus:outline-none focus:ring-2 focus:ring-emerald-400 hover:ring-2 hover:ring-emerald-500 hover:bg-gray-700 hover:shadow-lg`;
+
+  const TextInput = ({ refProp, name, label, icon, type = "text", placeholder, maxLength }) => (
+    <div className="relative">
+      <label className="text-lg text-white">{label}</label>
+      <div className="flex items-center mt-2">
+        {icon}
+        <input
+          ref={refProp}
+          type={type}
+          name={name}
+          value={formData[name]}
+          onChange={handleChange}
+          placeholder={placeholder}
+          className={getInputClass(name)}
+          maxLength={maxLength}
+        />
+      </div>
+      {errors[name] && <p className="text-red-500 text-sm mt-1">{errors[name]}</p>}
+    </div>
+  );
+
+  const SelectInput = ({ refProp, name, label, options, disabled }) => (
+    <div className="relative">
+      <label className="text-lg text-white">{label}</label>
+      <select
+        ref={refProp}
+        name={name}
+        value={formData[name]}
+        onChange={handleChange}
+        disabled={disabled}
+        className={getInputClass(name)}
+      >
+        <option value="">{`Select ${label}`}</option>
+        {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+      </select>
+      {errors[name] && <p className="text-red-500 text-sm mt-1">{errors[name]}</p>}
+    </div>
+  );
 
   return (
     <div className="relative h-screen flex flex-col lg:flex-row items-center justify-center px-4" style={{ backgroundImage: "url('/Home_images/image2copy.jpg')", backgroundSize: "cover", backgroundPosition: "center" }}>
@@ -157,32 +246,23 @@ const Register = () => {
         {message && <p className={`${message.toLowerCase().includes("success") ? "text-green-400" : "text-red-500"} mb-4 text-center`}>{message}</p>}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Fullname */}
-          <div className="relative">
-            <label className="text-lg text-white">Full Name</label>
-            <div className="flex items-center mt-2">
-              <BiUser className="absolute left-3 text-gray-400" size={20} />
-              <input ref={refs.fullname} type="text" name="fullname" value={formData.fullname} onChange={handleChange} placeholder="Enter Full Name" className={`${inputClass} ${errors.fullname ? "border-2 border-red-500" : ""}`} />
-            </div>
-            {errors.fullname && <p className="text-red-500 text-sm mt-1">{errors.fullname}</p>}
-          </div>
-
-          {/* Email */}
-          <div className="relative">
-            <label className="text-lg text-white">Email</label>
-            <div className="flex items-center mt-2">
-              <BiEnvelope className="absolute left-3 text-gray-400" size={20} />
-              <input ref={refs.email} type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter Email" className={`${inputClass} ${errors.email ? "border-2 border-red-500" : ""}`} />
-            </div>
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-          </div>
-
+          <TextInput refProp={refs.fullname} name="fullname" label="Full Name" placeholder="Enter Full Name" icon={<BiUser className="absolute left-3 text-gray-400" size={20} />} />
+          <TextInput refProp={refs.email} name="email" label="Email" placeholder="Enter Email" icon={<BiEnvelope className="absolute left-3 text-gray-400" size={20} />} type="email" />
+          
           {/* Password */}
           <div className="relative">
             <label className="text-lg text-white">Password</label>
             <div className="relative mt-2">
               <BiLock className="absolute left-3 top-3 text-gray-400" size={20} />
-              <input ref={refs.password} type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} placeholder="Enter Password" className={`${inputClass} ${errors.password ? "border-2 border-red-500" : ""}`} />
+              <input
+                ref={refs.password}
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter Password"
+                className={getInputClass("password")}
+              />
               <button type="button" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition duration-300" onClick={() => setShowPassword(!showPassword)}>
                 {showPassword ? <BiHide size={20} /> : <BiShow size={20} />}
               </button>
@@ -198,69 +278,33 @@ const Register = () => {
             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
           </div>
 
-          {/* Role */}
-          <div className="relative">
-            <label className="text-lg text-white">Role</label>
-            <select ref={refs.role} name="role" value={formData.role} onChange={handleChange} className={`${inputClass} ${errors.role ? "border-2 border-red-500" : ""}`}>
-              <option value="">Select Role</option>
-              <option value="student">Student</option>
-              <option value="facilitator">Facilitator</option>
-              <option value="coordinator">Coordinator</option>
-            </select>
-          </div>
+          <SelectInput refProp={refs.role} name="role" label="Role" options={["student", "facilitator", "coordinator"]} />
+          <SelectInput refProp={refs.organization_unit} name="organization_unit" label="Organization" options={["school", "university"]} />
 
-          {/* Organization */}
-          <div className="relative">
-            <label className="text-lg text-white">Organization</label>
-            <select ref={refs.organization_unit} name="organization_unit" value={formData.organization_unit} onChange={handleChange} className={`${inputClass} ${errors.organization_unit ? "border-2 border-red-500" : ""}`}>
-              <option value="">Select Organization</option>
-              <option value="school">School</option>
-              <option value="university">University</option>
-            </select>
-          </div>
-
-          {/* Conditional School */}
+          {/* Conditional School Fields */}
           {formData.organization_unit === "school" && (
             <>
-              <input ref={refs.school_name} type="text" name="school_name" value={formData.school_name} onChange={handleChange} placeholder="School Name" className={`${inputClass} ${errors.school_name ? "border-2 border-red-500" : ""}`} />
-              <input ref={refs.zone} type="text" name="zone" value={formData.zone} onChange={handleChange} placeholder="Zone" className={`${inputClass} ${errors.zone ? "border-2 border-red-500" : ""}`} />
-              <input ref={refs.district} type="text" name="district" value={formData.district} onChange={handleChange} placeholder="District" className={`${inputClass} ${errors.district ? "border-2 border-red-500" : ""}`} />
+              <TextInput refProp={refs.school_name} name="school_name" label="School Name" placeholder="School Name" />
+              <TextInput refProp={refs.zone} name="zone" label="Zone" placeholder="Zone" />
+              <TextInput refProp={refs.district} name="district" label="District" placeholder="District" />
             </>
           )}
 
-          {/* Conditional University */}
+          {/* Conditional University Fields */}
           {formData.organization_unit === "university" && (
             <>
-              <input ref={refs.university_name} type="text" name="university_name" value={formData.university_name} onChange={handleChange} placeholder="University Name" className={`${inputClass} ${errors.university_name ? "border-2 border-red-500" : ""}`} />
-              <input ref={refs.faculty_name} type="text" name="faculty_name" value={formData.faculty_name} onChange={handleChange} placeholder="Faculty Name" className={`${inputClass} ${errors.faculty_name ? "border-2 border-red-500" : ""}`} />
+              <SelectInput refProp={refs.university_name} name="university_name" label="University Name" options={universities} />
+              <SelectInput refProp={refs.faculty_name} name="faculty_name" label="Faculty Name" options={faculties[formData.university_name] || []} disabled={!formData.university_name} />
             </>
           )}
 
-          {/* Address */}
-          <div className="relative">
-            <label className="text-lg text-white">Address</label>
-            <div className="flex items-center mt-2">
-              <BiMap className="absolute left-3 text-gray-400" size={20} />
-              <input ref={refs.address} type="text" name="address" value={formData.address} onChange={handleChange} placeholder="Enter Address" className={inputClass} />
-            </div>
-          </div>
+          <TextInput refProp={refs.address} name="address" label="Address" placeholder="Enter Address" icon={<BiMap className="absolute left-3 text-gray-400" size={20} />} />
+          <TextInput refProp={refs.contact} name="contact" label="Contact" placeholder="10-digit Contact" icon={<BiPhone className="absolute left-3 text-gray-400" size={20} />} maxLength={10} />
 
-          {/* Contact */}
-          <div className="relative">
-            <label className="text-lg text-white">Contact</label>
-            <div className="flex items-center mt-2">
-              <BiPhone className="absolute left-3 text-gray-400" size={20} />
-              <input ref={refs.contact} type="text" name="contact" value={formData.contact} onChange={handleChange} placeholder="10-digit Contact" maxLength={10} className={`${inputClass} ${errors.contact ? "border-2 border-red-500" : ""}`} />
-            </div>
-            {errors.contact && <p className="text-red-500 text-sm mt-1">{errors.contact}</p>}
-          </div>
-
-          {/* Submit Button */}
           <button type="submit" disabled={loading} className={`w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold transition duration-300 ${loading ? "opacity-50 cursor-not-allowed" : "hover:scale-105 hover:shadow-lg hover:bg-green-600"}`}>
             {loading ? "Registering..." : "Register"}
           </button>
 
-          {/* Login Link */}
           <p className="text-white text-center mt-3">
             Already have an account? <span onClick={() => navigate("/login")} className="text-emerald-400 cursor-pointer hover:underline hover:text-green-400 transition duration-300">Login here</span>
           </p>
