@@ -1,6 +1,9 @@
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt
 from app import mongo
+from bson import ObjectId
+
+
 
 coordinator_bp = Blueprint("coordinator_bp", __name__)
 
@@ -245,3 +248,100 @@ def get_schools_by_zone(zone_name):
         "zone": zone_name,
         "items": schools_list
     }), 200
+
+@coordinator_bp.route("/faculty/<university_name>/<faculty_name>/events", methods=["GET"])
+@jwt_required()
+def get_faculty_events(university_name, faculty_name):
+    """Get events under a specific faculty of a university."""
+    faculty = mongo.db.faculties.find_one({
+        "university_name": {"$regex": f"^{university_name}$", "$options": "i"},
+        "faculty_name": {"$regex": f"^{faculty_name}$", "$options": "i"},
+        
+    })
+
+    print({"university_name": university_name, "faculty_name": faculty_name})
+
+    if not faculty:
+        return jsonify({"error": "Faculty not found"}), 404
+
+    events = list(mongo.db.events.find({
+        "University": faculty["university_name"],
+        "faculty": faculty["faculty_name"]
+    }, {"_id": 1, "name": 1,"date": 1, "description": 1,"venue": 1}))
+    print({"events":events})
+    return jsonify({
+        "university": university_name,
+        "faculty": faculty_name,
+        "events": [
+            {"id": str(e["_id"]), "title": e["name"],"location": e.get("venue", ""), "date": e.get("date"), "description": e.get("description", "")}
+            for e in events
+        ]
+    }), 200
+
+
+@coordinator_bp.route("/faculty/<university_name>/<faculty_name>/users", methods=["GET"])
+@jwt_required()
+def get_faculty_users(university_name, faculty_name):
+    """Get users under a specific faculty of a university."""
+    users = list(mongo.db.users.find({
+        "university_name": {"$regex": f"^{university_name}$", "$options": "i"},
+        "faculty_name": {"$regex": f"^{faculty_name}$", "$options": "i"}
+    }, {"_id": 1, "name": 1, "email": 1}))
+
+    return jsonify({
+        "university": university_name,
+        "faculty": faculty_name,
+        "users": [
+            {"id": str(u["_id"]), "name": u["name"], "email": u.get("email", "")}
+            for u in users
+        ]
+    }), 200
+
+
+@coordinator_bp.route("/school/<zone>/<school_name>/events", methods=["GET"])
+@jwt_required()
+def get_school_events(zone, school_name):
+    """Get events under a specific school within a zone."""
+    school = mongo.db.schools.find_one({
+        "zone": {"$regex": f"^{zone}$", "$options": "i"},
+        "school_name": {"$regex": f"^{school_name}$", "$options": "i"}
+    })
+
+    if not school:
+        return jsonify({"error": "School not found"}), 404
+
+    events = list(mongo.db.events.find({
+        "zone": school["zone"],
+        "school_name": school["school_name"]
+    }, {"_id": 1, "title": 1, "date": 1, "location": 1}))
+
+    return jsonify({
+        "zone": zone,
+        "school": school_name,
+        "events": [
+            {"id": str(e["_id"]), "title": e["title"], "date": e.get("date"), "location": e.get("location", "")}
+            for e in events
+        ]
+    }), 200
+
+
+@coordinator_bp.route("/school/<zone>/<school_name>/users", methods=["GET"])
+@jwt_required()
+def get_school_users(zone, school_name):
+    """Get users under a specific school within a zone."""
+    users = list(mongo.db.users.find({
+        "zone": {"$regex": f"^{zone}$", "$options": "i"},
+        "school_name": {"$regex": f"^{school_name}$", "$options": "i"}
+    }, {"_id": 1, "name": 1, "email": 1}))
+
+    return jsonify({
+        "zone": zone,
+        "school": school_name,
+        "users": [
+            {"id": str(u["_id"]), "name": u["name"], "email": u.get("email", "")}
+            for u in users
+        ]
+    }), 200
+
+
+   

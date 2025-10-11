@@ -80,9 +80,10 @@ const CoordinatorActionCard = () => {
               <CardActionArea
                 onClick={() => {
                   if (coordinator.organizationUnit === "university") {
-                    navigate(`/faculty/${item._id}/events`);
+                    navigate( `/faculty/${encodeURIComponent(coordinator.universityName)}/${encodeURIComponent(item.faculty_name)}/events`);
+                    
                   } else {
-                    navigate(`/school/${item._id}/events`);
+                    navigate(`/school/${encodeURIComponent(coordinator.zone)}/${encodeURIComponent(item.school_name)}/events`);
                   }
                 }}
                 sx={{
