@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState , forwardRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import CoordinatorSidebar from "@/components/Coordinator/CoordinatorSidebar";
 import Header from "@/components/Admin/Header";
@@ -10,6 +10,28 @@ import Divider from "@mui/material/Divider";
 import CircularProgress from "@mui/material/CircularProgress";
 import Button from "@mui/material/Button";
 import { DataGrid } from "@mui/x-data-grid";
+import Stack from "@mui/material/Stack"; // ✅ for horizontal button layout
+import IconButton from "@mui/material/IconButton";
+import { Edit, Delete, Visibility } from "@mui/icons-material"; // ✅ MUI icons
+import {
+  FormControl,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+
+  Select,
+  MenuItem,
+  Slide,
+  TextField,
+  InputAdornment,
+} from "@mui/material";
+
+import CreateUniversityEvent from "../../components/Admin/CreateUniversityEvent";
+import CreateSchoolEvent from "../../components/Admin/CreateSchoolEvent";
+const Transition = forwardRef(function Transition(props, ref) {
+  return <Slide direction="down" ref={ref} {...props} />;
+});
 
 const CoordinatorUnitView = () => {
   const navigate = useNavigate();
@@ -17,37 +39,123 @@ const CoordinatorUnitView = () => {
   const [events, setEvents] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [unitType, setUnitType] = useState(""); // 'faculty' or 'school'
-    
-  const eventColumns = [
-  { field: "title", headerName: "Event Title", flex: 2 },
-  { field: "date", headerName: "Date", flex: 1 },
-  { field: "location", headerName: "Venue", flex: 2 },
-];
+  const [unitType, setUnitType] = useState("");
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [schoolFormOpen, setSchoolFormOpen] = useState(false);
+  const [universityFormOpen, setUniversityFormOpen] = useState(false);
+//const [events, setEvents] = useState([]);
+const [selectedEvent, setSelectedEvent] = useState(null);
+const [editMode, setEditMode] = useState(false);
+const [viewMode, setViewMode] = useState(false);
 
+
+
+  // ✅ Define event table columns
+  const eventColumns = [
+    { field: "title", headerName: "Event Title", flex: 2 },
+    { field: "date", headerName: "Date", flex: 1 },
+    { field: "location", headerName: "Venue", flex: 2 },
+    {
+      field: "actions",
+      headerName: "Actions",
+      flex: 1.5,
+      sortable: false,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          <IconButton
+            color="primary"
+            size="small"
+            onClick={() => handleViewEvent(event)}
+          >
+            <Visibility />
+          </IconButton>
+          <IconButton
+            color="secondary"
+            size="small"
+            onClick={() => handleEditEvent(event)}
+          >
+            <Edit />
+          </IconButton>
+          <IconButton
+            color="error"
+            size="small"
+             onClick={() => handleDeleteEvent(event.id)}
+          >
+            <Delete />
+          </IconButton>
+        </Stack>
+      ),
+    },
+  ];
+
+
+  const handleEditEvent = (event) => {
+  setSelectedEvent(event);
+  setEditMode(true);
+};
+
+const handleViewEvent = (event) => {
+  setSelectedEvent(event);
+  setViewMode(true);
+};
+
+const handleDeleteEvent = async (eventId) => {
+  if (window.confirm("Are you sure you want to delete this event?")) {
+    await fetch(`${API_BASE}/events/${eventId}`, { method: "DELETE" });
+    setEvents(events.filter((e) => e.id !== eventId));
+  }
+};
+
+  // ✅ Action Handlers
+  const handleAdd = () => {
+    navigate("/coordinator/add-event");
+  };
+
+  const handleView = (row) => {
+    navigate(`/coordinator/event/${row.id}`); // customize route as needed
+  };
+
+  const handleEdit = (row) => {
+    navigate(`/coordinator/edit-event/${row.id}`);
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to delete this event?")) {
+      setEvents((prev) => prev.filter((event, index) => index !== id));
+      // optional: also call DELETE API here
+    }
+  };
+     const handleCreateClick = () => {
+    setCategoryDialogOpen(true);
+  };
+
+    const handleCategorySelect = (category) => {
+    setCategoryDialogOpen(false);
+    if (category === "School") setSchoolFormOpen(true);
+    if (category === "University") setUniversityFormOpen(true);
+  };
   useEffect(() => {
     const token = localStorage.getItem("token");
     const organizationUnit = localStorage.getItem("organization_unit");
 
-    console.log("===== EventsAndUsers Debug =====");
-    console.log("Token:", token);
-    console.log("Organization Unit:", organizationUnit);
-    console.log("Params:", { faculty_name, university_name, school_name, zone });
     if (!token || !organizationUnit) {
       console.warn("Missing token or organization unit.");
       return;
     }
 
+     const handleCreateClick = () => {
+    setCategoryDialogOpen(true);
+  };
+
     const type = organizationUnit.toLowerCase();
     setUnitType(type);
 
+    
     const baseUrl = "http://localhost:5000";
-
     let eventsUrl = "";
     let usersUrl = "";
 
     if (type === "university") {
-      // Faculty route
       eventsUrl = `${baseUrl}/faculty/${encodeURIComponent(
         university_name
       )}/${encodeURIComponent(faculty_name)}/events`;
@@ -55,7 +163,6 @@ const CoordinatorUnitView = () => {
         university_name
       )}/${encodeURIComponent(faculty_name)}/users`;
     } else {
-      // School route
       eventsUrl = `${baseUrl}/school/${encodeURIComponent(
         zone
       )}/${encodeURIComponent(school_name)}/events`;
@@ -78,8 +185,6 @@ const CoordinatorUnitView = () => {
       })
       .catch((err) => console.error("Error fetching data:", err))
       .finally(() => setLoading(false));
-      console.log("Fetched Events:", events);
-      console.log("Fetched Users:", users); 
   }, [faculty_name, school_name, university_name, zone]);
 
   if (loading)
@@ -94,13 +199,17 @@ const CoordinatorUnitView = () => {
       ? `${faculty_name} (${university_name})`
       : `${school_name} (${zone})`;
 
+  const eventRows = events.map((e, index) => ({
+    id: index,
+    title: e.title,
+    date: e.date,
+    location: e.location || "",
+  }));
 
-      const eventRows = events.map((e, index) => ({
-  id: index,  // DataGrid needs a unique `id`
-  title: e.title,
-  date: e.date,
-  location: e.location || "",
-}));
+   const handleSubmitForm = (formData) => {
+    console.log("Form Submitted:", formData);
+    // TODO: call API to save event
+  };
 
   return (
     <div>
@@ -110,6 +219,7 @@ const CoordinatorUnitView = () => {
           <CoordinatorSidebar />
 
           <div className="flex-1 p-6">
+            {/* ✅ Top section with title + buttons */}
             <Box
               sx={{
                 display: "flex",
@@ -119,47 +229,48 @@ const CoordinatorUnitView = () => {
               }}
             >
               <Typography variant="h4">Events — {unitTitle}</Typography>
-              <Button variant="outlined" onClick={() => navigate(-1)}>
-                Back
-              </Button>
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                   onClick={handleCreateClick}
+                              
+                              sx={{
+                                backgroundColor: "green",
+                                "&:hover": { backgroundColor: "darkgreen" },
+                                color: "white",
+                              }}
+                >
+                  Add Event
+                </Button >
+
+          
+                <Button variant="outlined" onClick={() => navigate(-1)}>
+                  Back
+                </Button>
+              </Box>
             </Box>
 
-            {/* Events Section */}
+            {/* ✅ Events Table */}
             <Typography variant="h5" sx={{ mb: 2 }}>
               Events
             </Typography>
 
             {events.length > 0 ? (
-              events.map((event, index) => (
-                <Card key={index} sx={{ mb: 2 }}>
-                  <CardContent>
-                    <Typography variant="h6">{event.title}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {event.date}{" "}
-                      {event.location ? `— ${event.location}` : ""}
-                    </Typography>
-                  </CardContent>
-                </Card>
-
-                
-              ))
+              <div style={{ height: 400, width: "100%" }}>
+                <DataGrid
+                  rows={eventRows}
+                  columns={eventColumns}
+                  pageSize={5}
+                  rowsPerPageOptions={[5, 10]}
+                  disableSelectionOnClick
+                />
+              </div>
             ) : (
-              <Typography color="text.secondary">No events found.</Typography>
+              <Typography color="text.secondary">
+                No events found.
+              </Typography>
             )}
-
-{events.length > 0 ? (
-  <div style={{ height: 400, width: "100%" }}>
-    <DataGrid
-      rows={eventRows}
-      columns={eventColumns}
-      pageSize={5}
-      rowsPerPageOptions={[5, 10]}
-      disableSelectionOnClick
-    />
-  </div>
-) : (
-  <Typography color="text.secondary">No events found.</Typography>
-)}
 
             <Divider sx={{ my: 3 }} />
 
@@ -184,6 +295,60 @@ const CoordinatorUnitView = () => {
                 No registered users found.
               </Typography>
             )}
+
+                      <Dialog
+  open={categoryDialogOpen}
+  onClose={() => setCategoryDialogOpen(false)}
+  TransitionComponent={Transition}
+  fullWidth
+  maxWidth="sm" // can be 'xs', 'sm', 'md', 'lg', 'xl' for predefined widths
+  PaperProps={{
+    sx: {
+      width: "500px",  // custom width
+      maxWidth: "80%", // make it responsive
+      padding: 2,
+    },
+  }}
+>
+  <DialogTitle>Select Event Category</DialogTitle>
+  <DialogContent>
+    <FormControl fullWidth>
+      <Select
+        defaultValue=""
+        onChange={(e) => handleCategorySelect(e.target.value)}
+      >
+        <MenuItem value="School">School</MenuItem>
+        <MenuItem value="University">University</MenuItem>
+      </Select>
+    </FormControl>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setCategoryDialogOpen(false)} color="error">
+      Cancel
+    </Button>
+  </DialogActions>
+</Dialog>
+
+
+          {/* School Event Form */}
+          {/* School Event Form */}
+<CreateSchoolEvent
+  open={schoolFormOpen}
+  onClose={() => setSchoolFormOpen(false)}
+  onSubmit={handleSubmitForm}
+  zone={zone}
+  school={school_name}
+/>
+
+{/* University Event Form */}
+<CreateUniversityEvent
+  open={universityFormOpen}
+  onClose={() => setUniversityFormOpen(false)}
+  onSubmit={handleSubmitForm}
+  university={university_name}
+  faculty={faculty_name}
+/>
+
           </div>
         </div>
       </main>
