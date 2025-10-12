@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
-import Header from '@/components/Admin/header';
-import UserSidebar from '@/components/User/UserSidebar';
-import AddEmailAddress from '@/components/User/AddEmailAddress';
-import ProfileImageUploader from '@/components/User/ProfileImageUploader';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+import Header from "@/components/Admin/header";
+import UserSidebar from "@/components/User/UserSidebar";
+import AddEmailAddress from "@/components/User/AddEmailAddress";
+import ProfileImageUploader from "@/components/User/ProfileImageUploader";
 
 function ChangePasswordPage() {
   const [user, setUser] = useState(null);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) return;
 
     const decoded = jwtDecode(token);
@@ -24,7 +24,8 @@ function ChangePasswordPage() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
-        const parsed = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+        const parsed =
+          typeof res.data === "string" ? JSON.parse(res.data) : res.data;
         setUser(parsed);
       })
       .catch((err) => {
@@ -36,17 +37,17 @@ function ChangePasswordPage() {
 
   const handleChangePassword = async () => {
     if (newPassword.length < 6) {
-      setMessage('Password should be at least 6 characters.');
+      setMessage("Password should be at least 6 characters.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setMessage('Passwords do not match.');
+      setMessage("Passwords do not match.");
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const userId = user._id?.$oid || user._id;
 
       await axios.put(
@@ -59,13 +60,13 @@ function ChangePasswordPage() {
         }
       );
 
-      setMessage('Password changed successfully.');
-      setNewPassword('');
-      setConfirmPassword('');
+      setMessage("Password changed successfully.");
+      setNewPassword("");
+      setConfirmPassword("");
     } catch (err) {
       console.error(err);
       const errMsg =
-        err.response?.data?.message || 'Failed to change password.';
+        err.response?.data?.message || "Failed to change password.";
       setMessage(errMsg);
     }
   };
@@ -73,13 +74,13 @@ function ChangePasswordPage() {
   const formatJoinDate = (dateStr) => {
     try {
       const date = new Date(dateStr);
-      return date.toLocaleDateString('en-GB', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
+      return date.toLocaleDateString("en-GB", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
       });
     } catch {
-      return 'Unknown';
+      return "Unknown";
     }
   };
 
@@ -95,7 +96,10 @@ function ChangePasswordPage() {
                 Welcome, {user.fullName}
               </h2>
               <p className="text-sm text-gray-500 mb-6">
-                Joined: {formatJoinDate(user.joinedDate)}
+                Joined:{" "}
+                {user.joinedDate
+                  ? new Date(user.joinedDate.$date).toLocaleDateString()
+                  : "Unknown"}
               </p>
 
               <div className="max-w-5.5xl mx-auto mt-6">
@@ -105,7 +109,9 @@ function ChangePasswordPage() {
                     <div className="flex items-center space-x-4">
                       <ProfileImageUploader user={user} setUser={setUser} />
                       <div>
-                        <h2 className="text-xl font-semibold">{user.fullName}</h2>
+                        <h2 className="text-xl font-semibold">
+                          {user.fullName}
+                        </h2>
                         <p className="text-gray-500">{user.email}</p>
                       </div>
                     </div>
@@ -144,9 +150,9 @@ function ChangePasswordPage() {
                     {message && (
                       <p
                         className={`mt-2 text-sm ${
-                          message.includes('success')
-                            ? 'text-green-600'
-                            : 'text-red-600'
+                          message.includes("success")
+                            ? "text-green-600"
+                            : "text-red-600"
                         }`}
                       >
                         {message}

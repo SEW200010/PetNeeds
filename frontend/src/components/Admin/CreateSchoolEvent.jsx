@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 
 
-const CreateSchoolEvent = ({ open, onClose, onSubmit }) => {
+const CreateSchoolEvent = ({ open, onClose, onSubmit, zone, school }) => {
   const [formData, setFormData] = useState({
     name: "",
     date: "",
@@ -29,8 +29,8 @@ const CreateSchoolEvent = ({ open, onClose, onSubmit }) => {
     status: "Drafted",
     facilitator: [],
     district: "",
-    zone: "",
-    school: "",
+    zone: zone || "",
+    school: school || "",
     participants: { registered_users: [] },
     eventMedia: [],
     modules: [] // modules with { moduleName, enrollmentKey }
@@ -45,6 +45,14 @@ const CreateSchoolEvent = ({ open, onClose, onSubmit }) => {
       .catch((err) => console.error("Error fetching facilitators:", err));
   }, []);
 
+   useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      zone: zone || "",
+      school: school || "",
+    }));
+  }, [zone, school]);
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
 
