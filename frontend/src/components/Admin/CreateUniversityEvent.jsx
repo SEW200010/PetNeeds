@@ -14,8 +14,12 @@ import {
   Typography 
 } from "@mui/material";
 
-const CreateUniversityEvent = ({ open, onClose, onSubmit }) => {
-  const [formData, setFormData] = useState({
+const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty,    }) => {
+
+
+
+
+  const [formData, setFormData] = useState( {
     name: "",
     date: "",
     description: "",
@@ -24,8 +28,8 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit }) => {
     venue: "",
     status: "Drafted",
     facilitator: [],
-    University: "",
-    faculty: "",
+    University: university || "",
+    faculty: faculty || "",
     participants: { registered_users: [] },
     eventMedia: [],
     modules: [] // modules with { moduleName, enrollmentKey }
@@ -34,6 +38,15 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit }) => {
   const [facilitators, setFacilitators] = useState([]);
   const [formError, setFormError] = useState("");
 
+  useEffect(() => {
+  setFormData((prev) => ({
+    ...prev,
+    University: university || "",
+    faculty: faculty || "",
+  }));
+}, [university, faculty]);
+
+
   // Fetch facilitators
   useEffect(() => {
     fetch("http://localhost:5000/facilitators")
@@ -41,6 +54,7 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit }) => {
       .then((data) => setFacilitators(data))
       .catch((err) => console.error("Error fetching facilitators:", err));
   }, []);
+
 
   const moduleList = Array.from({ length: 16 }, (_, i) => `Module ${i + 1}`);
 
