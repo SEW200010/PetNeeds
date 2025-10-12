@@ -27,9 +27,10 @@ const menuItems = [
   { icon: LogOut, label: "Log Out", hasChevron: false },
 ];
 
-export default function UserSidebar({ date, setDate, eventDates }) {
+export default function UserSidebar({ date = new Date(), setDate = () => {}, eventDates = [] }) {
   const navigate = useNavigate();
   const [user, setUser] = useState({ fullName: "", email: "" });
+  const [sidebarEventDates, setSidebarEventDates] = useState([]);
   const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
@@ -48,6 +49,16 @@ export default function UserSidebar({ date, setDate, eventDates }) {
           setUser({ fullName: res.data.fullName, email: res.data.email })
         )
         .catch((err) => console.error("Failed to fetch user info", err));
+
+      // Fetch upcoming events for calendar highlights
+      axios
+        .get(`${API}/upcoming-events`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => {
+          setSidebarEventDates([...new Set(res.data.map(e => new Date(e.date)))]);
+        })
+        .catch((err) => console.error("Failed to load upcoming events for calendar", err));
     } catch (err) {
       console.error("Failed to decode token", err);
     }
@@ -107,16 +118,24 @@ export default function UserSidebar({ date, setDate, eventDates }) {
           <Calendar
             onChange={setDate}
             value={date}
-            tileClassName={({ date: day, view }) =>
-              view === "month" &&
-              Array.isArray(eventDates) &&
-              eventDates.find((d) => d.toDateString() === day.toDateString())
-                ? "highlighted-day"
-                : null
-            }
+            tileClassName={({ date: day, view }) => {
+              const datesToHighlight = eventDates.length > 0 ? eventDates : sidebarEventDates;
+              return view === "month" &&
+                Array.isArray(datesToHighlight) &&
+                datesToHighlight.find((d) => d.toDateString() === day.toDateString())
+                  ? "highlighted-day"
+                  : null;
+            }}
           />
         </div>
       </div>
+      <style>{`
+        .highlighted-day {
+          background-color: #ffeb3b !important;
+          border-radius: 50% !important;
+          color: black !important;
+        }
+      `}</style>
     </main>
   );
 }

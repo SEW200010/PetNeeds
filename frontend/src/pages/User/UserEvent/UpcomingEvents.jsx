@@ -9,7 +9,9 @@ import { jwtDecode } from "jwt-decode"; // ✅ import jwtDecode
 
 export default function OngoingEvents() {
   const [events, setEvents] = useState([]);
+  const [eventDates, setEventDates] = useState([]);
   const [user, setUser] = useState(null); // store user info
+  const [selectedDate, setSelectedDate] = useState(null); // for calendar date selection
   const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
@@ -39,7 +41,10 @@ export default function OngoingEvents() {
         .get(`${API}/upcoming-events`, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        .then((res) => setEvents(res.data))
+        .then((res) => {
+          setEvents(res.data);
+          setEventDates([...new Set(res.data.map(e => new Date(e.date)))]);
+        })
         .catch((err) => console.error("Failed to load ongoing events", err));
     } catch (err) {
       console.error("Failed to decode token", err);
@@ -53,6 +58,14 @@ export default function OngoingEvents() {
       )
     );
   };
+
+  // Filter events based on selected date
+  const filteredEvents = selectedDate
+    ? events.filter(event => {
+        const eventDate = new Date(event.date);
+        return eventDate.toDateString() === selectedDate.toDateString();
+      })
+    : events;
 
   if (!user) return <div className="mt-10 text-center">Loading...</div>;
 
