@@ -121,51 +121,6 @@ def get_events_by_zone_name(zone_name):
 
 
 from bson import ObjectId
-
-@coordinator_bp.route("/zone/<zone_id>/events", methods=["GET"])
-@jwt_required()
-def get_events_by_zone_id(zone_id):
-    claims = get_jwt()
-    role = claims.get("role", "")
-
-    # ✅ Only coordinators can access
-    if role != "coordination":
-        return jsonify({"error": "Access denied"}), 403
-
-    # ✅ Validate zone_id and find the zone
-    try:
-        zone = mongo.db.zones.find_one({"_id": ObjectId(zone_id)})
-    except:
-        return jsonify({"error": "Invalid zone ID"}), 400
-
-    if not zone:
-        return jsonify({"error": f"No zone found with id '{zone_id}'"}), 404
-
-    # ✅ Fetch events linked to this zone
-    events = list(
-        mongo.db.events.find(
-            {"zone_id": str(zone["_id"])},   # assuming events store zone_id as string
-            {"_id": 1, "title": 1, "date": 1, "location": 1}
-        )
-    )
-
-    events_list = [
-        {
-            "id": str(event["_id"]),
-            "title": event["title"],
-            "date": event.get("date"),
-            "location": event.get("location"),
-        }
-        for event in events
-    ]
-
-    return jsonify({
-        "zone": {"id": str(zone["_id"]), "name": zone["name"]},
-        "events": events_list
-    }), 200
-
-
-
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt
 from bson import ObjectId
@@ -257,7 +212,6 @@ def get_faculty_events(university_name, faculty_name):
     faculty = mongo.db.faculties.find_one({
         "university_name": {"$regex": f"^{university_name}$", "$options": "i"},
         "faculty_name": {"$regex": f"^{faculty_name}$", "$options": "i"},
-        
     })
 
     print({"university_name": university_name, "faculty_name": faculty_name})
@@ -265,19 +219,49 @@ def get_faculty_events(university_name, faculty_name):
     if not faculty:
         return jsonify({"error": "Faculty not found"}), 404
 
-    events = list(mongo.db.events.find({
-        "University": faculty["university_name"],
-        "faculty": faculty["faculty_name"]
-    }, {"_id": 1, "name": 1,"date": 1, "description": 1,"venue": 1}))
-    print({"events":events})
+    # ✅ Fetch events properly (indented inside function)
+    events = list(mongo.db.events.find(
+        {
+            "University": faculty["university_name"],
+            "faculty": faculty["faculty_name"]
+        },
+        {
+            "_id": 1,
+            "name": 1,
+            "date": 1,
+            "description": 1,
+            "venue": 1,
+            "start_time": 1,
+            "end_time": 1,
+            "facilitator": 1,
+            "modules": 1  # ✅ correct key name
+        }
+    ))
+
+    # ✅ Format data for JSON response
+    formatted_events = []
+    for e in events:
+        formatted_events.append({
+            "id": str(e["_id"]),
+            "title": e.get("name", ""),
+            "location": e.get("venue", ""),
+            "date": e.get("date", ""),
+            "description": e.get("description", ""),
+            "start_time": e.get("start_time", ""),
+            "end_time": e.get("end_time", ""),
+            "facilitator": [str(f) for f in e.get("facilitator", [])],
+            "modules": e.get("modules", [])
+        })
+
+    print({"events": formatted_events})
     return jsonify({
         "university": university_name,
         "faculty": faculty_name,
-        "events": [
-            {"id": str(e["_id"]), "title": e["name"],"location": e.get("venue", ""), "date": e.get("date"), "description": e.get("description", "")}
-            for e in events
-        ]
+        "events": formatted_events
     }), 200
+
+
+
 
 
 @coordinator_bp.route("/faculty/<university_name>/<faculty_name>/users", methods=["GET"])
@@ -440,4 +424,45 @@ def edit_user(user_id):
 
     return jsonify({"message": "User updated successfully"}), 200
 
-   
+   # -------------------------
+# ✅ Delete Event by ID (University or School)
+# -------------------------
+@coordinator_bp.route("/events/<event_id>", methods=["DELETE"])
+@jwt_required()
+def delete_event(event_id):
+    """Delete an event by its ID."""
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    # Only coordinators can delete events
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    try:
+        event_obj_id = ObjectId(event_id)
+    except:
+        return jsonify({"error": "Invalid event ID"}), 400
+
+    # Find the event before deleting (for logging or returning)
+    event = mongo.db.events.find_one({"_id": event_obj_id})
+    if not event:
+        return jsonify({"error": "Event not found"}), 404
+
+    # Delete the event
+    result = mongo.db.events.delete_one({"_id": event_obj_id})
+    if result.deleted_count == 1:
+        # Optionally, you can return the deleted event data
+        deleted_event = {
+            "id": str(event["_id"]),
+            "title": event.get("title") or event.get("name"),
+            "location": event.get("location") or event.get("venue"),
+            "date": event.get("date"),
+            "description": event.get("description"),
+            "start_time": event.get("start_time"),
+            "end_time": event.get("end_time"),
+            "facilitator": [str(f) for f in event.get("facilitator", [])],
+            "modules": event.get("modules", [])
+        }
+        return jsonify({"message": "Event deleted successfully", "deleted_event": deleted_event}), 200
+    else:
+        return jsonify({"error": "Failed to delete event"}), 500

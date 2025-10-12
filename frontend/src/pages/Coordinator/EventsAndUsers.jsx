@@ -11,20 +11,13 @@ import Stack from "@mui/material/Stack";
 import IconButton from "@mui/material/IconButton";
 import { Edit, Delete, Visibility } from "@mui/icons-material";
 import {
-  FormControl,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Select,
-  MenuItem,
   Slide,
 } from "@mui/material";
 
 import CreateUniversityEvent from "../../components/Admin/CreateUniversityEvent";
-import CreateSchoolEvent from "../../components/Admin/CreateSchoolEvent";
 import EditUniversityEvent from "../../components/Admin/EditUniversityEvent";
 import UserForm from "../../components/Admin/UserForm";
+import ViewEventDialog from "../../components/Admin/ViewEventDialog";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
@@ -41,8 +34,6 @@ const CoordinatorUnitView = () => {
   const [unitType, setUnitType] = useState("");
   const [error, setError] = useState(null);
 
-  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
-  const [schoolFormOpen, setSchoolFormOpen] = useState(false);
   const [universityFormOpen, setUniversityFormOpen] = useState(false);
   const [universityEditOpen, setUniversityEditOpen] = useState(false);
 
@@ -54,6 +45,9 @@ const CoordinatorUnitView = () => {
   const [usersCoordinator, setUsersCoordinator] = useState([]);
   const [usersFacilitator, setUsersFacilitator] = useState([]);
   const [usersStudent, setUsersStudent] = useState([]);
+
+  const [deletedEvent, setDeletedEvent] = useState(null); 
+  const [viewEventOpen, setViewEventOpen] = useState(false);
 
   const userColumns = [
     { field: "name", headerName: "Name", flex: 2 },
@@ -105,33 +99,40 @@ const CoordinatorUnitView = () => {
     },
   ];
 
-  const handleCreateClick = () => {
-    document.activeElement?.blur();
-    setCategoryDialogOpen(true);
-  };
+  const handleDeleteEvent = async (eventId) => {
+  const eventToDelete = events.find((e) => e.id === eventId);
+  if (!eventToDelete) return;
 
-  const handleCategorySelect = (category) => {
-    setCategoryDialogOpen(false);
-    if (category === "School") setSchoolFormOpen(true);
-    if (category === "University") setUniversityFormOpen(true);
-  };
+  if (!window.confirm(`Are you sure you want to delete the event: ${eventToDelete.title}?`)) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/events/${eventId}`, { method: "DELETE" });
+    if (res.ok) {
+      // Remove from state
+      setEvents((prev) => prev.filter((e) => e.id !== eventId));
+
+      // Store deleted event for later use
+      setDeletedEvent(eventToDelete);
+
+      // Optional: callback
+      console.log("Deleted event:", eventToDelete);
+    }
+  } catch (err) {
+    console.error("Error deleting event:", err);
+  }
+};
 
   const handleEditEvent = (row) => {
     setSelectedEvent(row);
     if (unitType === "university") setUniversityEditOpen(true);
   };
 
-  const handleViewEvent = (event) => alert(`Viewing event: ${event.title}`);
-
-  const handleDeleteEvent = async (eventId) => {
-    if (!window.confirm("Are you sure you want to delete this event?")) return;
-    try {
-      const res = await fetch(`${API_BASE}/events/${eventId}`, { method: "DELETE" });
-      if (res.ok) setEvents((prev) => prev.filter((e) => e.id !== eventId));
-    } catch (err) {
-      console.error("Error deleting event:", err);
-    }
+  // Update handleViewEvent
+  const handleViewEvent = (event) => {
+    setSelectedEvent(event);
+    setViewEventOpen(true);
   };
+
 
   const handleSubmitForm = (formData) => {
     setEvents((prev) => [...prev, { id: prev.length + 1, ...formData }]);
@@ -301,7 +302,7 @@ const CoordinatorUnitView = () => {
 
           <div className="flex-1 p-6">
             <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-              <Typography variant="h4">Events — {unitTitle}</Typography>
+              <Typography variant="h4">{unitTitle}</Typography>
               <Button variant="outlined" onClick={() => navigate(-1)}>
                 Back
               </Button>
@@ -316,7 +317,7 @@ const CoordinatorUnitView = () => {
                   backgroundColor: "green",
                   "&:hover": { backgroundColor: "darkgreen" },
                 }}
-                onClick={handleCreateClick}
+                onClick={() => setUniversityFormOpen(true)}  // directly open dialog
               >
                 Add Event
               </Button>
@@ -341,29 +342,12 @@ const CoordinatorUnitView = () => {
             {renderUserSection(usersFacilitator, "Facilitator", "blue")}
             {renderUserSection(usersStudent, "Student", "purple")}
 
-            {/* Dialogs */}
-            <Dialog
-              open={categoryDialogOpen}
-              onClose={() => setCategoryDialogOpen(false)}
-              TransitionComponent={Transition}
-              fullWidth
-              maxWidth="sm"
-            >
-              <DialogTitle>Select Event Category</DialogTitle>
-              <DialogContent>
-                <FormControl fullWidth>
-                  <Select defaultValue="" onChange={(e) => handleCategorySelect(e.target.value)}>
-                    <MenuItem value="School">School</MenuItem>
-                    <MenuItem value="University">University</MenuItem>
-                  </Select>
-                </FormControl>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setCategoryDialogOpen(false)} color="error">
-                  Cancel
-                </Button>
-              </DialogActions>
-            </Dialog>
+<ViewEventDialog
+  open={viewEventOpen}
+  onClose={() => setViewEventOpen(false)}
+  event={selectedEvent}
+/>
+         
 
             <UserForm
               open={userFormOpen}
@@ -373,14 +357,7 @@ const CoordinatorUnitView = () => {
               role={selectedUserRole}
             />
 
-            <CreateSchoolEvent
-              open={schoolFormOpen}
-              onClose={() => setSchoolFormOpen(false)}
-              onSubmit={handleSubmitForm}
-              zone={zone}
-              school={school_name}
-              initialData={selectedEvent}
-            />
+         
 
             <CreateUniversityEvent
               open={universityFormOpen}
@@ -390,13 +367,15 @@ const CoordinatorUnitView = () => {
               faculty={faculty_name}
               initialData={selectedEvent}
             />
+<EditUniversityEvent
+  open={universityEditOpen}
+  onClose={() => setUniversityEditOpen(false)}
+  initialData={selectedEvent}
+  onUpdate={() => {}}
+  university={university_name}   // ✅ add this
+  faculty={faculty_name}         // ✅ add this
+/>
 
-            <EditUniversityEvent
-              open={universityEditOpen}
-              onClose={() => setUniversityEditOpen(false)}
-              initialData={selectedEvent}
-              onUpdate={() => {}}
-            />
           </div>
         </div>
       </main>
