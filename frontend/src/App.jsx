@@ -30,6 +30,7 @@ import OngoingEvents from "./pages/User/UserEvent/OngoingEvents";
 import EventDetailsPage from "./pages/User/UserEvent/EventDetailsPage";
 import CompletedEventsPage from "./pages/User/UserEvent/CompletedEventsPage";
 import CoordinatorDashboard from "./pages/Coordinator/CoordinatorDashboard"; // ✅ new import
+import Facilitator from "./pages/Coordinator/FacilitatorVerify";  // ✅ new import
 import ZoneEventsPage from "./pages/Coordinator/ZoneEventsPage";
 // ✅ New import for Modules page
 import ModulesPage from "./pages/User/UserEvent/ModulesPage";
@@ -73,7 +74,7 @@ const App = () => {
         <Route path="/event/:eventId" element={<EventDetailsPage />} />
          <Route path="/modules/:eventId" element={<ModulesPage />} />
         <Route path="/zone/:zoneId/events" element={<ZoneEventsPage />} />
-
+        <Route path="/facilitator-verification" element={<Facilitator />} /> {/* ✅ New Facilitator Verification Route */}
         <Route path="/school/:id/events" element={<EventsAndUsers type="school" />} />
         <Route path="/faculty/:id/events" element={<EventsAndUsers type="faculty" />} />
 

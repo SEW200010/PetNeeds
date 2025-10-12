@@ -22,7 +22,10 @@ import "react-calendar/dist/Calendar.css";
 const menuItems = [
   { icon: User, label: "Dashboard", path: "/coordinator-dashboard", hasChevron: true },
   { icon: User, label: "My Profile", path: "/profile", hasChevron: true },
-  { icon: CalendarIcon, label: "Manage Events", path: "/manage-events", hasChevron: true },
+
+  { icon: CalendarIcon, label: "Facilitator Verification", path: "/facilitator-verification", hasChevron: true },
+  { icon: CalendarIcon, label: "Module Management", path: "/reports", hasChevron: true },
+  { icon: CalendarIcon, label: "Faculty Information", path: "/reports", hasChevron: true },
   { icon: CalendarIcon, label: "Coordinator Reports", path: "/reports", hasChevron: true },
   { icon: Settings, label: "Settings", hasChevron: true },
   { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },

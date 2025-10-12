@@ -466,3 +466,46 @@ def delete_event(event_id):
         return jsonify({"message": "Event deleted successfully", "deleted_event": deleted_event}), 200
     else:
         return jsonify({"error": "Failed to delete event"}), 500
+
+# -------------------------
+# ✅ Get Facilitators by University Name
+# -------------------------
+@coordinator_bp.route("/facilitators/<university_name>", methods=["GET"])
+@jwt_required()
+def get_facilitators_by_university(university_name):
+    """Fetch all facilitators belonging to a specific university."""
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    # Only coordinators can access
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    # Fetch facilitators
+    facilitators = list(
+        mongo.db.facilitators.find(
+            {"university_name": {"$regex": f"^{university_name}$", "$options": "i"}},  # case-insensitive
+            {"_id": 1, "fullname": 1, "email": 1, "faculty_name": 1,"isVerified":1,}
+        )
+    )
+
+    if not facilitators:
+        return jsonify({"error": f"No facilitators found for {university_name}"}), 404
+
+    facilitators_list = [
+        {
+            "id": str(f["_id"]),
+            "name": f.get("fullname", ""),
+            "email": f.get("email", ""),
+            "faculty": f.get("faculty_name", ""),
+            "verify" : f.get("isVerified","")
+        }
+        for f in facilitators
+    ]
+
+    print({"facilitators": facilitators_list})
+    print("done")
+    return jsonify({
+        "university": university_name,
+        "facilitators": facilitators_list
+    }), 200
