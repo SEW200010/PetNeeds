@@ -49,7 +49,7 @@ function Profile() {
                   Welcome, {user.fullName}
                 </h2>
                 <p className="text-sm text-gray-500 mb-6">
-                  Joined: {user.joinedDate || "Unknown"}
+                  Joined: {user.joinedDate ? new Date(user.joinedDate.$date).toLocaleDateString() : "Unknown"}
                 </p>
 
                 {/* Profile Card */}
