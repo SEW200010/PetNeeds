@@ -81,7 +81,7 @@ const Register = () => {
             className="w-full px-4 py-2 mb-4 border rounded"
           />
 
-          <label className="block mb-2 font-medium">User Type</label> <select name="user_type" value={formData.user_type} onChange={handleChange} className="w-full px-4 py-2 mb-6 border rounded" > <option value="student">Student</option> <option value="parent">Parent</option> <option value="teacher-in-charge">Teacher In Charge</option> <option value="coordination">Coordination</option> </select>
+          <label className="block mb-2 font-medium">User Type</label> <select name="user_type" value={formData.user_type} onChange={handleChange} className="w-full px-4 py-2 mb-6 border rounded" > <option value="student">Student</option> <option value="parent">Parent</option> <option value="teacher-in-charge">Teacher In Charge</option> <option value="coordinatior">Coordinator</option> </select>
 
 {/* Province */} <label className="block mb-2 font-medium">Province</label> <select name="province" value={formData.province} onChange={handleChange} className="w-full px-4 py-2 mb-4 border rounded" > <option value="">Select Province</option> <option value="Northern">Northern</option> <option value="Eastern">Eastern</option> <option value="Western">Western</option> <option value="Central">Central</option> <option value="Southern">Southern</option> <option value="North Western">North Western</option> <option value="North Central">North Central</option> <option value="Uva">Uva</option> <option value="Sabaragamuwa">Sabaragamuwa</option> </select>
 

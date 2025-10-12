@@ -40,6 +40,7 @@ import ZoneEventsPage from "./pages/Coordinator/ZoneEventsPage";
 // ✅ New import for Modules page
 import ModulesPage from "./pages/User/UserEvent/ModulesPage";
 import EventsAndUsers from "./pages/Coordinator/EventsAndUsers";
+import FacilitatorDashboard from "./pages/Facilitator/FacilitatorDashboard";
 
 const App = () => {
   return (
@@ -89,6 +90,7 @@ const App = () => {
         <Route path="/school/:id/events" element={<EventsAndUsers type="school" />} />
         <Route path="/faculty/:id/events" element={<EventsAndUsers type="faculty" />} />
 
+        <Route path="facilitator-dashboard" element={<FacilitatorDashboard/>}/>
  
   {/* For Faculty (university coordinators) */}
   <Route

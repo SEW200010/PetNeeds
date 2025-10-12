@@ -58,7 +58,9 @@ const Login = () => {
     navigate("/teacher-dashboard");
   } else if (role === "coordinator") { 
     navigate("/coordinator-dashboard");
-  } else {
+  } else if (role === "facilitator") { 
+    navigate("/facilitator-dashboard");
+  }  else {
     navigate("/upcoming-events"); // student or parent
   }
 
