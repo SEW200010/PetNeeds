@@ -29,11 +29,18 @@ import UpcomingEvents from "./pages/User/UserEvent/UpcomingEvents";
 import OngoingEvents from "./pages/User/UserEvent/OngoingEvents";
 import EventDetailsPage from "./pages/User/UserEvent/EventDetailsPage";
 import CompletedEventsPage from "./pages/User/UserEvent/CompletedEventsPage";
+
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import ConfirmSubscription from "./components/ConfirmSubscription";
+
+
 import CoordinatorDashboard from "./pages/Coordinator/CoordinatorDashboard"; // ✅ new import
 import ZoneEventsPage from "./pages/Coordinator/ZoneEventsPage";
 // ✅ New import for Modules page
 import ModulesPage from "./pages/User/UserEvent/ModulesPage";
 import EventsAndUsers from "./pages/Coordinator/EventsAndUsers";
+
 const App = () => {
   return (
     <Router>
@@ -66,9 +73,14 @@ const App = () => {
         <Route path="/profile/add-email" element={<AddEmailPage />}/>
         <Route path="/profile/change-password" element={<ChangePasswordPage />}/>
         <Route path="/profile/profile-edit" element={<ProfileEditPage />}/>
-        <Route path="/upcoming-events" element={<UpcomingEvents />} />
+         <Route path="/upcoming-events" element={<UpcomingEvents />} />
         <Route path="/ongoing-events" element={<OngoingEvents />} />
         <Route path="/completed-events" element={<CompletedEventsPage />} />
+
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/confirm-subscription/:token" element={<ConfirmSubscription />} />
+
         <Route path="/coordinator-dashboard" element={<CoordinatorDashboard />} /> {/* ✅ New Coordinator Route */}
         <Route path="/event/:eventId" element={<EventDetailsPage />} />
          <Route path="/modules/:eventId" element={<ModulesPage />} />
@@ -89,6 +101,7 @@ const App = () => {
     path="/school/:zone/:school_name/events"
     element={<EventsAndUsers  type="school"  />}
   />
+
 
       </Routes>
     </Router>
