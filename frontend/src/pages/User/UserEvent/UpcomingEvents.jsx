@@ -9,7 +9,9 @@ import { jwtDecode } from "jwt-decode"; // ✅ import jwtDecode
 
 export default function OngoingEvents() {
   const [events, setEvents] = useState([]);
+  const [eventDates, setEventDates] = useState([]);
   const [user, setUser] = useState(null); // store user info
+  const [selectedDate, setSelectedDate] = useState(null); // for calendar date selection
   const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
@@ -33,7 +35,10 @@ export default function OngoingEvents() {
         .get(`${API}/upcoming-events`, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        .then((res) => setEvents(res.data))
+        .then((res) => {
+          setEvents(res.data);
+          setEventDates([...new Set(res.data.map(e => new Date(e.date)))]);
+        })
         .catch((err) => console.error("Failed to load ongoing events", err));
     } catch (err) {
       console.error("Failed to decode token", err);
@@ -48,6 +53,14 @@ export default function OngoingEvents() {
     );
   };
 
+  // Filter events based on selected date
+  const filteredEvents = selectedDate
+    ? events.filter(event => {
+        const eventDate = new Date(event.date);
+        return eventDate.toDateString() === selectedDate.toDateString();
+      })
+    : events;
+
   if (!user) return <div className="mt-10 text-center">Loading...</div>;
 
   return (
@@ -57,7 +70,7 @@ export default function OngoingEvents() {
         
       <div className="flex flex-col md:flex-row">
         {/* left panel- Sidebar */}
-        <UserSidebar />
+        <UserSidebar eventDates={eventDates} date={selectedDate} setDate={setSelectedDate} />
 
         {/* right panel- Sidebar */}
         <div className="w-full md:w-3/4 px-4 py-6">
@@ -115,8 +128,8 @@ export default function OngoingEvents() {
 
           {/* Events Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {events.length > 0 ? (
-              events.map((event) => (
+            {filteredEvents.length > 0 ? (
+              filteredEvents.map((event) => (
                 <EventCard
                   key={event._id}
                   event={event}
@@ -126,7 +139,7 @@ export default function OngoingEvents() {
               ))
             ) : (
               <p className="text-gray-500 col-span-full">
-                No upcoming events yet.
+                {selectedDate ? "No events on this date." : "No upcoming events yet."}
               </p>
             )}
           </div>
