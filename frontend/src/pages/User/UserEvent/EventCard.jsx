@@ -5,49 +5,65 @@ import { Button } from "../../../components/ui/button";
 import { Card, CardContent } from "../../../components/ui/card";
 import { useNavigate } from "react-router-dom";
 
-export default function EventCard({ event, userId, onJoinSuccess, completed }) {
+export default function EventCard({ event, userId, onJoinSuccess }) {
   const [isJoining, setIsJoining] = useState(false);
-  const [joined, setJoined] = useState(false);
+  const [joined, setJoined] = useState(event.joined || false);
+  const [modules, setModules] = useState(event.modules || []);
   const navigate = useNavigate();
+  const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-  // Only check joined state if not completed
   useEffect(() => {
-    if (!completed && event.joined_events && event.joined_events.includes(event._id)) {
-      setJoined(true);
-    }
-  }, [event, completed]);
+    setJoined(event.joined || false);
+    setModules(event.modules || []);
+  }, [event]);
 
   const handleJoin = async () => {
-    if (completed || joined) return;
+    if (joined) {
+      navigateToModules();
+      return;
+    }
+
     setIsJoining(true);
-
     try {
-      const res = await axios.post("http://localhost:5000/join-event", {
-        user_id: userId,
-        event_id: event._id
-      });
-
+      const res = await axios.post(`${API}/join-event`, { user_id: userId, event_id: event._id });
       if (res.data.message === "Event joined successfully") {
         setJoined(true);
         if (onJoinSuccess) onJoinSuccess(event._id);
-      } else {
-        alert(res.data.message || "Join failed");
       }
-    } catch (error) {
-      console.error("Join event failed:", error);
-      alert("Failed to join event.");
+    } catch (err) {
+      console.error("Join failed:", err);
     } finally {
       setIsJoining(false);
     }
   };
 
-    // Navigate to modules page
-  const handleGoToModules = () => {
+  const navigateToModules = () => {
     navigate(`/modules/${event._id}`);
   };
 
+  const handleEnrollModule = async (module, key) => {
+    try {
+      const res = await axios.post(`${API}/enroll-module`, {
+        user_id: userId,
+        event_id: event._id,
+        moduleName: module.moduleName,
+        enrollmentKey: key,
+      });
+      if (res.data.message === "Enrolled successfully") {
+        setModules((prev) =>
+          prev.map((m) =>
+            m.moduleName === module.moduleName ? { ...m, enrolled: true } : m
+          )
+        );
+      } else {
+        alert(res.data.message || "Enrollment failed");
+      }
+    } catch (err) {
+      console.error("Enrollment failed:", err);
+      alert("Enrollment failed");
+    }
+  };
 
-  // Convert UTC ISO string to SLST (UTC+5:30)
   const formatToSLST = (utcDate) => {
     const slstDate = new Date(new Date(utcDate).getTime() + 5.5 * 60 * 60 * 1000);
     const optionsDate = { year: "numeric", month: "short", day: "numeric" };
@@ -64,40 +80,22 @@ export default function EventCard({ event, userId, onJoinSuccess, completed }) {
   return (
     <Card className="overflow-hidden shadow-xl hover:shadow-xl transition-shadow border-0 py-2">
       <div className="aspect-[4/3] relative">
-        <img
-          src={EventImage}
-          alt="Event poster"
-          className="object-cover absolute inset-0 w-full h-full"
-        />
+        <img src={EventImage} alt="Event poster" className="object-cover absolute inset-0 w-full h-full" />
       </div>
       <CardContent className="p-2">
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-          {event.name || event.title}
-        </p>
+        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{event.name || event.title}</p>
         <p className="text-xs text-gray-400 mb-4">
           {startSLST.date} | {startSLST.time} - {endSLST.time}
         </p>
 
-        {/* Button logic */}
+        {/* Join / Go to Modules Button */}
         <Button
           size="sm"
-          className={
-            completed
-              ? "bg-gray-500 text-white w-full cursor-not-allowed"
-              : joined
-              ? "bg-orange-500 hover:bg-orange-600 text-white w-full cursor-not-allowed"
-              : "bg-teal-600 hover:bg-teal-700 text-white w-full"
-          }
-          onClick={joined ? handleGoToModules : handleJoin}
-          disabled={completed  || isJoining}
+          className={joined ? "bg-orange-500 hover:bg-orange-600 text-white w-full" : "bg-teal-600 hover:bg-teal-700 text-white w-full"}
+          onClick={handleJoin}
+          disabled={isJoining}
         >
-          {completed
-            ? "Completed"
-            : joined
-            ? "go to modules"
-            : isJoining
-            ? "Joining..."
-            : "Join"}
+          {joined ? "Go to Modules" : isJoining ? "Joining..." : "Join"}
         </Button>
       </CardContent>
     </Card>

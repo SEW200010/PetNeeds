@@ -71,7 +71,7 @@ const App = () => {
         <Route path="/completed-events" element={<CompletedEventsPage />} />
         <Route path="/coordinator-dashboard" element={<CoordinatorDashboard />} /> {/* ✅ New Coordinator Route */}
         <Route path="/event/:eventId" element={<EventDetailsPage />} />
-         <Route path="/modules/:eventId" element={<ModulesPage />} />
+        <Route path="/modules/:eventId" element={<ModulesPage />} />
         <Route path="/zone/:zoneId/events" element={<ZoneEventsPage />} />
 
         <Route path="/school/:id/events" element={<EventsAndUsers type="school" />} />
