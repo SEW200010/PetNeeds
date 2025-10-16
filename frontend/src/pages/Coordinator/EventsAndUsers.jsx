@@ -1,7 +1,7 @@
 import React, { useEffect, useState, forwardRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import CoordinatorSidebar from "@/components/Coordinator/CoordinatorSidebar";
-import Header from "@/components/Admin/Header";
+import CoordinatorHeader from "@/components/Coordinator/CoordinatorHeader";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -358,7 +358,7 @@ const CoordinatorUnitView = () => {
 
   return (
     <div>
-      <Header />
+  <CoordinatorHeader title={unitType === 'university' ? `${faculty_name} (${university_name})` : `${school_name} (${zone})`} />
       <main className="pt-[65px] min-h-screen bg-gray-50">
         <div className="flex flex-col md:flex-row">
           <CoordinatorSidebar />
@@ -366,9 +366,7 @@ const CoordinatorUnitView = () => {
           <div className="flex-1 p-6">
             <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
               <Typography variant="h4">{unitTitle}</Typography>
-              <Button variant="outlined" onClick={() => navigate(-1)}>
-                Back
-              </Button>
+              
             </Box>
 
             {/* Events */}

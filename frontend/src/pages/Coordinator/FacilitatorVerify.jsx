@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import CoordinatorSidebar from "@/components/Coordinator/CoordinatorSidebar";
-import Header from "@/components/Admin/Header";
+import Header from "@/components/coordinator/CoordinatorHeader";
 import { DataGrid } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 import CircularProgress from "@mui/material/CircularProgress";
