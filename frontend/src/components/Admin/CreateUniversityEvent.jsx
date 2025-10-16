@@ -49,11 +49,24 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty,  
 
   // Fetch facilitators
   useEffect(() => {
-    fetch("http://localhost:5000/facilitators")
+    if (!university) return;
+
+    const token = localStorage.getItem("token");
+    fetch(`http://localhost:5000/facilitators/${encodeURIComponent(university)}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
       .then((res) => res.json())
-      .then((data) => setFacilitators(data))
+      .then((data) => {
+        const list = data?.facilitators || data || [];
+        const normalized = list.map((f) => ({
+          _id: f._id || f.id || String(f._id || f.id),
+          fullname: f.fullname || f.name || "",
+          email: f.email || f.email
+        }));
+        setFacilitators(normalized);
+      })
       .catch((err) => console.error("Error fetching facilitators:", err));
-  }, []);
+  }, [university]);
 
 
   const moduleList = Array.from({ length: 16 }, (_, i) => `Module ${i + 1}`);
@@ -234,6 +247,7 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty,  
           multiple
           options={facilitators}
           getOptionLabel={(option) => option.fullname}
+          isOptionEqualToValue={(option, value) => String(option._id || option.id) === String(value._id || value.id)}
           value={formData.facilitator}
           onChange={(event, newValue) =>
             setFormData({ ...formData, facilitator: newValue })

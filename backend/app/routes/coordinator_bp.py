@@ -494,11 +494,12 @@ def get_facilitators_by_university(university_name):
 
     facilitators_list = [
         {
+            "_id": str(f["_id"]),
             "id": str(f["_id"]),
-            "name": f.get("fullname", ""),
+            "fullname": f.get("fullname", ""),
             "email": f.get("email", ""),
             "faculty": f.get("faculty_name", ""),
-            "verify" : f.get("isVerified","")
+            "isVerified": f.get("isVerified", "")
         }
         for f in facilitators
     ]

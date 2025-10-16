@@ -46,7 +46,7 @@ const CoordinatorUnitView = () => {
   const [usersFacilitator, setUsersFacilitator] = useState([]);
   const [usersStudent, setUsersStudent] = useState([]);
 
-  const [deletedEvent, setDeletedEvent] = useState(null); 
+  const [deletedEvent, setDeletedEvent] = useState(null);
   const [viewEventOpen, setViewEventOpen] = useState(false);
 
   const userColumns = [
@@ -100,27 +100,27 @@ const CoordinatorUnitView = () => {
   ];
 
   const handleDeleteEvent = async (eventId) => {
-  const eventToDelete = events.find((e) => e.id === eventId);
-  if (!eventToDelete) return;
+    const eventToDelete = events.find((e) => e.id === eventId);
+    if (!eventToDelete) return;
 
-  if (!window.confirm(`Are you sure you want to delete the event: ${eventToDelete.title}?`)) return;
+    if (!window.confirm(`Are you sure you want to delete the event: ${eventToDelete.title}?`)) return;
 
-  try {
-    const res = await fetch(`${API_BASE}/events/${eventId}`, { method: "DELETE" });
-    if (res.ok) {
-      // Remove from state
-      setEvents((prev) => prev.filter((e) => e.id !== eventId));
+    try {
+      const res = await fetch(`${API_BASE}/events/${eventId}`, { method: "DELETE" });
+      if (res.ok) {
+        // Remove from state
+        setEvents((prev) => prev.filter((e) => e.id !== eventId));
 
-      // Store deleted event for later use
-      setDeletedEvent(eventToDelete);
+        // Store deleted event for later use
+        setDeletedEvent(eventToDelete);
 
-      // Optional: callback
-      console.log("Deleted event:", eventToDelete);
+        // Optional: callback
+        console.log("Deleted event:", eventToDelete);
+      }
+    } catch (err) {
+      console.error("Error deleting event:", err);
     }
-  } catch (err) {
-    console.error("Error deleting event:", err);
-  }
-};
+  };
 
   const handleEditEvent = (row) => {
     setSelectedEvent(row);
@@ -251,10 +251,9 @@ const CoordinatorUnitView = () => {
       : `${school_name} (${zone})`;
 
   const eventRows = events.map((e, index) => ({
-    id: e.id || index,
-    title: e.title,
-    date: e.date,
-    location: e.location || "",
+    // Include the full event object in the row so the edit dialog receives all fields
+    id: e.id || e._id || index,
+    ...e,
   }));
 
   const renderUserSection = (users, roleName, color) => (
@@ -342,12 +341,13 @@ const CoordinatorUnitView = () => {
             {renderUserSection(usersFacilitator, "Facilitator", "blue")}
             {renderUserSection(usersStudent, "Student", "purple")}
 
-<ViewEventDialog
-  open={viewEventOpen}
-  onClose={() => setViewEventOpen(false)}
-  event={selectedEvent}
-/>
-         
+            <ViewEventDialog
+              open={viewEventOpen}
+              onClose={() => setViewEventOpen(false)}
+              event={selectedEvent}
+              university={university_name}
+              faculty={faculty_name}
+            />
 
             <UserForm
               open={userFormOpen}
@@ -357,8 +357,6 @@ const CoordinatorUnitView = () => {
               role={selectedUserRole}
             />
 
-         
-
             <CreateUniversityEvent
               open={universityFormOpen}
               onClose={() => setUniversityFormOpen(false)}
@@ -367,14 +365,14 @@ const CoordinatorUnitView = () => {
               faculty={faculty_name}
               initialData={selectedEvent}
             />
-<EditUniversityEvent
-  open={universityEditOpen}
-  onClose={() => setUniversityEditOpen(false)}
-  initialData={selectedEvent}
-  onUpdate={() => {}}
-  university={university_name}   // ✅ add this
-  faculty={faculty_name}         // ✅ add this
-/>
+            <EditUniversityEvent
+              open={universityEditOpen}
+              onClose={() => setUniversityEditOpen(false)}
+              initialData={selectedEvent}
+              onUpdate={() => { }}
+              university={university_name}   // ✅ add this
+              faculty={faculty_name}         // ✅ add this
+            />
 
           </div>
         </div>

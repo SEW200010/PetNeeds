@@ -46,8 +46,13 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
         ? new Date(initialData.end_time).toISOString().split("T")[1].slice(0, 5)
         : "";
 
-      // Map facilitator IDs to objects with placeholder names
-      const facilitatorObjects = initialData.facilitator?.map((id) => ({ _id: id, fullname: "" })) || [];
+      // Map facilitator entries (could be IDs or objects) to normalized objects with _id and fullname
+      const facilitatorObjects = (initialData.facilitator || []).map((f) => {
+        if (!f) return { _id: "", fullname: "" };
+        if (typeof f === "string" || typeof f === "number") return { _id: String(f), fullname: "" };
+        // f may already be an object
+        return { _id: f._id || f.id || "", fullname: f.fullname || f.name || "" };
+      });
 
       setFormData({
         name: initialData.title || initialData.name || "",
@@ -68,24 +73,39 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
     }
   }, [initialData, open, university, faculty]);
 
-  // Fetch facilitator objects and map IDs to real objects
+  // Fetch facilitator objects for this university and normalize shape to {_id, fullname}
   useEffect(() => {
-    fetch("http://localhost:5000/facilitators")
+    if (!university) return; // need university to fetch facilitators
+
+    const token = localStorage.getItem("token");
+    fetch(`http://localhost:5000/facilitators/${encodeURIComponent(university)}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
       .then((res) => res.json())
       .then((data) => {
-        setFacilitators(data);
+        // API may return { facilitators: [...] } or an array directly
+        const list = data?.facilitators || data || [];
+
+        const normalized = list.map((f) => ({
+          _id: f._id || f.id || String(f._id || f.id),
+          fullname: f.fullname || f.name || f.fullname || f.name || "",
+          email: f.email || f.email
+        }));
+
+        setFacilitators(normalized);
 
         // Match IDs in formData with real objects
         setFormData((prev) => ({
           ...prev,
           facilitator: prev.facilitator.map((f) => {
-            const match = data.find((d) => d._id === f._id);
+            const match = normalized.find((d) => String(d._id) === String(f._id || f.id || f));
+            // Keep existing object if no match
             return match ? match : f;
           })
         }));
       })
       .catch((err) => console.error("Error fetching facilitators:", err));
-  }, []);
+  }, [university]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -227,6 +247,9 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
           multiple
           options={facilitators}
           getOptionLabel={(option) => option.fullname}
+          isOptionEqualToValue={(option, value) =>
+            String(option._id || option.id) === String(value._id || value.id)
+          }
           value={formData.facilitator}
           onChange={(event, newValue) => setFormData({ ...formData, facilitator: newValue })}
           renderInput={(params) => <TextField {...params} label="Facilitators" />}

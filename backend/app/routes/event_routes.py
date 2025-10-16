@@ -19,6 +19,9 @@ ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov', 'avi', '
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
+# Backwards-compatible alias used in validation
+ALLOWED_MEDIA_TYPES = ALLOWED_EXTENSIONS
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -265,9 +268,18 @@ def get_all_feedback():
         p['_id'] = str(p['_id'])  # convert ObjectId to string
     return jsonify(participants)
 
-# Update event
-@event_bp.route('/events/<event_id>', methods=['PUT'])
+# Update event (also accept university-specific path and preflight OPTIONS)
+@event_bp.route('/events/university/<event_id>', methods=['PUT', 'OPTIONS'])
+@event_bp.route('/events/<event_id>', methods=['PUT', 'OPTIONS'])
 def update_event(event_id):
+    # Handle CORS preflight
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Methods", "PUT, OPTIONS")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        return response
+
     content_type = request.headers.get('Content-Type', '')
     if not content_type.lower().startswith('application/json'):
         return jsonify({"error": "Did not attempt to load JSON data because the request Content-Type was not 'application/json'."}), 415
