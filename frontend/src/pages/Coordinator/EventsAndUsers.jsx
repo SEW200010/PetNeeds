@@ -203,9 +203,38 @@ const CoordinatorUnitView = () => {
 
   // handleViewUser replaced by dialog-based implementation below
   const handleEditUser = (user) => {
-    setSelectedUser(user);
-    setSelectedUserRole(user.role);
-    setUserFormOpen(true);
+    const openEditor = async () => {
+      const token = localStorage.getItem("token");
+      const userId = user._id || user.id || user._id_str || null;
+      if (!userId) {
+        setSelectedUser(user);
+        setSelectedUserRole(user.role);
+        setUserFormOpen(true);
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/users/${userId}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+        if (res.ok) {
+          const data = await res.json();
+          // assume response body is the user object
+          setSelectedUser(data);
+          setSelectedUserRole(data.role || user.role);
+        } else {
+          // fallback to row data
+          setSelectedUser(user);
+          setSelectedUserRole(user.role);
+        }
+      } catch (err) {
+        console.error("Failed to fetch user details:", err);
+        setSelectedUser(user);
+        setSelectedUserRole(user.role);
+      }
+
+      setUserFormOpen(true);
+    };
+
+    openEditor();
   };
 
   const [viewUserOpen, setViewUserOpen] = useState(false);
