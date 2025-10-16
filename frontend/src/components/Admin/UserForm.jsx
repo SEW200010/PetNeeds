@@ -284,6 +284,7 @@ const UserForm = ({ open, onClose, onSubmit, initialData = null, role: presetRol
           onChange={handleChange}
           fullWidth
           margin="normal"
+          disabled
         >
           <MenuItem value="coordinator">Coordinator</MenuItem>
           <MenuItem value="facilitator">Facilitator</MenuItem>
