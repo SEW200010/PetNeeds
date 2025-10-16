@@ -370,11 +370,18 @@ def add_user():
         "email": data["email"],
         "password": generate_password_hash(data["password"]),
         "role": data["role"],
-        "university_name": data.get("university_name"),
-        "faculty_name": data.get("faculty_name"),
-        "zone": data.get("zone"),
-        "school_name": data.get("school_name"),
-        "created_at": datetime.utcnow(),
+        "isVerified": False if data.get("role") == "facilitator" else True ,
+        "joinedDate": datetime.utcnow(),
+        "organization_unit": data.get("organization_unit"), 
+        "school_name": data.get("school_name") or "",
+        "zone": data.get("zone") or "",
+        "district": data.get("district") or "", # faculty or school
+        "university_name": data.get("university_name") or "",
+        "faculty_name": data.get("faculty_name") or "",
+        "address": data.get("address"),
+        "contact": data.get("contact"),
+        "profileImage" :"/uploads/default.png",
+        "lastLogin": None,
     }
 
     result = mongo.db.users.insert_one(user_data)
@@ -423,6 +430,27 @@ def edit_user(user_id):
         return jsonify({"error": "User not found"}), 404
 
     return jsonify({"message": "User updated successfully"}), 200
+
+
+@coordinator_bp.route("/users/<user_id>", methods=["DELETE"])
+@jwt_required()
+def delete_user(user_id):
+    """Delete a user by MongoDB ObjectId (string)."""
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    try:
+        user_obj_id = ObjectId(user_id)
+    except Exception:
+        return jsonify({"error": "Invalid user ID"}), 400
+
+    result = mongo.db.users.delete_one({"_id": user_obj_id})
+    if result.deleted_count == 1:
+        return jsonify({"message": "User deleted successfully"}), 200
+    return jsonify({"error": "User not found"}), 404
 
    # -------------------------
 # ✅ Delete Event by ID (University or School)

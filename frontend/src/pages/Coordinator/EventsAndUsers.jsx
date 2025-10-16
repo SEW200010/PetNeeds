@@ -17,6 +17,7 @@ import {
 import CreateUniversityEvent from "../../components/Admin/CreateUniversityEvent";
 import EditUniversityEvent from "../../components/Admin/EditUniversityEvent";
 import UserForm from "../../components/Admin/UserForm";
+import ViewUserDialog from "../../components/Admin/ViewUserDialog";
 import ViewEventDialog from "../../components/Admin/ViewEventDialog";
 
 const Transition = forwardRef(function Transition(props, ref) {
@@ -200,21 +201,31 @@ const CoordinatorUnitView = () => {
     fetchData();
   }, [faculty_name, school_name, university_name, zone]);
 
-  const handleViewUser = (user) => alert(`Viewing user: ${user.name}`);
+  // handleViewUser replaced by dialog-based implementation below
   const handleEditUser = (user) => {
     setSelectedUser(user);
     setSelectedUserRole(user.role);
     setUserFormOpen(true);
   };
 
+  const [viewUserOpen, setViewUserOpen] = useState(false);
+  const [viewUserId, setViewUserId] = useState(null);
+
+  const handleViewUser = (user) => {
+    // user may be minimal row; prefer _id or id
+    setViewUserId(user._id || user.id || user._id_str || null);
+    setViewUserOpen(true);
+  };
+
   const handleDeleteUser = async (userId) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
-      const res = await fetch(`${API_BASE}/users/${userId}`, { method: "DELETE" });
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/users/${userId}`, { method: "DELETE", headers: token ? { Authorization: `Bearer ${token}` } : {} });
       if (res.ok) {
-        setUsersCoordinator((p) => p.filter((u) => u.id !== userId));
-        setUsersFacilitator((p) => p.filter((u) => u.id !== userId));
-        setUsersStudent((p) => p.filter((u) => u.id !== userId));
+        setUsersCoordinator((p) => p.filter((u) => String(u.id || u._id) !== String(userId)));
+        setUsersFacilitator((p) => p.filter((u) => String(u.id || u._id) !== String(userId)));
+        setUsersStudent((p) => p.filter((u) => String(u.id || u._id) !== String(userId)));
       }
     } catch (err) {
       console.error("Error deleting user:", err);
@@ -228,7 +239,30 @@ const CoordinatorUnitView = () => {
   };
 
   const handleUserFormSubmit = () => {
-    setUserFormOpen(false);
+    // Refresh users after add/edit
+    const token = localStorage.getItem("token");
+    const baseUrl = API_BASE;
+    const type = unitType;
+    let usersUrl = "";
+
+    if (type === "university") {
+      usersUrl = `${baseUrl}/faculty/${encodeURIComponent(university_name)}/${encodeURIComponent(
+        faculty_name
+      )}/users`;
+    } else {
+      usersUrl = `${baseUrl}/school/${encodeURIComponent(zone)}/${encodeURIComponent(school_name)}/users`;
+    }
+
+    fetch(usersUrl, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      .then((r) => r.json())
+      .then((data) => {
+        const allUsers = data?.users || [];
+        setUsersCoordinator(allUsers.filter((u) => u.role === "coordinator"));
+        setUsersFacilitator(allUsers.filter((u) => u.role === "facilitator"));
+        setUsersStudent(allUsers.filter((u) => u.role === "student"));
+      })
+      .catch((err) => console.error("Error refreshing users:", err))
+      .finally(() => setUserFormOpen(false));
   };
 
   if (loading)
@@ -275,8 +309,9 @@ const CoordinatorUnitView = () => {
         <div style={{ height: 300, width: "100%" }}>
           <DataGrid
             rows={users.map((u, i) => ({
-              id: u.id || i,
-              name: u.name,
+              id: u.id || u._id || i,
+              _id: u._id || u.id || null,
+              name: u.name || u.fullname || u.fullName,
               email: u.email,
               role: u.role,
             }))}
@@ -355,7 +390,11 @@ const CoordinatorUnitView = () => {
               onSubmit={handleUserFormSubmit}
               initialData={selectedUser}
               role={selectedUserRole}
+              university={university_name}
+              faculty={faculty_name}
             />
+
+            <ViewUserDialog open={viewUserOpen} onClose={() => setViewUserOpen(false)} userId={viewUserId} />
 
             <CreateUniversityEvent
               open={universityFormOpen}
