@@ -24,8 +24,8 @@ mail = Mail()
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS with all origins allowed, no credentials
-    #CORS(app, resources={r"/*": {"origins": ["*", "http://localhost:5173"]}}, supports_credentials=True)
+    #CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS with all origins allowed, no credentials
+    CORS(app, resources={r"/*": {"origins": ["*", "http://localhost:5173"]}}, supports_credentials=True)
 
     # Set a secret key for JWTs
     app.config['JWT_SECRET_KEY'] = 'your-super-secret-key'  # change this to a strong key
@@ -43,9 +43,9 @@ def create_app():
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 587
     app.config['MAIL_USE_TLS'] = True
-    app.config['MAIL_USERNAME'] = os.getenv("EMAIL_USER")
-    app.config['MAIL_PASSWORD'] = os.getenv("EMAIL_PASS")
-    app.config['MAIL_DEFAULT_SENDER'] = os.getenv("EMAIL_USER")
+    app.config['MAIL_USERNAME'] = os.getenv("SMTP_USER")
+    app.config['MAIL_PASSWORD'] = os.getenv("SMTP_PASS")
+    app.config['MAIL_DEFAULT_SENDER'] = os.getenv("SMTP_USER")
     
     
     mongo.init_app(app)
@@ -59,7 +59,7 @@ def create_app():
     from app.routes.monitoringStudents_routes import monitoringstudent_bp
     from app.routes.user_event_routes import user_event_bp  
     from app.routes.course_routes import course_bp
-    from app.routes.student_routes import student_bp
+
     from app.routes.participant_routes import participant_bp
     from app.routes.notification import notify_bp
     from app.routes.feedback import feedback_bp
@@ -74,7 +74,7 @@ def create_app():
     app.register_blueprint(event_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(monitoringstudent_bp)
-    app.register_blueprint(student_bp)
+
     app.register_blueprint(course_bp, url_prefix="/courses")
     app.register_blueprint(coordinator_bp)
     app.register_blueprint(participant_bp)

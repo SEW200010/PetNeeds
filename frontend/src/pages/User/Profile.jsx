@@ -56,7 +56,7 @@ function Profile() {
           <div className="w-full md:w-3/4 px-2 py-4">
             <div className="max-w-10xl mx-auto">
               <h2 className="text-lg text-gray-700 font-semibold mb-1">
-                Welcome, {user.fullName}
+                Welcome, {user.fullname}
               </h2>
               <p className="text-sm text-gray-500 mb-6">
                 Joined: {user.joinedDate?.$date 
@@ -74,7 +74,7 @@ function Profile() {
                     <div className="flex items-center space-x-4">
                       <ProfileImageUploader user={user} setUser={setUser} />
                       <div>
-                        <h2 className="text-xl font-semibold">{user.fullName}</h2>
+                        <h2 className="text-xl font-semibold">{user.fullname}</h2>
                         <p className="text-gray-500">{user.email}</p>
                       </div>
                     </div>
@@ -86,14 +86,62 @@ function Profile() {
                       Edit
                     </button>
                   </div>
+                  
+                  {/* ✅ Facilitator-only IoT Session Completion section (frontend only) */}
+                  {user.role === "facilitator" && (
+                    <div className="mt-10 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border border-blue-200 rounded-xl p-6 shadow-sm">
+                      <h3 className="text-lg font-semibold text-blue-700 mb-3 flex items-center gap-2">
+                        <span className="text-2xl">⚙️</span> ToT Training Progress
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Confirm once you have completed your ToT session period during training.
+                      </p>
+
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          id="iotCompleted"
+                          checked={user.iotCompleted || false}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setUser((prev) => ({ ...prev, iotCompleted: checked }));
+                          }}
+                          className="h-5 w-5 text-blue-600 cursor-pointer accent-blue-600"
+                        />
+                        <label htmlFor="iotCompleted" className="text-gray-800 font-medium">
+                          I have completed my IoT session
+                        </label>
+                      </div>
+
+                      {/* ✅ Visual confirmation */}
+                      {user.iotCompleted && (
+                        <div className="mt-4 bg-green-100 border border-green-200 rounded-lg px-4 py-2 text-green-700 text-sm font-medium flex items-center gap-2">
+                          ✅ IoT session marked as completed
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                     {[
-                      { label: 'Full Name', value: user.fullName },
+                      { label: 'Full Name', value: user.fullname },
                       { label: 'Email', value: user.email },
                       { label: 'User Type', value: user.role },
-                      { label: 'Location', value: user.location },
-                      { label: 'School', value: user.school },
+                      { label: 'Address', value: user.address },
+                      {
+                        label:
+                          user.organization_unit?.toLowerCase() === 'university'
+                            ? 'University Name'
+                            : user.organization_unit?.toLowerCase() === 'school'
+                            ? 'School Name'
+                            : 'Organization',
+                        value:
+                          user.organization_unit?.toLowerCase() === 'university'
+                            ? user.university_name
+                            : user.organization_unit?.toLowerCase() === 'school'
+                            ? user.school_name
+                            : user.organization_unit,
+                      },
                       { label: 'Contact', value: user.contact },
                     ].map((item, index) => (
                       <div key={index}>
@@ -105,6 +153,7 @@ function Profile() {
                         </div>
                       </div>
                     ))}
+
                   </div>
 
                   <div>

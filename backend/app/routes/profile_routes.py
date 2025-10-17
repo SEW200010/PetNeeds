@@ -160,7 +160,7 @@ def update_user(user_id):
     data = request.get_json()
     update_fields = {}
 
-    for field in ["fullName", "email", "role", "location", "school", "contact"]:
+    for field in ["fullname", "email", "role", "address", "school_name", "contact"]:
         if data.get(field):
             update_fields[field] = data[field]
 

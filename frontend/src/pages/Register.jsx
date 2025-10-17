@@ -278,10 +278,8 @@ const Register = () => {
             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
           </div>
 
-
           <SelectInput refProp={refs.role} name="role" label="Role" options={["student", "facilitator", "coordinator"]} />
           <SelectInput refProp={refs.organization_unit} name="organization_unit" label="Organization" options={["school", "university"]} />
-
 
           {/* Conditional School Fields */}
           {formData.organization_unit === "school" && (

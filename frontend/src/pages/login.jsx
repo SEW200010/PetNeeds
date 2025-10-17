@@ -83,6 +83,13 @@ const Login = () => {
           zone: decoded.zone || "",
         });
         
+        // ✅ Navigate based on role
+        const role = decoded.role;
+        if (role === "admin") navigate("/admin-dashboard");
+        else if (role === "teacher-in-charge") navigate("/teacher-dashboard");
+        else if (role === "facilitator") navigate("/facilitator-dashboard");
+        else if (role === "coordinator") navigate("/coordinator-dashboard");
+        else navigate("/upcoming-events");
 
       } else if (data.error === "facilitator_not_verified") {
         alert("Your facilitator account is not verified yet.");
@@ -92,7 +99,6 @@ const Login = () => {
     } catch (error) {
       console.error("Login error:", error);
       alert("Something went wrong. Please try again.");
-
     }
   };
 
@@ -168,13 +174,11 @@ const Login = () => {
             </div>
           </div>
 
-
           {/* Forgot Password */}
           <div className="flex justify-end text-md text-white mb-6">
             <Link to="/forgot-password" className="text-green-400 hover:underline">
               Forgot Password
             </Link>
-
           </div>
 
           <button
