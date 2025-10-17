@@ -48,10 +48,12 @@ function Profile() {
 
   return (
     <div>
+
       <Header />
       <main className="bg-gray-100 pt-[65px] min-h-screen">
         <div className="flex flex-col md:flex-row">
           {getSidebar()}
+
 
           <div className="w-full md:w-3/4 px-2 py-4">
             <div className="max-w-10xl mx-auto">

@@ -90,12 +90,14 @@ function ProfileEditPage() {
                 Welcome, {user.fullname}
               </h2>
               <p className="text-sm text-gray-500 mb-6">
+
                 Joined: {user.joinedDate?.$date 
                   ? new Date(user.joinedDate.$date).toLocaleDateString() 
                   : user.joinedDate 
                     ? new Date(user.joinedDate).toLocaleDateString()
                     : "Unknown"}
               </p>
+                
 
               <div className="max-w-5.5xl mx-auto mt-6">
                 <div className="h-32 rounded-t-xl bg-gradient-to-r from-blue-200 via-purple-100 to-yellow-100" />

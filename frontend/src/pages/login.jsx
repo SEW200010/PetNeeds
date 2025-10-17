@@ -174,12 +174,30 @@ const Login = () => {
             </div>
           </div>
 
+<<<<<<< HEAD
           {/* Forgot Password */}
+=======
+          {/* Remember Me */}
+          <div className="flex justify-between items-center text-md text-white mb-6">
+            <label className="flex items-center">
+              <input type="checkbox" className="mr-2" /> Remember Me
+            </label>
+             <Link to="/forgot-password" className="text-green-400 hover:underline">
+              Forgot Password
+            </Link>
+          </div>
+
+          {/* Forgot Password
+>>>>>>> 3b06048710cb905b42aa3b32a2ab62d7c318633a
           <div className="flex justify-end text-md text-white mb-6">
             <Link to="/forgot-password" className="text-green-400 hover:underline">
               Forgot Password
             </Link>
+<<<<<<< HEAD
           </div>
+=======
+          </div> */}
+>>>>>>> 3b06048710cb905b42aa3b32a2ab62d7c318633a
 
           <button
             type="submit"
