@@ -56,6 +56,7 @@ function ProfileEditPage() {
         withCredentials: true 
       });
       alert("Profile updated successfully!");
+      navigate('/profile'); 
     } catch (error) {
       console.error("Update failed:", error);
       alert("Something went wrong while updating your profile.");

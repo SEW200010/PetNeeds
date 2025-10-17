@@ -15,6 +15,7 @@ function Profile() {
   const navigate = useNavigate()
   const API = import.meta.env.VITE_API_BASE_URL
 
+  // ✅ Fetch user details
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) return
@@ -27,12 +28,12 @@ function Profile() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setUser(res.data))
-      .catch((err) => console.error(err))
+      .catch((err) => console.error('Error loading user:', err))
   }, [])
 
   if (!user) return <div className="text-center mt-10">Loading...</div>
 
-  // Pick sidebar based on role
+  // ✅ Sidebar selection
   const getSidebar = () => {
     switch (user.role) {
       case 'admin':
@@ -46,14 +47,45 @@ function Profile() {
     }
   }
 
+  // ✅ Handle ToT confirmation
+  const handleTotConfirm = async (checked) => {
+    if (checked) {
+      const confirmed = window.confirm(
+        'Are you sure you have completed your ToT session?'
+      )
+      if (!confirmed) return
+    }
+
+    setUser((prev) => ({ ...prev, iotCompleted: checked }))
+
+    if (checked) {
+      try {
+        const token = localStorage.getItem('token')
+        const response = await axios.post(
+          `${API}/add_facilitator`,
+          { userId: user._id },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        )
+        alert('Facilitator ToT status updated successfully!')
+        console.log('Backend response:', response.data)
+      } catch (error) {
+        console.error('Error adding facilitator:', error)
+        alert('Failed to update facilitator details.')
+      }
+    }
+  }
+
   return (
     <div>
-
       <Header />
       <main className="bg-gray-100 pt-[65px] min-h-screen">
         <div className="flex flex-col md:flex-row">
           {getSidebar()}
-
 
           <div className="w-full md:w-3/4 px-2 py-4">
             <div className="max-w-10xl mx-auto">
@@ -61,13 +93,13 @@ function Profile() {
                 Welcome, {user.fullname}
               </h2>
               <p className="text-sm text-gray-500 mb-6">
-                Joined: {user.joinedDate?.$date 
-                  ? new Date(user.joinedDate.$date).toLocaleDateString() 
-                  : user.joinedDate 
-                    ? new Date(user.joinedDate).toLocaleDateString()
-                    : "Unknown"}
+                Joined:{' '}
+                {user.joinedDate?.$date
+                  ? new Date(user.joinedDate.$date).toLocaleDateString()
+                  : user.joinedDate
+                  ? new Date(user.joinedDate).toLocaleDateString()
+                  : 'Unknown'}
               </p>
-
 
               <div className="max-w-5xl mx-auto mt-6">
                 <div className="h-32 rounded-t-xl bg-gradient-to-r from-blue-200 via-purple-100 to-yellow-100" />
@@ -76,7 +108,9 @@ function Profile() {
                     <div className="flex items-center space-x-4">
                       <ProfileImageUploader user={user} setUser={setUser} />
                       <div>
-                        <h2 className="text-xl font-semibold">{user.fullname}</h2>
+                        <h2 className="text-xl font-semibold">
+                          {user.fullname}
+                        </h2>
                         <p className="text-gray-500">{user.email}</p>
                       </div>
                     </div>
@@ -88,15 +122,17 @@ function Profile() {
                       Edit
                     </button>
                   </div>
-                  
-                  {/* ✅ Facilitator-only IoT Session Completion section (frontend only) */}
-                  {user.role === "facilitator" && (
+
+                  {/* ✅ Facilitator-only ToT Session Completion section */}
+                  {user.role === 'facilitator' && (
                     <div className="mt-10 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border border-blue-200 rounded-xl p-6 shadow-sm">
                       <h3 className="text-lg font-semibold text-blue-700 mb-3 flex items-center gap-2">
-                        <span className="text-2xl">⚙️</span> ToT Training Progress
+                        <span className="text-2xl">⚙️</span> ToT Training
+                        Progress
                       </h3>
                       <p className="text-sm text-gray-600 mb-4">
-                        Confirm once you have completed your ToT session period during training.
+                        Confirm once you have completed your ToT session period
+                        during training.
                       </p>
 
                       <div className="flex items-center gap-3">
@@ -104,26 +140,28 @@ function Profile() {
                           type="checkbox"
                           id="iotCompleted"
                           checked={user.iotCompleted || false}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            setUser((prev) => ({ ...prev, iotCompleted: checked }));
-                          }}
+                          onChange={(e) =>
+                            handleTotConfirm(e.target.checked)
+                          }
                           className="h-5 w-5 text-blue-600 cursor-pointer accent-blue-600"
                         />
-                        <label htmlFor="iotCompleted" className="text-gray-800 font-medium">
-                          I have completed my IoT session
+                        <label
+                          htmlFor="iotCompleted"
+                          className="text-gray-800 font-medium"
+                        >
+                          I have completed my ToT session
                         </label>
                       </div>
 
-                      {/* ✅ Visual confirmation */}
                       {user.iotCompleted && (
                         <div className="mt-4 bg-green-100 border border-green-200 rounded-lg px-4 py-2 text-green-700 text-sm font-medium flex items-center gap-2">
-                          ✅ IoT session marked as completed
+                          ✅ ToT session marked as completed
                         </div>
                       )}
                     </div>
                   )}
 
+                  {/* ✅ Profile details */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                     {[
                       { label: 'Full Name', value: user.fullname },
@@ -132,7 +170,8 @@ function Profile() {
                       { label: 'Address', value: user.address },
                       {
                         label:
-                          user.organization_unit?.toLowerCase() === 'university'
+                          user.organization_unit?.toLowerCase() ===
+                          'university'
                             ? 'University Name'
                             : user.organization_unit?.toLowerCase() === 'school'
                             ? 'School Name'
@@ -155,7 +194,6 @@ function Profile() {
                         </div>
                       </div>
                     ))}
-
                   </div>
 
                   <div>
