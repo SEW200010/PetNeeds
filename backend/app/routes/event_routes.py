@@ -9,6 +9,35 @@ from werkzeug.utils import secure_filename
 from flask import send_from_directory
 from datetime import datetime
 from pytz import timezone
+from functools import wraps
+from flask import make_response, request
+
+def cors_headers(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Handle preflight OPTIONS request
+        if request.method == "OPTIONS":
+            response = make_response()
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+            return response
+
+        # Call the actual route function
+        response = f(*args, **kwargs)
+        if isinstance(response, tuple):
+            # If route returns (response, status), extract them
+            resp, status = response
+            resp.headers["Access-Control-Allow-Origin"] = "*"
+            resp.headers["Access-Control-Allow-Headers"] = "Authorization"
+            return resp, status
+        else:
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Headers"] = "Authorization"
+            return response
+
+    return decorated_function
+
 
 event_bp = Blueprint('event_bp', __name__)
 
@@ -33,6 +62,7 @@ def get_next_event_id():
 
 
 @event_bp.route('/upload_media', methods=['POST'])
+@cors_headers
 def upload_media():
     if 'file' not in request.files:
         return jsonify({"error": "No file part in the request"}), 400
@@ -91,6 +121,7 @@ def upload_media():
             f.write("\n\n")
         return jsonify({"error": str(e)}), 500
 @event_bp.route('/download/<filename>', methods=['GET'])
+@cors_headers
 def download_file(filename):
     try:
         return send_from_directory(
@@ -102,6 +133,7 @@ def download_file(filename):
         return jsonify({"error": "File not found"}), 404
 
 @event_bp.route('/events/university', methods=['POST'])
+@cors_headers
 def create_university_event():
     data = request.get_json()
     
@@ -159,6 +191,7 @@ def create_university_event():
     return jsonify({"message": "University event created successfully", "event_id": event_id}), 201
 
 @event_bp.route('/events/school', methods=['POST'])
+@cors_headers
 def create_school_event():
     data = request.get_json()
     if not data:
@@ -216,6 +249,7 @@ from flask import make_response
 from flask import make_response
 
 @event_bp.route('/events', methods=['GET', 'OPTIONS'])
+@cors_headers
 def get_all_events():
     if request.method == 'OPTIONS':
         response = make_response()
@@ -225,13 +259,30 @@ def get_all_events():
         return response
 
     try:
+        user_id = request.args.get("user_id")  # optional: frontend can send ?user_id=<id>
+        joined_events = []
+
+        # If user_id is provided, fetch joined_events list
+        if user_id:
+            try:
+                user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+                if user and "joined_events" in user:
+                    joined_events = user["joined_events"]
+            except Exception:
+                pass  # ignore invalid ObjectId or missing user
+
         events = []
         for e in mongo.db.events.find():
             e['_id'] = str(e['_id'])
             e['participants'] = e.get('participants', {"registered": 0, "confirmed": 0})
             e['numberOfSlots'] = e.get('numberOfSlots', 0)
             e['eventMedia'] = e.get('eventMedia', [])
+            
+            # ✅ Add joined flag
+            e['joined'] = str(e['_id']) in joined_events
+
             events.append(e)
+
         response = make_response(jsonify(events), 200)
         response.headers.add("Access-Control-Allow-Origin", "*")
         return response
@@ -239,7 +290,9 @@ def get_all_events():
         return jsonify({"error": str(e)}), 500
 
 # Get event by ObjectId
+
 @event_bp.route('/events/<id>', methods=['GET'])
+@cors_headers
 def get_event(id):
     try:
         if id == "null":
@@ -259,6 +312,7 @@ def get_event(id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 @event_bp.route('/all_feedback', methods=['GET'])
+@cors_headers
 def get_all_feedback():
     participants = list(mongo.db.participants.find())
     for p in participants:
@@ -267,6 +321,7 @@ def get_all_feedback():
 
 # Update event
 @event_bp.route('/events/<event_id>', methods=['PUT'])
+@cors_headers
 def update_event(event_id):
     content_type = request.headers.get('Content-Type', '')
     if not content_type.lower().startswith('application/json'):
@@ -335,6 +390,7 @@ def update_event(event_id):
 
 # Get event by event_id
 @event_bp.route('/events/by_event_id/<int:event_id>', methods=['GET'])
+@cors_headers
 def get_event_by_event_id(event_id):
     try:
         e = mongo.db.events.find_one({"event_id": event_id})
@@ -350,6 +406,7 @@ def get_event_by_event_id(event_id):
 
 # Delete event
 @event_bp.route('/events/<id>', methods=['DELETE'])
+@cors_headers
 def delete_event(id):
     try:
         res = mongo.db.events.delete_one({"_id": ObjectId(id)})
@@ -363,6 +420,7 @@ def delete_event(id):
 
 # Get participants for event
 @event_bp.route('/participants', methods=['GET'])
+@cors_headers
 def get_participants_by_event():
     try:
         event_mongo_id = request.args.get("event_id")
@@ -390,6 +448,7 @@ def get_participants_by_event():
 
 # Delete media file from event
 @event_bp.route('/events/<event_id>/media/<filename>', methods=['DELETE'])
+@cors_headers
 def delete_event_media(event_id, filename):
     try:
         obj_id = ObjectId(event_id)
@@ -411,6 +470,7 @@ def delete_event_media(event_id, filename):
 
 # Get all districts, optionally filtered by province
 @event_bp.route('/districts', methods=['GET'])
+@cors_headers
 def get_districts():
     try:
         province = request.args.get('province')  # optional query param
@@ -437,6 +497,7 @@ def get_districts():
 
 # Get all zones, optionally filtered by district
 @event_bp.route('/zones', methods=['GET'])
+@cors_headers
 def get_zones():
     try:
         district_id = request.args.get('district_id')  # optional query param
@@ -468,6 +529,7 @@ def get_zones():
 
 
 @event_bp.route('/facilitators', methods=['GET'])
+@cors_headers
 def get_facilitators():
     try:
         facilitators = list(mongo.db.facilitators.find({"role": "facilitator"}))
@@ -476,3 +538,158 @@ def get_facilitators():
         return jsonify(facilitators), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@event_bp.route('/join-event', methods=['POST'])
+@cors_headers
+def join_event():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Missing JSON body"}), 400
+
+        user_id = data.get("user_id")
+        event_id = data.get("event_id")
+
+        if not user_id or not event_id:
+            return jsonify({"error": "Missing user_id or event_id"}), 400
+
+        # Validate event exists
+        event = mongo.db.events.find_one({"_id": ObjectId(event_id)})
+        if not event:
+            return jsonify({"error": "Event not found"}), 404
+
+        # Validate user exists
+        user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Initialize joined_events if missing
+        if "joined_events" not in user:
+            user["joined_events"] = []
+
+        # Prevent duplicate join
+        if event_id in user["joined_events"]:
+            return jsonify({"message": "Already joined"}), 200
+
+        # Add event to user's joined list
+        mongo.db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$push": {"joined_events": event_id}}
+        )
+
+        # Increment event participant count
+        mongo.db.events.update_one(
+            {"_id": ObjectId(event_id)},
+            {"$inc": {"participants.registered": 1}}
+        )
+
+        return jsonify({"message": "Event joined successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@event_bp.route('/enroll-module', methods=['POST'])
+@cors_headers
+def enroll_module():
+    """
+    Enroll a user in a module of an event using the enrollment key.
+    Expects JSON body:
+    {
+        "user_id": "<user ObjectId>",
+        "event_id": "<event ObjectId>",
+        "moduleName": "<module name>",
+        "enrollmentKey": "<key>"
+    }
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Missing JSON body"}), 400
+
+        user_id = data.get("user_id")
+        event_id = data.get("event_id")
+        module_name = data.get("moduleName")
+        key_entered = data.get("enrollmentKey")
+
+        if not all([user_id, event_id, module_name, key_entered]):
+            return jsonify({"error": "Missing required fields"}), 400
+
+        # Get event
+        event = mongo.db.events.find_one({"_id": ObjectId(event_id)})
+        if not event:
+            return jsonify({"error": "Event not found"}), 404
+
+        # Find the module
+        module = next((m for m in event.get("modules", []) if m["moduleName"] == module_name), None)
+        if not module:
+            return jsonify({"error": "Module not found"}), 404
+
+        # Validate enrollment key
+        if module.get("enrollmentKey") != key_entered:
+            return jsonify({"error": "Invalid enrollment key"}), 400
+
+        # Add module to user's enrolledModules if not already enrolled
+        user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        if "enrolledModules" not in user:
+            user["enrolledModules"] = []
+
+        # Check if already enrolled in this event module
+        already_enrolled = any(
+            em.get("event_id") == event_id and em.get("moduleName") == module_name
+            for em in user["enrolledModules"]
+        )
+
+        if already_enrolled:
+            return jsonify({"message": "Already enrolled"}), 200
+
+        # Append enrolled module
+        mongo.db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$push": {"enrolledModules": {"event_id": event_id, "moduleName": module_name}}}
+        )
+
+        return jsonify({"message": "Enrolled successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@event_bp.route('/get-modules/<event_id>', methods=['GET'])
+@cors_headers
+def get_modules_for_event(event_id):
+    user_id = request.args.get("user_id")  # optional
+    modules_list = []
+
+    # Fetch modules for the event
+    try:
+        event = mongo.db.events.find_one({"_id": ObjectId(event_id)})
+        if not event:
+            return jsonify({"message": "Event not found", "modules": []}), 404
+        modules_list = event.get("modules", [])
+    except InvalidId:
+        return jsonify({"message": "Invalid event ID", "modules": []}), 400
+    except Exception as e:
+        return jsonify({"message": f"Server error: {str(e)}", "modules": []}), 500
+
+    # Fetch enrolled modules for user if user_id provided
+    enrolled_module_names = set()
+    if user_id:
+        try:
+            user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+            if user and "enrolledModules" in user:
+                # Only include modules for this event
+                enrolled_module_names = set(
+                    m["moduleName"] for m in user["enrolledModules"] if m.get("event_id") == event_id
+                )
+        except InvalidId:
+            pass
+        except Exception as e:
+            print("Error fetching user:", e)
+
+    # Mark which modules are enrolled
+    for module in modules_list:
+        module["enrolled"] = module.get("moduleName") in enrolled_module_names
+
+    return jsonify({"modules": modules_list}), 200

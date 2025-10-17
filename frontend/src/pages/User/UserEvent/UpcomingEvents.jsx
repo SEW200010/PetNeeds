@@ -5,9 +5,9 @@ import { Button } from "../../../components/ui/button";
 import EventCard from "./EventCard";
 import Header from "../../../components/Header";
 import UserSidebar from "../../../components/User/UserSidebar";
-import { jwtDecode } from "jwt-decode"; // ✅ import jwtDecode
+import { jwtDecode } from "jwt-decode";
 
-export default function OngoingEvents() {
+export default function UpcomingEvents() {
   const [events, setEvents] = useState([]);
   const [eventDates, setEventDates] = useState([]);
   const [user, setUser] = useState(null); // store user info
@@ -15,46 +15,43 @@ export default function OngoingEvents() {
   const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    const fetchData = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
-    try {
-      const decoded = jwtDecode(token);
-      const userId = decoded.sub || decoded.user_id;
+      try {
+        const decoded = jwtDecode(token);
+        const userId = localStorage.getItem("userId") || decoded.sub;
 
-      // Fetch full user info from backend
-      axios
-        .get(`${API}/api/users/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((res) =>
-          setUser({
-            fullName: res.data.fullname,
-            email: res.data.email,
-            _id: res.data._id,
-          })
-        )
-        .catch((err) => console.error("Failed to fetch user info", err));
+        const [userRes, eventsRes] = await Promise.all([
+          axios.get(`${API}/api/users/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`${API}/events`, {
+            headers: { Authorization: `Bearer ${token}` },
+            params: { user_id: userId },
+          }),
+        ]);
 
-      // Fetch ongoing events
-      axios
-        .get(`${API}/upcoming-events`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((res) => {
-          setEvents(res.data);
-          setEventDates([...new Set(res.data.map(e => new Date(e.date)))]);
-        })
-        .catch((err) => console.error("Failed to load ongoing events", err));
-    } catch (err) {
-      console.error("Failed to decode token", err);
-    }
+        setUser({
+          fullName: userRes.data.fullName,
+          email: userRes.data.email,
+          _id: userRes.data._id,
+        });
+
+        setEvents(eventsRes.data);
+      } catch (err) {
+        console.error("Failed to fetch data or decode token", err);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleJoinSuccess = (joinedEventId) => {
     setEvents((prev) =>
       prev.map((event) =>
-        event._id === joinedEventId ? { ...event, status: "joined" } : event
+        event._id === joinedEventId ? { ...event, joined: true } : event
       )
     );
   };
@@ -74,10 +71,8 @@ export default function OngoingEvents() {
       <Header />
       <main className="bg-gray-100 pt-[65px] min-h-screen">
         <div className="flex flex-col md:flex-row">
-          {/* left panel- Sidebar */}
           <UserSidebar />
 
-          {/* right panel- Sidebar */}
           <div className="w-full md:w-3/4 px-4 py-6">
             <div className="mb-8">
               <h1 className="text-2xl font-semibold text-gray-900 mb-2">
@@ -125,9 +120,7 @@ export default function OngoingEvents() {
             </div>
 
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-medium text-teal-600">
-                Upcoming events
-              </h2>
+              <h2 className="text-xl font-medium text-teal-600">Upcoming events</h2>
             </div>
 
             {/* Events Grid */}
@@ -142,9 +135,7 @@ export default function OngoingEvents() {
                   />
                 ))
               ) : (
-                <p className="text-gray-500 col-span-full">
-                  No upcoming events yet.
-                </p>
+                <p className="text-gray-500 col-span-full">No upcoming events yet.</p>
               )}
             </div>
           </div>

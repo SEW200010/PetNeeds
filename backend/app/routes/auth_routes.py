@@ -170,9 +170,6 @@ def login():
     if user:
         role = user.get("role", "").strip()
         
-
-         
-
         # Facilitator must be verified
        
 

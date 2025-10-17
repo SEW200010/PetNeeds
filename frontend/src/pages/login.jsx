@@ -22,11 +22,13 @@ const Login = () => {
   // ✅ Auto-login if valid token exists in localStorage
   useEffect(() => {
     const token = localStorage.getItem("token");
+    console.log(token);
     if (token) {
       try {
         const decoded = jwtDecode(token);
+        console.log(decoded);
         const currentTime = Math.floor(Date.now() / 1000);
-
+        
         if (decoded.exp && decoded.exp < currentTime) {
           // Token expired → clear it
           localStorage.clear();
@@ -61,7 +63,7 @@ const Login = () => {
       });
 
       const data = await res.json();
-
+      console.log(data);
       if (res.ok) {
         const decoded = jwtDecode(data.access_token);
         console.log("Decoded JWT:", decoded);
@@ -73,6 +75,7 @@ const Login = () => {
         localStorage.setItem("organization_unit", decoded.organization_unit || "");
         localStorage.setItem("university_name", decoded.university || "");
         localStorage.setItem("zone", decoded.zone || "");
+        localStorage.setItem("userId", data.user_id || decoded.sub || "");
 
         console.log("Stored in localStorage:", {
           token: data.access_token,
