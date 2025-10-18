@@ -7,6 +7,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AddEmailAddress from "@/components/User/AddEmailAddress";
 import ProfileImageUploader from "@/components/User/ProfileImageUploader";
+import FacilitatorSidebar from '@/components/Facilitator/FacilitatorSidebar'
+import CoordinatorSidebar from '@/components/Coordinator/CoordinatorSidebar'
 
 const AddEmailPage = () => {
   const [user, setUser] = useState(null);
@@ -35,6 +37,19 @@ const AddEmailPage = () => {
 
   if (!user) return <div className="text-center mt-10">Loading...</div>;
 
+   // Pick sidebar based on role
+    const getSidebar = () => {
+      switch (user.role) {
+        case 'admin':
+          return <AdminSidebar />
+        case 'facilitator':
+          return <FacilitatorSidebar />
+        case 'coordinator':
+          return <CoordinatorSidebar />
+        default:
+          return <UserSidebar />
+      }
+    }
   const handleAddEmail = async () => {
     const token = localStorage.getItem("token");
     if (!token || !newEmail) return;
@@ -67,7 +82,7 @@ const AddEmailPage = () => {
       <Header />
       <main className="bg-gray-100 pt-[65px] min-h-screen">
         <div className="flex flex-col md:flex-row">
-          <UserSidebar />
+         {getSidebar()}
           <div className="w-full md:w-3/4 px-2 py-4">
             <div className="max-w-10xl mx-auto">
               {/* Welcome */}

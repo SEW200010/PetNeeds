@@ -5,12 +5,14 @@ import Header from "@/components/Admin/header";
 import UserSidebar from "@/components/User/UserSidebar";
 import AddEmailAddress from "@/components/User/AddEmailAddress";
 import ProfileImageUploader from "@/components/User/ProfileImageUploader";
-
+import FacilitatorSidebar from '@/components/Facilitator/FacilitatorSidebar'
+import CoordinatorSidebar from '@/components/Coordinator/CoordinatorSidebar'
 function ChangePasswordPage() {
   const [user, setUser] = useState(null);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
+
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -35,6 +37,19 @@ function ChangePasswordPage() {
 
   if (!user) return <div className="text-center mt-10">Loading...</div>;
 
+   // Pick sidebar based on role
+    const getSidebar = () => {
+      switch (user.role) {
+        case 'admin':
+          return <AdminSidebar />
+        case 'facilitator':
+          return <FacilitatorSidebar />
+        case 'coordinator':
+          return <CoordinatorSidebar />
+        default:
+          return <UserSidebar />
+      }
+    }
   const handleChangePassword = async () => {
     if (newPassword.length < 6) {
       setMessage("Password should be at least 6 characters.");
@@ -89,7 +104,7 @@ function ChangePasswordPage() {
       <Header />
       <main className="bg-gray-100 pt-[65px] min-h-screen">
         <div className="flex flex-col md:flex-row">
-          <UserSidebar />
+          {getSidebar()}
           <div className="w-full md:w-3/4 px-2 py-4">
             <div className="max-w-10xl mx-auto">
               <h2 className="text-lg text-gray-700 font-semibold mb-1">
