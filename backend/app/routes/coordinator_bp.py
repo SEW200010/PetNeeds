@@ -538,3 +538,41 @@ def get_facilitators_by_university(university_name):
         "university": university_name,
         "facilitators": facilitators_list
     }), 200
+
+
+# -------------------------
+# ✅ Update facilitator verification status
+# -------------------------
+@coordinator_bp.route("/facilitators/<facilitator_id>/verify", methods=["PUT"])
+@jwt_required()
+def set_facilitator_verification(facilitator_id):
+    """Set or clear the isVerified flag for a facilitator.
+    Expects JSON body: { "isVerified": true|false }
+    """
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    # Only coordinators can update facilitator verification
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    data = request.get_json() or {}
+    if "isVerified" not in data:
+        return jsonify({"error": "Missing 'isVerified' in request body"}), 400
+
+    try:
+        fac_obj_id = ObjectId(facilitator_id)
+    except Exception:
+        return jsonify({"error": "Invalid facilitator id"}), 400
+
+    is_verified = bool(data.get("isVerified"))
+
+    result = mongo.db.facilitators.update_one(
+        {"_id": fac_obj_id},
+        {"$set": {"isVerified": is_verified}}
+    )
+
+    if result.matched_count == 0:
+        return jsonify({"error": "Facilitator not found"}), 404
+
+    return jsonify({"message": "Updated", "isVerified": is_verified}), 200
