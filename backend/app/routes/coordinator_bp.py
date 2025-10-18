@@ -386,9 +386,17 @@ def add_user():
 
     result = mongo.db.users.insert_one(user_data)
 
+    if user_data["role"] == "coordinator":
+        res1 =mongo.db.coordinators.insert_one(user_data)
+    elif user_data["role"] == "facilitator":
+        res1 =mongo.db.facilitators.insert_one(user_data)
+    elif user_data["role"] == "student":
+        res1 =mongo.db.students.insert_one(user_data)
+
     return jsonify({
         "message": "User added successfully",
-        "id": str(result.inserted_id)
+        "id": str(result.inserted_id),
+        "id2": str(res1.inserted_id)
     }), 201
 
 
@@ -426,6 +434,13 @@ def edit_user(user_id):
 
     result = mongo.db.users.update_one({"_id": user_obj_id}, {"$set": update_data})
 
+    if update_data["role"] == "coordinator":
+        mongo.db.coordinators.update_one({"_id": user_obj_id}, {"$set": update_data})
+    elif update_data["role"] == "facilitator":
+        mongo.db.facilitators.update_one({"_id": user_obj_id}, {"$set": update_data})
+    elif update_data["role"] == "student":
+        mongo.db.students.update_one({"_id": user_obj_id}, {"$set": update_data})
+
     if result.matched_count == 0:
         return jsonify({"error": "User not found"}), 404
 
@@ -448,9 +463,25 @@ def delete_user(user_id):
         return jsonify({"error": "Invalid user ID"}), 400
 
     result = mongo.db.users.delete_one({"_id": user_obj_id})
+
+     # Find the user first
+    user = mongo.db.students.find_one({"_id": user_obj_id})
+    if user:
+        mongo.db.students.delete_one({"_id": user_obj_id})
+
+    user = mongo.db.facilitators.find_one({"_id": user_obj_id})
+    if user:
+        mongo.db.facilitators.delete_one({"_id": user_obj_id})
+
+    user = mongo.db.coordinators.find_one({"_id": user_obj_id})
+    if user:
+        mongo.db.coordinators.delete_one({"_id": user_obj_id})
+
     if result.deleted_count == 1:
         return jsonify({"message": "User deleted successfully"}), 200
     return jsonify({"error": "User not found"}), 404
+
+
 
    # -------------------------
 # ✅ Delete Event by ID (University or School)
