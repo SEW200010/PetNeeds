@@ -177,6 +177,7 @@ const Login = () => {
             </div>
           </div>
 
+
           {/* Remember Me */}
           <div className="flex justify-between items-center text-md text-white mb-6">
             <label className="flex items-center">
@@ -187,12 +188,8 @@ const Login = () => {
             </Link>
           </div>
 
-          {/* Forgot Password
-          <div className="flex justify-end text-md text-white mb-6">
-            <Link to="/forgot-password" className="text-green-400 hover:underline">
-              Forgot Password
-            </Link>
-          </div> */}
+  
+          
 
           <button
             type="submit"
