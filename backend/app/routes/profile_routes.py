@@ -160,7 +160,7 @@ def update_user(user_id):
     data = request.get_json()
     update_fields = {}
 
-    for field in ["fullName", "email", "role", "location", "school", "contact"]:
+    for field in ["fullname", "email", "role", "address", "school_name", "contact"]:
         if data.get(field):
             update_fields[field] = data[field]
 
@@ -175,3 +175,50 @@ def update_user(user_id):
     updated_user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
     updated_user["_id"] = str(updated_user["_id"])
     return jsonify(updated_user), 200
+
+
+
+@profile_bp.route('/add_facilitator', methods=['POST'])
+def add_facilitator():
+    data = request.get_json()
+    user_id = data.get('userId')
+
+    user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # ✅ Mark iotCompleted = True only for this facilitator in users collection
+    if user.get("role") == "facilitator":
+        mongo.db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {"iotCompleted": True}}
+        )
+
+    # Check if already exists in facilitators
+    existing_facilitator = mongo.db.facilitators.find_one({"email": user["email"]})
+    if existing_facilitator:
+        mongo.db.facilitators.update_one(
+            {"email": user["email"]},
+            {"$set": {"iotCompleted": True}}
+        )
+        return jsonify({"message": "Facilitator ToT status updated."}), 200
+
+    # Otherwise, insert new facilitator
+    facilitator_data = {
+        "fullname": user.get("fullname"),
+        "email": user.get("email"),
+        "role": "facilitator",
+        "status": "pending",
+        "district": user.get("district"),
+        "organization_unit": user.get("organization_unit"),
+        "faculty": user.get("faculty_name", ""),
+        "contact": user.get("contact"),
+        "profile_image": user.get("profileImage"),
+        "joined_date": user.get("joinedDate"),
+        "iotCompleted": True,
+    }
+
+    mongo.db.facilitators.insert_one(facilitator_data)
+    return jsonify({"message": "Facilitator added and ToT marked complete."}), 201
+
+

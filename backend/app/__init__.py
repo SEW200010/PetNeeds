@@ -7,7 +7,7 @@ from flask_bcrypt import Bcrypt
 from flask import send_from_directory
 import os
 from flask_mail import Mail
-
+from dotenv import load_dotenv
 # from dotenv import load_dotenv
 # import os
 
@@ -24,8 +24,8 @@ mail = Mail()
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS with all origins allowed, no credentials
-    #CORS(app, resources={r"/*": {"origins": ["*", "http://localhost:5173"]}}, supports_credentials=True)
+    #CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS with all origins allowed, no credentials
+    CORS(app, resources={r"/*": {"origins": ["*", "http://localhost:5173"]}}, supports_credentials=True)
 
     # Set a secret key for JWTs
     app.config['JWT_SECRET_KEY'] = 'your-super-secret-key'  # change this to a strong key
@@ -38,8 +38,18 @@ def create_app():
 
     # app.config["MONGO_URI"] = os.getenv("DB_URI")
     app.config["MONGO_URI"] = "mongodb://localhost:27017/lifeskill"
+    load_dotenv()
+    # Flask-Mail configuration
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USERNAME'] = os.getenv("SMTP_USER")
+    app.config['MAIL_PASSWORD'] = os.getenv("SMTP_PASS")
+    app.config['MAIL_DEFAULT_SENDER'] = os.getenv("SMTP_USER")
+    
+    
     mongo.init_app(app)
-
+    mail.init_app(app)
     # Register Blueprints
     from app.routes.auth_routes import auth_bp
     from app.routes.transaction_routes import transaction_bp
@@ -49,20 +59,22 @@ def create_app():
     from app.routes.monitoringStudents_routes import monitoringstudent_bp
     from app.routes.user_event_routes import user_event_bp  
     from app.routes.course_routes import course_bp
-    from app.routes.student_routes import student_bp
+
     from app.routes.participant_routes import participant_bp
     from app.routes.notification import notify_bp
     from app.routes.feedback import feedback_bp
     from app.routes.profile_routes import profile_bp
     from app.routes.coordinator_bp import coordinator_bp
-
+    from app.routes.subscriber_routes import subscribe_bp
+    from app.routes.reset_password_routes import password_bp
+    
     app.register_blueprint(auth_bp)
     app.register_blueprint(transaction_bp)
     app.register_blueprint(session_bp)
     app.register_blueprint(event_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(monitoringstudent_bp)
-    app.register_blueprint(student_bp)
+
     app.register_blueprint(course_bp, url_prefix="/courses")
     app.register_blueprint(coordinator_bp)
     app.register_blueprint(participant_bp)
@@ -70,6 +82,9 @@ def create_app():
     app.register_blueprint(feedback_bp)
     app.register_blueprint(profile_bp)
     app.register_blueprint(user_event_bp)  # Register user_event_bp with a URL prefix
+    app.register_blueprint(subscribe_bp)
+    app.register_blueprint(password_bp)
+    
     @app.route('/uploads/<path:filename>')
     def serve_uploaded_file(filename):
         return send_from_directory(os.path.join(os.getcwd(), 'uploads'), filename)

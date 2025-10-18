@@ -170,12 +170,8 @@ def login():
     if user:
         role = user.get("role", "").strip()
         
-
-         
-
         # Facilitator must be verified
-        if role == "facilitator" and not user.get("isVerified", False):
-            return jsonify({"error": "Your account is awaiting admin verification."}), 403
+       
 
         if check_password_hash(user.get("password", ""), password):
             user_id = str(user["_id"])

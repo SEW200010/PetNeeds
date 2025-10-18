@@ -1,5 +1,8 @@
 import Header from '@/components/Admin/header'
 import UserSidebar from '@/components/User/UserSidebar'
+import FacilitatorSidebar from '@/components/Facilitator/FacilitatorSidebar'
+import CoordinatorSidebar from '@/components/Coordinator/CoordinatorSidebar'
+import AdminSidebar from '@/components/Admin/AdminSidebar'
 import React from 'react';
 import axios from 'axios';
 import {jwtDecode} from 'jwt-decode';
@@ -53,6 +56,7 @@ function ProfileEditPage() {
         withCredentials: true 
       });
       alert("Profile updated successfully!");
+      navigate('/profile'); 
     } catch (error) {
       console.error("Update failed:", error);
       alert("Something went wrong while updating your profile.");
@@ -61,20 +65,40 @@ function ProfileEditPage() {
 
   if (!user) return <div className="text-center mt-10">Loading...</div>;
 
+  // Pick sidebar based on role
+    const getSidebar = () => {
+      switch (user.role) {
+        case 'admin':
+          return <AdminSidebar />
+        case 'facilitator':
+          return <FacilitatorSidebar />
+        case 'coordinator':
+          return <CoordinatorSidebar />
+        default:
+          return <UserSidebar />
+      }
+    }
+
   return (
     <div>
       <Header />
       <main className="bg-gray-100 pt-[65px] min-h-screen">
         <div className="flex flex-col md:flex-row">
-          <UserSidebar />
+          {getSidebar()}
           <div className="w-full md:w-3/4 px-2 py-4">
             <div className="max-w-10xl mx-auto">
               <h2 className="text-lg text-gray-700 font-semibold mb-1">
-                Welcome, {user.fullName}
+                Welcome, {user.fullname}
               </h2>
               <p className="text-sm text-gray-500 mb-6">
-                Joined: {user.joinedDate || "Unknown"}
+
+                Joined: {user.joinedDate?.$date 
+                  ? new Date(user.joinedDate.$date).toLocaleDateString() 
+                  : user.joinedDate 
+                    ? new Date(user.joinedDate).toLocaleDateString()
+                    : "Unknown"}
               </p>
+                
 
               <div className="max-w-5.5xl mx-auto mt-6">
                 <div className="h-32 rounded-t-xl bg-gradient-to-r from-blue-200 via-purple-100 to-yellow-100" />
@@ -83,7 +107,7 @@ function ProfileEditPage() {
                     <div className="flex items-center space-x-4">
                       <ProfileImageUploader user={user} setUser={setUser} />
                       <div>
-                        <h2 className="text-xl font-semibold">{user.fullName}</h2>
+                        <h2 className="text-xl font-semibold">{user.fullname}</h2>
                         <p className="text-gray-500">{user.email}</p>
                       </div>
                     </div>
@@ -98,10 +122,23 @@ function ProfileEditPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                     {[
-                      { name: 'fullName', label: 'Full Name' },
+                      { name: 'fullname', label: 'Full Name' },
                       { name: 'email', label: 'Email' },
-                      { name: 'location', label: 'Location' },
-                      { name: 'school', label: 'School' },
+                      { name: 'address', label: 'Address' },
+                      {
+                        name:
+                          formData.organization_unit?.toLowerCase() === 'university'
+                            ? 'university_name'
+                            : formData.organization_unit?.toLowerCase() === 'school'
+                            ? 'school_name'
+                            : 'organization_unit',
+                        label:
+                          formData.organization_unit?.toLowerCase() === 'university'
+                            ? 'University Name'
+                            : formData.organization_unit?.toLowerCase() === 'school'
+                            ? 'School Name'
+                            : 'Organization Unit',
+                      },
                       { name: 'contact', label: 'Contact' },
                     ].map((field) => (
                       <div key={field.name}>
@@ -117,6 +154,7 @@ function ProfileEditPage() {
                         />
                       </div>
                     ))}
+
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
