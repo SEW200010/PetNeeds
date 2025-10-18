@@ -34,10 +34,10 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ConfirmSubscription from "./components/ConfirmSubscription";
 
-//Coordinator Imports
+
 import CoordinatorDashboard from "./pages/Coordinator/CoordinatorDashboard"; // ✅ new import
 import Facilitator from "./pages/Coordinator/FacilitatorVerify";  // ✅ new import
-import FacultyInfo from "./pages/Coordinator/FacultyInfo";
+import ZoneEventsPage from "./pages/Coordinator/ZoneEventsPage";
 // ✅ New import for Modules page
 import ModulesPage from "./pages/User/UserEvent/ModulesPage";
 import EventsAndUsers from "./pages/Coordinator/EventsAndUsers";
@@ -86,11 +86,10 @@ const App = () => {
         <Route path="/coordinator-dashboard" element={<CoordinatorDashboard />} /> {/* ✅ New Coordinator Route */}
         <Route path="/event/:eventId" element={<EventDetailsPage />} />
         <Route path="/modules/:eventId" element={<ModulesPage />} />
-        
+        <Route path="/zone/:zoneId/events" element={<ZoneEventsPage />} />
         <Route path="/facilitator-verification" element={<Facilitator />} /> {/* ✅ New Facilitator Verification Route */}
         <Route path="/school/:id/events" element={<EventsAndUsers type="school" />} />
         <Route path="/faculty/:id/events" element={<EventsAndUsers type="faculty" />} />
-        <Route path="/faculty-information" element={<FacultyInfo />} /> {/* ✅ New Faculty Information Route */}
 
         <Route path="facilitator-dashboard" element={<FacilitatorDashboard/>}/>
  
