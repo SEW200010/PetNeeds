@@ -11,15 +11,12 @@ import {
   FormControlLabel,
   Checkbox,
   Autocomplete,
-  Typography 
+  Typography
 } from "@mui/material";
 
-const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty,    }) => {
+const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }) => {
 
-
-
-
-  const [formData, setFormData] = useState( {
+  const [formData, setFormData] = useState({
     name: "",
     date: "",
     description: "",
@@ -39,21 +36,34 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty,  
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
-  setFormData((prev) => ({
-    ...prev,
-    University: university || "",
-    faculty: faculty || "",
-  }));
-}, [university, faculty]);
+    setFormData((prev) => ({
+      ...prev,
+      University: university || "",
+      faculty: faculty || "",
+    }));
+  }, [university, faculty]);
 
 
   // Fetch facilitators
   useEffect(() => {
-    fetch("http://localhost:5000/facilitators")
+    if (!university) return;
+
+    const token = localStorage.getItem("token");
+    fetch(`http://localhost:5000/facilitators/${encodeURIComponent(university)}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
       .then((res) => res.json())
-      .then((data) => setFacilitators(data))
+      .then((data) => {
+        const list = data?.facilitators || data || [];
+        const normalized = list.map((f) => ({
+          _id: f._id || f.id || String(f._id || f.id),
+          fullname: f.fullname || f.name || "",
+          email: f.email || f.email
+        }));
+        setFacilitators(normalized);
+      })
       .catch((err) => console.error("Error fetching facilitators:", err));
-  }, []);
+  }, [university]);
 
 
   const moduleList = Array.from({ length: 16 }, (_, i) => `Module ${i + 1}`);
@@ -122,13 +132,13 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty,  
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    
+
     const payload = {
       ...formData,
       facilitator: formData.facilitator.map((f) => f._id),
       participants: { registered: formData.participants.registered_users.length || 0 },
       start_time: combineDateTime(formData.date, formData.start_time),
-    end_time: combineDateTime(formData.date, formData.end_time),
+      end_time: combineDateTime(formData.date, formData.end_time),
     };
 
     try {
@@ -219,6 +229,7 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty,  
           onChange={handleChange}
           fullWidth
           margin="normal"
+          disabled
         />
         <TextField
           label="Faculty"
@@ -227,6 +238,7 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty,  
           onChange={handleChange}
           fullWidth
           margin="normal"
+          disabled
         />
 
         {/* Facilitators */}
@@ -234,6 +246,7 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty,  
           multiple
           options={facilitators}
           getOptionLabel={(option) => option.fullname}
+          isOptionEqualToValue={(option, value) => String(option._id || option.id) === String(value._id || value.id)}
           value={formData.facilitator}
           onChange={(event, newValue) =>
             setFormData({ ...formData, facilitator: newValue })
@@ -242,43 +255,43 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty,  
           sx={{ mb: 2 }}
         />
 
-<Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>
-  Select Modules & Add Enrollment Keys
-</Typography>
+        <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>
+          Select Modules & Add Enrollment Keys
+        </Typography>
 
         {/* Modules Checkboxes with Enrollment Key */}
-       <FormControl component="fieldset" fullWidth margin="normal">
-  <FormGroup>
-    {moduleList.map((module) => {
-      const checked = formData.modules.some((m) => m.moduleName === module);
-      const enrollmentKey =
-        formData.modules.find((m) => m.moduleName === module)?.enrollmentKey || "";
+        <FormControl component="fieldset" fullWidth margin="normal">
+          <FormGroup>
+            {moduleList.map((module) => {
+              const checked = formData.modules.some((m) => m.moduleName === module);
+              const enrollmentKey =
+                formData.modules.find((m) => m.moduleName === module)?.enrollmentKey || "";
 
-      return (
-        <div key={module} style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={checked}
-                onChange={(e) => handleModuleCheck(module, e.target.checked)}
-              />
-            }
-            label={module}
-          />
-          {checked && (
-            <TextField
-              label="Enrollment Key"
-              value={enrollmentKey}
-              onChange={(e) => handleEnrollmentKeyChange(module, e.target.value)}
-              size="small"
-              sx={{ ml: 2, flex: 1 }}
-            />
-          )}
-        </div>
-      );
-    })}
-  </FormGroup>
-</FormControl>
+              return (
+                <div key={module} style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={checked}
+                        onChange={(e) => handleModuleCheck(module, e.target.checked)}
+                      />
+                    }
+                    label={module}
+                  />
+                  {checked && (
+                    <TextField
+                      label="Enrollment Key"
+                      value={enrollmentKey}
+                      onChange={(e) => handleEnrollmentKeyChange(module, e.target.value)}
+                      size="small"
+                      sx={{ ml: 2, flex: 1 }}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </FormGroup>
+        </FormControl>
 
         {formError && <p style={{ color: "red" }}>{formError}</p>}
       </DialogContent>

@@ -121,51 +121,6 @@ def get_events_by_zone_name(zone_name):
 
 
 from bson import ObjectId
-
-@coordinator_bp.route("/zone/<zone_id>/events", methods=["GET"])
-@jwt_required()
-def get_events_by_zone_id(zone_id):
-    claims = get_jwt()
-    role = claims.get("role", "")
-
-    # ✅ Only coordinators can access
-    if role != "coordination":
-        return jsonify({"error": "Access denied"}), 403
-
-    # ✅ Validate zone_id and find the zone
-    try:
-        zone = mongo.db.zones.find_one({"_id": ObjectId(zone_id)})
-    except:
-        return jsonify({"error": "Invalid zone ID"}), 400
-
-    if not zone:
-        return jsonify({"error": f"No zone found with id '{zone_id}'"}), 404
-
-    # ✅ Fetch events linked to this zone
-    events = list(
-        mongo.db.events.find(
-            {"zone_id": str(zone["_id"])},   # assuming events store zone_id as string
-            {"_id": 1, "title": 1, "date": 1, "location": 1}
-        )
-    )
-
-    events_list = [
-        {
-            "id": str(event["_id"]),
-            "title": event["title"],
-            "date": event.get("date"),
-            "location": event.get("location"),
-        }
-        for event in events
-    ]
-
-    return jsonify({
-        "zone": {"id": str(zone["_id"]), "name": zone["name"]},
-        "events": events_list
-    }), 200
-
-
-
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt
 from bson import ObjectId
@@ -189,7 +144,7 @@ def get_faculties_by_university(university_name):
     faculties = list(
         mongo.db.faculties.find(
             {"university_name": university_name},
-            {"_id": 1, "faculty_name": 1, "university_name": 1}
+            {"_id": 1, "faculty_name": 1, "university_name": 1 ,"dean":1,"contact":1}
         )
     )
 
@@ -197,7 +152,7 @@ def get_faculties_by_university(university_name):
         return jsonify({"error": f"No faculties found for {university_name}"}), 404
 
     faculties_list = [
-        {"id": str(f["_id"]), "faculty_name": f["faculty_name"]}
+        {"id": str(f["_id"]), "faculty_name": f["faculty_name"], "dean":f.get("dean",""), "contact":f.get("contact",{})}
         for f in faculties
     ]
 
@@ -257,7 +212,6 @@ def get_faculty_events(university_name, faculty_name):
     faculty = mongo.db.faculties.find_one({
         "university_name": {"$regex": f"^{university_name}$", "$options": "i"},
         "faculty_name": {"$regex": f"^{faculty_name}$", "$options": "i"},
-        
     })
 
     print({"university_name": university_name, "faculty_name": faculty_name})
@@ -265,19 +219,49 @@ def get_faculty_events(university_name, faculty_name):
     if not faculty:
         return jsonify({"error": "Faculty not found"}), 404
 
-    events = list(mongo.db.events.find({
-        "University": faculty["university_name"],
-        "faculty": faculty["faculty_name"]
-    }, {"_id": 1, "name": 1,"date": 1, "description": 1,"venue": 1}))
-    print({"events":events})
+    # ✅ Fetch events properly (indented inside function)
+    events = list(mongo.db.events.find(
+        {
+            "University": faculty["university_name"],
+            "faculty": faculty["faculty_name"]
+        },
+        {
+            "_id": 1,
+            "name": 1,
+            "date": 1,
+            "description": 1,
+            "venue": 1,
+            "start_time": 1,
+            "end_time": 1,
+            "facilitator": 1,
+            "modules": 1  # ✅ correct key name
+        }
+    ))
+
+    # ✅ Format data for JSON response
+    formatted_events = []
+    for e in events:
+        formatted_events.append({
+            "id": str(e["_id"]),
+            "title": e.get("name", ""),
+            "location": e.get("venue", ""),
+            "date": e.get("date", ""),
+            "description": e.get("description", ""),
+            "start_time": e.get("start_time", ""),
+            "end_time": e.get("end_time", ""),
+            "facilitator": [str(f) for f in e.get("facilitator", [])],
+            "modules": e.get("modules", [])
+        })
+
+    print({"events": formatted_events})
     return jsonify({
         "university": university_name,
         "faculty": faculty_name,
-        "events": [
-            {"id": str(e["_id"]), "title": e["name"],"location": e.get("venue", ""), "date": e.get("date"), "description": e.get("description", "")}
-            for e in events
-        ]
+        "events": formatted_events
     }), 200
+
+
+
 
 
 @coordinator_bp.route("/faculty/<university_name>/<faculty_name>/users", methods=["GET"])
@@ -386,11 +370,18 @@ def add_user():
         "email": data["email"],
         "password": generate_password_hash(data["password"]),
         "role": data["role"],
-        "university_name": data.get("university_name"),
-        "faculty_name": data.get("faculty_name"),
-        "zone": data.get("zone"),
-        "school_name": data.get("school_name"),
-        "created_at": datetime.utcnow(),
+        "isVerified": False if data.get("role") == "facilitator" else True ,
+        "joinedDate": datetime.utcnow(),
+        "organization_unit": data.get("organization_unit"), 
+        "school_name": data.get("school_name") or "",
+        "zone": data.get("zone") or "",
+        "district": data.get("district") or "", # faculty or school
+        "university_name": data.get("university_name") or "",
+        "faculty_name": data.get("faculty_name") or "",
+        "address": data.get("address"),
+        "contact": data.get("contact"),
+        "profileImage" :"/uploads/default.png",
+        "lastLogin": None,
     }
 
     result = mongo.db.users.insert_one(user_data)
@@ -440,4 +431,260 @@ def edit_user(user_id):
 
     return jsonify({"message": "User updated successfully"}), 200
 
-   
+
+@coordinator_bp.route("/users/<user_id>", methods=["DELETE"])
+@jwt_required()
+def delete_user(user_id):
+    """Delete a user by MongoDB ObjectId (string)."""
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    try:
+        user_obj_id = ObjectId(user_id)
+    except Exception:
+        return jsonify({"error": "Invalid user ID"}), 400
+
+    result = mongo.db.users.delete_one({"_id": user_obj_id})
+    if result.deleted_count == 1:
+        return jsonify({"message": "User deleted successfully"}), 200
+    return jsonify({"error": "User not found"}), 404
+
+   # -------------------------
+# ✅ Delete Event by ID (University or School)
+# -------------------------
+@coordinator_bp.route("/events/<event_id>", methods=["DELETE"])
+@jwt_required()
+def delete_event(event_id):
+    """Delete an event by its ID."""
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    # Only coordinators can delete events
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    try:
+        event_obj_id = ObjectId(event_id)
+    except:
+        return jsonify({"error": "Invalid event ID"}), 400
+
+    # Find the event before deleting (for logging or returning)
+    event = mongo.db.events.find_one({"_id": event_obj_id})
+    if not event:
+        return jsonify({"error": "Event not found"}), 404
+
+    # Delete the event
+    result = mongo.db.events.delete_one({"_id": event_obj_id})
+    if result.deleted_count == 1:
+        # Optionally, you can return the deleted event data
+        deleted_event = {
+            "id": str(event["_id"]),
+            "title": event.get("title") or event.get("name"),
+            "location": event.get("location") or event.get("venue"),
+            "date": event.get("date"),
+            "description": event.get("description"),
+            "start_time": event.get("start_time"),
+            "end_time": event.get("end_time"),
+            "facilitator": [str(f) for f in event.get("facilitator", [])],
+            "modules": event.get("modules", [])
+        }
+        return jsonify({"message": "Event deleted successfully", "deleted_event": deleted_event}), 200
+    else:
+        return jsonify({"error": "Failed to delete event"}), 500
+
+# -------------------------
+# ✅ Get Facilitators by University Name
+# -------------------------
+@coordinator_bp.route("/facilitators/<university_name>", methods=["GET"])
+@jwt_required()
+def get_facilitators_by_university(university_name):
+    """Fetch all facilitators belonging to a specific university."""
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    # Only coordinators can access
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    # Fetch facilitators
+    facilitators = list(
+        mongo.db.facilitators.find(
+            {"university_name": {"$regex": f"^{university_name}$", "$options": "i"}},  # case-insensitive
+            {"_id": 1, "fullname": 1, "email": 1, "faculty_name": 1,"isVerified":1,}
+        )
+    )
+
+    if not facilitators:
+        return jsonify({"error": f"No facilitators found for {university_name}"}), 404
+
+    facilitators_list = [
+        {
+            "_id": str(f["_id"]),
+            "id": str(f["_id"]),
+            "fullname": f.get("fullname", ""),
+            "email": f.get("email", ""),
+            "faculty": f.get("faculty_name", ""),
+            "isVerified": f.get("isVerified", "")
+        }
+        for f in facilitators
+    ]
+
+    print({"facilitators": facilitators_list})
+    print("done")
+    return jsonify({
+        "university": university_name,
+        "facilitators": facilitators_list
+    }), 200
+
+
+# -------------------------
+# ✅ Update facilitator verification status
+# -------------------------
+@coordinator_bp.route("/facilitators/<facilitator_id>/verify", methods=["PUT"])
+@jwt_required()
+def set_facilitator_verification(facilitator_id):
+    """Set or clear the isVerified flag for a facilitator.
+    Expects JSON body: { "isVerified": true|false }
+    """
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    # Only coordinators can update facilitator verification
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    data = request.get_json() or {}
+    if "isVerified" not in data:
+        return jsonify({"error": "Missing 'isVerified' in request body"}), 400
+
+    try:
+        fac_obj_id = ObjectId(facilitator_id)
+    except Exception:
+        return jsonify({"error": "Invalid facilitator id"}), 400
+
+    is_verified = bool(data.get("isVerified"))
+
+    result = mongo.db.facilitators.update_one(
+        {"_id": fac_obj_id},
+        {"$set": {"isVerified": is_verified}}
+    )
+
+    if result.matched_count == 0:
+        return jsonify({"error": "Facilitator not found"}), 404
+
+    return jsonify({"message": "Updated", "isVerified": is_verified}), 200
+
+
+# -------------------------
+# ✅ Add New Faculty (matches frontend payload)
+# -------------------------
+@coordinator_bp.route("/faculties/add", methods=["POST"])
+@jwt_required()
+def add_faculty():
+    """Add a new faculty under a university."""
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    # Only coordinators can add faculties
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    data = request.get_json() or {}
+
+    # Map frontend keys to backend keys
+    university_name = data.get("university", "").strip()
+    faculty_name = data.get("faculty_name", "").strip()
+    dean = data.get("dean", "").strip()
+    contact = data.get("contact", {})
+
+    # Validate required fields
+    if not university_name or not faculty_name or not dean or not contact:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    # Check for duplicate faculty under the same university
+    existing = mongo.db.faculties.find_one({
+        "university_name": {"$regex": f"^{university_name}$", "$options": "i"},
+        "faculty_name": {"$regex": f"^{faculty_name}$", "$options": "i"}
+    })
+    if existing:
+        return jsonify({"error": "Faculty already exists under this university"}), 400
+
+    # Build MongoDB document
+    faculty_doc = {
+        "university_name": university_name,
+        "faculty_name": faculty_name,
+        "dean": dean,
+        "contact": {
+            "email": contact.get("email", ""),
+            "phone": contact.get("phone", "")
+        },
+        "created_at": datetime.utcnow()
+    }
+
+    result = mongo.db.faculties.insert_one(faculty_doc)
+
+    return jsonify({
+        "message": "Faculty added successfully",
+        "id": str(result.inserted_id)
+    }), 201
+
+
+# ✅ UPDATE EXISTING FACULTY
+@coordinator_bp.route("/faculties/<faculty_id>", methods=["PUT"])
+@jwt_required()
+def update_faculty(faculty_id):
+    """Edit an existing faculty."""
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    try:
+        faculty_obj_id = ObjectId(faculty_id)
+    except Exception:
+        return jsonify({"error": "Invalid faculty ID"}), 400
+
+    data = request.get_json() or {}
+    update_data = {}
+
+    for field in ["faculty_name", "dean", "contact"]:
+        if field in data:
+            update_data[field] = data[field]
+
+    if not update_data:
+        return jsonify({"error": "No valid fields provided"}), 400
+
+    result = mongo.db.faculties.update_one({"_id": faculty_obj_id}, {"$set": update_data})
+
+    if result.matched_count == 0:
+        return jsonify({"error": "Faculty not found"}), 404
+
+    return jsonify({"message": "Faculty updated successfully"}), 200
+
+
+# ✅ DELETE FACULTY
+@coordinator_bp.route("/faculties/<faculty_id>", methods=["DELETE"])
+@jwt_required()
+def delete_faculty(faculty_id):
+    """Delete a faculty by its ID."""
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    try:
+        faculty_obj_id = ObjectId(faculty_id)
+    except Exception:
+        return jsonify({"error": "Invalid faculty ID"}), 400
+
+    result = mongo.db.faculties.delete_one({"_id": faculty_obj_id})
+
+    if result.deleted_count == 0:
+        return jsonify({"error": "Faculty not found"}), 404
+
+    return jsonify({"message": "Faculty deleted successfully"}), 200

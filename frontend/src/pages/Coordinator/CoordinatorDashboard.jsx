@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import CoordinatorSidebar from "@/components/Coordinator/CoordinatorSidebar";
 import CoordinatorActionCards from "@/components/Coordinator/CoordinatorActionCard";
-import Header from "@/components/Admin/Header";
+import Header from "@/components/Coordinator/CoordinatorHeader";
 import { useNavigate } from "react-router-dom";
 
 const CoordinatorDashboard = () => {

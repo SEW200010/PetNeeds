@@ -1,7 +1,7 @@
 import React, { useEffect, useState, forwardRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import CoordinatorSidebar from "@/components/Coordinator/CoordinatorSidebar";
-import Header from "@/components/Admin/Header";
+import CoordinatorHeader from "@/components/Coordinator/CoordinatorHeader";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -11,20 +11,14 @@ import Stack from "@mui/material/Stack";
 import IconButton from "@mui/material/IconButton";
 import { Edit, Delete, Visibility } from "@mui/icons-material";
 import {
-  FormControl,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Select,
-  MenuItem,
   Slide,
 } from "@mui/material";
 
 import CreateUniversityEvent from "../../components/Admin/CreateUniversityEvent";
-import CreateSchoolEvent from "../../components/Admin/CreateSchoolEvent";
 import EditUniversityEvent from "../../components/Admin/EditUniversityEvent";
 import UserForm from "../../components/Admin/UserForm";
+import ViewUserDialog from "../../components/Admin/ViewUserDialog";
+import ViewEventDialog from "../../components/Admin/ViewEventDialog";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="down" ref={ref} {...props} />;
@@ -41,8 +35,6 @@ const CoordinatorUnitView = () => {
   const [unitType, setUnitType] = useState("");
   const [error, setError] = useState(null);
 
-  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
-  const [schoolFormOpen, setSchoolFormOpen] = useState(false);
   const [universityFormOpen, setUniversityFormOpen] = useState(false);
   const [universityEditOpen, setUniversityEditOpen] = useState(false);
 
@@ -54,6 +46,9 @@ const CoordinatorUnitView = () => {
   const [usersCoordinator, setUsersCoordinator] = useState([]);
   const [usersFacilitator, setUsersFacilitator] = useState([]);
   const [usersStudent, setUsersStudent] = useState([]);
+
+  const [deletedEvent, setDeletedEvent] = useState(null);
+  const [viewEventOpen, setViewEventOpen] = useState(false);
 
   const userColumns = [
     { field: "name", headerName: "Name", flex: 2 },
@@ -105,15 +100,27 @@ const CoordinatorUnitView = () => {
     },
   ];
 
-  const handleCreateClick = () => {
-    document.activeElement?.blur();
-    setCategoryDialogOpen(true);
-  };
+  const handleDeleteEvent = async (eventId) => {
+    const eventToDelete = events.find((e) => e.id === eventId);
+    if (!eventToDelete) return;
 
-  const handleCategorySelect = (category) => {
-    setCategoryDialogOpen(false);
-    if (category === "School") setSchoolFormOpen(true);
-    if (category === "University") setUniversityFormOpen(true);
+    if (!window.confirm(`Are you sure you want to delete the event: ${eventToDelete.title}?`)) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/events/${eventId}`, { method: "DELETE" });
+      if (res.ok) {
+        // Remove from state
+        setEvents((prev) => prev.filter((e) => e.id !== eventId));
+
+        // Store deleted event for later use
+        setDeletedEvent(eventToDelete);
+
+        // Optional: callback
+        console.log("Deleted event:", eventToDelete);
+      }
+    } catch (err) {
+      console.error("Error deleting event:", err);
+    }
   };
 
   const handleEditEvent = (row) => {
@@ -121,17 +128,12 @@ const CoordinatorUnitView = () => {
     if (unitType === "university") setUniversityEditOpen(true);
   };
 
-  const handleViewEvent = (event) => alert(`Viewing event: ${event.title}`);
-
-  const handleDeleteEvent = async (eventId) => {
-    if (!window.confirm("Are you sure you want to delete this event?")) return;
-    try {
-      const res = await fetch(`${API_BASE}/events/${eventId}`, { method: "DELETE" });
-      if (res.ok) setEvents((prev) => prev.filter((e) => e.id !== eventId));
-    } catch (err) {
-      console.error("Error deleting event:", err);
-    }
+  // Update handleViewEvent
+  const handleViewEvent = (event) => {
+    setSelectedEvent(event);
+    setViewEventOpen(true);
   };
+
 
   const handleSubmitForm = (formData) => {
     setEvents((prev) => [...prev, { id: prev.length + 1, ...formData }]);
@@ -199,21 +201,60 @@ const CoordinatorUnitView = () => {
     fetchData();
   }, [faculty_name, school_name, university_name, zone]);
 
-  const handleViewUser = (user) => alert(`Viewing user: ${user.name}`);
+  // handleViewUser replaced by dialog-based implementation below
   const handleEditUser = (user) => {
-    setSelectedUser(user);
-    setSelectedUserRole(user.role);
-    setUserFormOpen(true);
+    const openEditor = async () => {
+      const token = localStorage.getItem("token");
+      const userId = user._id || user.id || user._id_str || null;
+      if (!userId) {
+        setSelectedUser(user);
+        setSelectedUserRole(user.role);
+        setUserFormOpen(true);
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/users/${userId}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+        if (res.ok) {
+          const data = await res.json();
+          // assume response body is the user object
+          setSelectedUser(data);
+          setSelectedUserRole(data.role || user.role);
+        } else {
+          // fallback to row data
+          setSelectedUser(user);
+          setSelectedUserRole(user.role);
+        }
+      } catch (err) {
+        console.error("Failed to fetch user details:", err);
+        setSelectedUser(user);
+        setSelectedUserRole(user.role);
+      }
+
+      setUserFormOpen(true);
+    };
+
+    openEditor();
+  };
+
+  const [viewUserOpen, setViewUserOpen] = useState(false);
+  const [viewUserId, setViewUserId] = useState(null);
+
+  const handleViewUser = (user) => {
+    // user may be minimal row; prefer _id or id
+    setViewUserId(user._id || user.id || user._id_str || null);
+    setViewUserOpen(true);
   };
 
   const handleDeleteUser = async (userId) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
-      const res = await fetch(`${API_BASE}/users/${userId}`, { method: "DELETE" });
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/users/${userId}`, { method: "DELETE", headers: token ? { Authorization: `Bearer ${token}` } : {} });
       if (res.ok) {
-        setUsersCoordinator((p) => p.filter((u) => u.id !== userId));
-        setUsersFacilitator((p) => p.filter((u) => u.id !== userId));
-        setUsersStudent((p) => p.filter((u) => u.id !== userId));
+        setUsersCoordinator((p) => p.filter((u) => String(u.id || u._id) !== String(userId)));
+        setUsersFacilitator((p) => p.filter((u) => String(u.id || u._id) !== String(userId)));
+        setUsersStudent((p) => p.filter((u) => String(u.id || u._id) !== String(userId)));
       }
     } catch (err) {
       console.error("Error deleting user:", err);
@@ -227,7 +268,30 @@ const CoordinatorUnitView = () => {
   };
 
   const handleUserFormSubmit = () => {
-    setUserFormOpen(false);
+    // Refresh users after add/edit
+    const token = localStorage.getItem("token");
+    const baseUrl = API_BASE;
+    const type = unitType;
+    let usersUrl = "";
+
+    if (type === "university") {
+      usersUrl = `${baseUrl}/faculty/${encodeURIComponent(university_name)}/${encodeURIComponent(
+        faculty_name
+      )}/users`;
+    } else {
+      usersUrl = `${baseUrl}/school/${encodeURIComponent(zone)}/${encodeURIComponent(school_name)}/users`;
+    }
+
+    fetch(usersUrl, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      .then((r) => r.json())
+      .then((data) => {
+        const allUsers = data?.users || [];
+        setUsersCoordinator(allUsers.filter((u) => u.role === "coordinator"));
+        setUsersFacilitator(allUsers.filter((u) => u.role === "facilitator"));
+        setUsersStudent(allUsers.filter((u) => u.role === "student"));
+      })
+      .catch((err) => console.error("Error refreshing users:", err))
+      .finally(() => setUserFormOpen(false));
   };
 
   if (loading)
@@ -250,10 +314,9 @@ const CoordinatorUnitView = () => {
       : `${school_name} (${zone})`;
 
   const eventRows = events.map((e, index) => ({
-    id: e.id || index,
-    title: e.title,
-    date: e.date,
-    location: e.location || "",
+    // Include the full event object in the row so the edit dialog receives all fields
+    id: e.id || e._id || index,
+    ...e,
   }));
 
   const renderUserSection = (users, roleName, color) => (
@@ -275,8 +338,9 @@ const CoordinatorUnitView = () => {
         <div style={{ height: 300, width: "100%" }}>
           <DataGrid
             rows={users.map((u, i) => ({
-              id: u.id || i,
-              name: u.name,
+              id: u.id || u._id || i,
+              _id: u._id || u.id || null,
+              name: u.name || u.fullname || u.fullName,
               email: u.email,
               role: u.role,
             }))}
@@ -294,17 +358,15 @@ const CoordinatorUnitView = () => {
 
   return (
     <div>
-      <Header />
+  <CoordinatorHeader title={unitType === 'university' ? `${faculty_name} (${university_name})` : `${school_name} (${zone})`} />
       <main className="pt-[65px] min-h-screen bg-gray-50">
         <div className="flex flex-col md:flex-row">
           <CoordinatorSidebar />
 
           <div className="flex-1 p-6">
             <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-              <Typography variant="h4">Events — {unitTitle}</Typography>
-              <Button variant="outlined" onClick={() => navigate(-1)}>
-                Back
-              </Button>
+              <Typography variant="h4">{unitTitle}</Typography>
+              
             </Box>
 
             {/* Events */}
@@ -316,7 +378,7 @@ const CoordinatorUnitView = () => {
                   backgroundColor: "green",
                   "&:hover": { backgroundColor: "darkgreen" },
                 }}
-                onClick={handleCreateClick}
+                onClick={() => setUniversityFormOpen(true)}  // directly open dialog
               >
                 Add Event
               </Button>
@@ -341,29 +403,13 @@ const CoordinatorUnitView = () => {
             {renderUserSection(usersFacilitator, "Facilitator", "blue")}
             {renderUserSection(usersStudent, "Student", "purple")}
 
-            {/* Dialogs */}
-            <Dialog
-              open={categoryDialogOpen}
-              onClose={() => setCategoryDialogOpen(false)}
-              TransitionComponent={Transition}
-              fullWidth
-              maxWidth="sm"
-            >
-              <DialogTitle>Select Event Category</DialogTitle>
-              <DialogContent>
-                <FormControl fullWidth>
-                  <Select defaultValue="" onChange={(e) => handleCategorySelect(e.target.value)}>
-                    <MenuItem value="School">School</MenuItem>
-                    <MenuItem value="University">University</MenuItem>
-                  </Select>
-                </FormControl>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setCategoryDialogOpen(false)} color="error">
-                  Cancel
-                </Button>
-              </DialogActions>
-            </Dialog>
+            <ViewEventDialog
+              open={viewEventOpen}
+              onClose={() => setViewEventOpen(false)}
+              event={selectedEvent}
+              university={university_name}
+              faculty={faculty_name}
+            />
 
             <UserForm
               open={userFormOpen}
@@ -371,16 +417,11 @@ const CoordinatorUnitView = () => {
               onSubmit={handleUserFormSubmit}
               initialData={selectedUser}
               role={selectedUserRole}
+              university={university_name}
+              faculty={faculty_name}
             />
 
-            <CreateSchoolEvent
-              open={schoolFormOpen}
-              onClose={() => setSchoolFormOpen(false)}
-              onSubmit={handleSubmitForm}
-              zone={zone}
-              school={school_name}
-              initialData={selectedEvent}
-            />
+            <ViewUserDialog open={viewUserOpen} onClose={() => setViewUserOpen(false)} userId={viewUserId} />
 
             <CreateUniversityEvent
               open={universityFormOpen}
@@ -390,13 +431,15 @@ const CoordinatorUnitView = () => {
               faculty={faculty_name}
               initialData={selectedEvent}
             />
-
             <EditUniversityEvent
               open={universityEditOpen}
               onClose={() => setUniversityEditOpen(false)}
               initialData={selectedEvent}
-              onUpdate={() => {}}
+              onUpdate={() => { }}
+              university={university_name}   // ✅ add this
+              faculty={faculty_name}         // ✅ add this
             />
+
           </div>
         </div>
       </main>
