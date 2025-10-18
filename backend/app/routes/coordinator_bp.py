@@ -144,7 +144,7 @@ def get_faculties_by_university(university_name):
     faculties = list(
         mongo.db.faculties.find(
             {"university_name": university_name},
-            {"_id": 1, "faculty_name": 1, "university_name": 1}
+            {"_id": 1, "faculty_name": 1, "university_name": 1 ,"dean":1,"contact":1}
         )
     )
 
@@ -152,7 +152,7 @@ def get_faculties_by_university(university_name):
         return jsonify({"error": f"No faculties found for {university_name}"}), 404
 
     faculties_list = [
-        {"id": str(f["_id"]), "faculty_name": f["faculty_name"]}
+        {"id": str(f["_id"]), "faculty_name": f["faculty_name"], "dean":f.get("dean",""), "contact":f.get("contact",{})}
         for f in faculties
     ]
 
@@ -538,3 +538,153 @@ def get_facilitators_by_university(university_name):
         "university": university_name,
         "facilitators": facilitators_list
     }), 200
+
+
+# -------------------------
+# ✅ Update facilitator verification status
+# -------------------------
+@coordinator_bp.route("/facilitators/<facilitator_id>/verify", methods=["PUT"])
+@jwt_required()
+def set_facilitator_verification(facilitator_id):
+    """Set or clear the isVerified flag for a facilitator.
+    Expects JSON body: { "isVerified": true|false }
+    """
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    # Only coordinators can update facilitator verification
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    data = request.get_json() or {}
+    if "isVerified" not in data:
+        return jsonify({"error": "Missing 'isVerified' in request body"}), 400
+
+    try:
+        fac_obj_id = ObjectId(facilitator_id)
+    except Exception:
+        return jsonify({"error": "Invalid facilitator id"}), 400
+
+    is_verified = bool(data.get("isVerified"))
+
+    result = mongo.db.facilitators.update_one(
+        {"_id": fac_obj_id},
+        {"$set": {"isVerified": is_verified}}
+    )
+
+    if result.matched_count == 0:
+        return jsonify({"error": "Facilitator not found"}), 404
+
+    return jsonify({"message": "Updated", "isVerified": is_verified}), 200
+
+
+# -------------------------
+# ✅ Add New Faculty (matches frontend payload)
+# -------------------------
+@coordinator_bp.route("/faculties/add", methods=["POST"])
+@jwt_required()
+def add_faculty():
+    """Add a new faculty under a university."""
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    # Only coordinators can add faculties
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    data = request.get_json() or {}
+
+    # Map frontend keys to backend keys
+    university_name = data.get("university", "").strip()
+    faculty_name = data.get("faculty_name", "").strip()
+    dean = data.get("dean", "").strip()
+    contact = data.get("contact", {})
+
+    # Validate required fields
+    if not university_name or not faculty_name or not dean or not contact:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    # Check for duplicate faculty under the same university
+    existing = mongo.db.faculties.find_one({
+        "university_name": {"$regex": f"^{university_name}$", "$options": "i"},
+        "faculty_name": {"$regex": f"^{faculty_name}$", "$options": "i"}
+    })
+    if existing:
+        return jsonify({"error": "Faculty already exists under this university"}), 400
+
+    # Build MongoDB document
+    faculty_doc = {
+        "university_name": university_name,
+        "faculty_name": faculty_name,
+        "dean": dean,
+        "contact": {
+            "email": contact.get("email", ""),
+            "phone": contact.get("phone", "")
+        },
+        "created_at": datetime.utcnow()
+    }
+
+    result = mongo.db.faculties.insert_one(faculty_doc)
+
+    return jsonify({
+        "message": "Faculty added successfully",
+        "id": str(result.inserted_id)
+    }), 201
+
+
+# ✅ UPDATE EXISTING FACULTY
+@coordinator_bp.route("/faculties/<faculty_id>", methods=["PUT"])
+@jwt_required()
+def update_faculty(faculty_id):
+    """Edit an existing faculty."""
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    try:
+        faculty_obj_id = ObjectId(faculty_id)
+    except Exception:
+        return jsonify({"error": "Invalid faculty ID"}), 400
+
+    data = request.get_json() or {}
+    update_data = {}
+
+    for field in ["faculty_name", "dean", "contact"]:
+        if field in data:
+            update_data[field] = data[field]
+
+    if not update_data:
+        return jsonify({"error": "No valid fields provided"}), 400
+
+    result = mongo.db.faculties.update_one({"_id": faculty_obj_id}, {"$set": update_data})
+
+    if result.matched_count == 0:
+        return jsonify({"error": "Faculty not found"}), 404
+
+    return jsonify({"message": "Faculty updated successfully"}), 200
+
+
+# ✅ DELETE FACULTY
+@coordinator_bp.route("/faculties/<faculty_id>", methods=["DELETE"])
+@jwt_required()
+def delete_faculty(faculty_id):
+    """Delete a faculty by its ID."""
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    try:
+        faculty_obj_id = ObjectId(faculty_id)
+    except Exception:
+        return jsonify({"error": "Invalid faculty ID"}), 400
+
+    result = mongo.db.faculties.delete_one({"_id": faculty_obj_id})
+
+    if result.deleted_count == 0:
+        return jsonify({"error": "Faculty not found"}), 404
+
+    return jsonify({"message": "Faculty deleted successfully"}), 200
