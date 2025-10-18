@@ -25,7 +25,7 @@ const menuItems = [
 
   { icon: CalendarIcon, label: "Facilitator Verification", path: "/facilitator-verification", hasChevron: true },
   { icon: CalendarIcon, label: "Module Management", path: "/reports", hasChevron: true },
-  { icon: CalendarIcon, label: "Faculty Information", path: "/reports", hasChevron: true },
+  { icon: CalendarIcon, label: "Faculty Information", path: "/faculty-information", hasChevron: true },
   { icon: CalendarIcon, label: "Coordinator Reports", path: "/reports", hasChevron: true },
   { icon: Settings, label: "Settings", hasChevron: true },
   { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
