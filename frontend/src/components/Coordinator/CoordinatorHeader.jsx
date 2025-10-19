@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Logo from "../../assets/logo.png";
+import Logo from "../../assets/logoNew.png";
 import { Menu as MenuIcon, LogOut as LogOutIcon } from "lucide-react";
 import { logout } from "../../lib/utils";
 import Badge from "@mui/material/Badge";
