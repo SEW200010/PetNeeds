@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import Header from "../../../components/Header";
+import Header from "../../../components/User/UserHeader";
 import UserSidebar from "../../../components/User/UserSidebar";
 import { CircularProgress } from "@mui/material";
 import EventCard from "./EventCard"; // Assuming you have EventCard
