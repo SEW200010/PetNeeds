@@ -29,7 +29,7 @@ const menuItems = [
   { icon: User, label: "My Profile", path: "/profile", hasChevron: true },
 
   { icon: CheckSquare, label: "Facilitator Verification", path: "/facilitator-verification", hasChevron: true },
-  { icon: BookOpen, label: "Module Management", path: "/reports", hasChevron: true },
+  { icon: BookOpen, label: "Module Management", path: "/module-management", hasChevron: true },
   { icon: University, label: "Faculty Information", path: "/faculty-information", hasChevron: true },
   { icon: FileText, label: "Coordinator Reports", path: "/reports", hasChevron: true },
   { icon: Settings, label: "Settings", hasChevron: true },
