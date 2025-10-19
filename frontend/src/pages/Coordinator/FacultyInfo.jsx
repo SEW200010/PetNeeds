@@ -19,26 +19,26 @@ const FacultyInfo = () => {
   const [university, setUniversity] = useState("");
   const [coordinatorName, setCoordinatorName] = useState("");
   const [openForm, setOpenForm] = useState(false);
-const [selectedFaculty, setSelectedFaculty] = useState(null);
+  const [selectedFaculty, setSelectedFaculty] = useState(null);
 
-const handleAdd = () => {
-  setSelectedFaculty(null);
-  setOpenForm(true);
-};
-
-const handleEdit = (faculty) => {
-  setSelectedFaculty(faculty);
-  setOpenForm(true);
-};
-
-const handleEditEvent = (facultyId) => {
-  // Find the full faculty object by id
-  const faculty = faculties.find(f => f.id === facultyId);
-  if (faculty) {
-    setSelectedFaculty(faculty); // Pass full object including contact
+  const handleAdd = () => {
+    setSelectedFaculty(null);
     setOpenForm(true);
-  }
-};
+  };
+
+  const handleEdit = (faculty) => {
+    setSelectedFaculty(faculty);
+    setOpenForm(true);
+  };
+
+  const handleEditEvent = (facultyId) => {
+    // Find the full faculty object by id
+    const faculty = faculties.find(f => f.id === facultyId);
+    if (faculty) {
+      setSelectedFaculty(faculty); // Pass full object including contact
+      setOpenForm(true);
+    }
+  };
 
 
   // ✅ Role check
@@ -55,7 +55,7 @@ const handleEditEvent = (facultyId) => {
     setCoordinatorName(name || "Coordinator");
   }, [navigate]);
 
-  
+
   // ✅ Fetch faculty list
   /*
   useEffect(() => {
@@ -104,68 +104,68 @@ const handleEditEvent = (facultyId) => {
 
 */
 
-const fetchFaculties = async () => {
-  setLoading(true);
-  try {
-    const token = localStorage.getItem("token");
-    const organizationUnit = localStorage.getItem("organization_unit");
-    const universityName = localStorage.getItem("university_name");
-    const zone = localStorage.getItem("zone");
+  const fetchFaculties = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const organizationUnit = localStorage.getItem("organization_unit");
+      const universityName = localStorage.getItem("university_name");
+      const zone = localStorage.getItem("zone");
 
-    if (!token || !organizationUnit) return;
+      if (!token || !organizationUnit) return;
 
-    let apiUrl = "";
-    if (organizationUnit.toLowerCase() === "university") {
-      apiUrl = `${API}/faculties/${encodeURIComponent(universityName)}`;
-    } else if (organizationUnit.toLowerCase() === "school") {
-      apiUrl = `${API}/schools/${encodeURIComponent(zone)}`;
+      let apiUrl = "";
+      if (organizationUnit.toLowerCase() === "university") {
+        apiUrl = `${API}/faculties/${encodeURIComponent(universityName)}`;
+      } else if (organizationUnit.toLowerCase() === "school") {
+        apiUrl = `${API}/schools/${encodeURIComponent(zone)}`;
+      }
+
+      const res = await fetch(apiUrl, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+
+      if (!data.error && data.items) {
+        setFaculties(data.items);
+        setUniversity(data.university || "");
+      }
+    } catch (error) {
+      console.error("Failed to fetch faculties:", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const res = await fetch(apiUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
+  // call it on mount
+  useEffect(() => {
+    fetchFaculties();
+  }, []);
 
-    if (!data.error && data.items) {
-      setFaculties(data.items);
-      setUniversity(data.university || "");
+
+
+  const handleDeleteEvent = async (facultyId) => {
+    if (!window.confirm("Are you sure you want to delete this faculty?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API}/faculties/${facultyId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("Faculty deleted successfully!");
+        fetchFaculties(); // refresh table
+      } else {
+        throw new Error(data.error || "Failed to delete faculty");
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
     }
-  } catch (error) {
-    console.error("Failed to fetch faculties:", error);
-  } finally {
-    setLoading(false);
-  }
-};
-
-// call it on mount
-useEffect(() => {
-  fetchFaculties();
-}, []);
-
-
-
-const handleDeleteEvent = async (facultyId) => {
-  if (!window.confirm("Are you sure you want to delete this faculty?")) return;
-
-  try {
-    const token = localStorage.getItem("token");
-    const res = await fetch(`${API}/faculties/${facultyId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      alert("Faculty deleted successfully!");
-      fetchFaculties(); // refresh table
-    } else {
-      throw new Error(data.error || "Failed to delete faculty");
-    }
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-  }
-};
+  };
 
 
   // ✅ Define columns for MUI DataGrid
@@ -184,13 +184,13 @@ const handleDeleteEvent = async (facultyId) => {
           <IconButton color="primary" size="small" onClick={() => handleViewEvent(params.row)}>
             <Visibility />
           </IconButton>
-          <IconButton 
-  color="secondary" 
-  size="small" 
-  onClick={() => handleEditEvent(params.row.id)} // pass id
->
-  <Edit />
-</IconButton>
+          <IconButton
+            color="secondary"
+            size="small"
+            onClick={() => handleEditEvent(params.row.id)} // pass id
+          >
+            <Edit />
+          </IconButton>
 
           <IconButton color="error" size="small" onClick={() => handleDeleteEvent(params.row.id)}>
             <Delete />
@@ -209,7 +209,7 @@ const handleDeleteEvent = async (facultyId) => {
     phone: faculty.contact?.phone || "N/A",
   }));
 
-  
+
 
   return (
     <div>
@@ -229,8 +229,8 @@ const handleDeleteEvent = async (facultyId) => {
             ) : (
               <div style={{ height: 450, width: "100%" }}>
                 <Button variant="contained" onClick={handleAdd} sx={{ mb: 2 }}>
-  Add Faculty
-</Button>
+                  Add Faculty
+                </Button>
                 <DataGrid
                   rows={rows}
                   columns={columns}
@@ -242,12 +242,12 @@ const handleDeleteEvent = async (facultyId) => {
             )}
           </div>
           <FacultyForm
-  open={openForm}
-  onClose={() => setOpenForm(false)}
-  onSubmit={() => fetchFaculties()} // re-fetch after add/edit
-  initialData={selectedFaculty}
-  universityName={university}
-/>
+            open={openForm}
+            onClose={() => setOpenForm(false)}
+            onSubmit={() => fetchFaculties()} // re-fetch after add/edit
+            initialData={selectedFaculty}
+            universityName={university}
+          />
 
         </div>
       </main>

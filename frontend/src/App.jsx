@@ -38,6 +38,8 @@ import ConfirmSubscription from "./components/ConfirmSubscription";
 import CoordinatorDashboard from "./pages/Coordinator/CoordinatorDashboard"; // ✅ new import
 import Facilitator from "./pages/Coordinator/FacilitatorVerify";  // ✅ new import
 import FacultyInfo from "./pages/Coordinator/FacultyInfo";
+import ModuleManage from "./pages/Coordinator/ModuleManage";
+
 // ✅ New import for Modules page
 import ModulesPage from "./pages/User/UserEvent/ModulesPage";
 import EventsAndUsers from "./pages/Coordinator/EventsAndUsers";
@@ -86,6 +88,8 @@ const App = () => {
         <Route path="/coordinator-dashboard" element={<CoordinatorDashboard />} /> {/* ✅ New Coordinator Route */}
         <Route path="/event/:eventId" element={<EventDetailsPage />} />
         <Route path="/modules/:eventId" element={<ModulesPage />} />
+        <Route path="/module-management" element={<ModuleManage />} /> {/* ✅ New Module Management Route */}
+        
         
         <Route path="/facilitator-verification" element={<Facilitator />} /> {/* ✅ New Facilitator Verification Route */}
         <Route path="/school/:id/events" element={<EventsAndUsers type="school" />} />

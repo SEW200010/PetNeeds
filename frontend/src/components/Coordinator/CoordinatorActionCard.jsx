@@ -62,10 +62,7 @@ const CoordinatorActionCard = () => {
 
   return (
     <div>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        Welcome, {coordinator.name} ({coordinator.organizationUnit} - {coordinator.universityName || coordinator.zone })
-      </Typography>
-
+      
       <Box
         sx={{
           width: "95%",

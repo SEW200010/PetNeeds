@@ -28,10 +28,10 @@ const CoordinatorDashboard = () => {
         <div className="flex flex-col md:flex-row">
           <CoordinatorSidebar />
           <div className="w-full md:w-3/4 p-6">
-            <div className="text-2xl font-bold pb-10">
-              
-            </div>
-           <CoordinatorActionCards/>
+
+            <h2 className="text-2xl font-bold mb-6">Welcome </h2>
+
+            <CoordinatorActionCards />
           </div>
         </div>
       </main>

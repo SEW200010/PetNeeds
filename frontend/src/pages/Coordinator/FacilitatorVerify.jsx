@@ -9,7 +9,6 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Input from "@mui/material/Input";
-// no Chip; using plain dropdown with styled display value
 
 const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -18,7 +17,7 @@ const Facilitator = () => {
   const [facilitators, setFacilitators] = useState([]);
   const [loading, setLoading] = useState(true);
   const [coordinatorName, setCoordinatorName] = useState("");
-  
+
 
   useEffect(() => {
     const role = localStorage.getItem("role");
@@ -67,7 +66,7 @@ const Facilitator = () => {
     { field: "fullname", headerName: "Name", flex: 1 },
     { field: "email", headerName: "Email", flex: 1 },
     { field: "faculty", headerName: "Faculty", flex: 1 },
-    
+
     {
       field: "isVerified",
       headerName: "TOT completed",

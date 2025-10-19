@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Logo from "../../assets/logo.png";
+import Logo from "../../assets/logoNew.png";
 import { Menu as MenuIcon, LogOut as LogOutIcon } from "lucide-react";
 import { logout } from "../../lib/utils";
+import Badge from "@mui/material/Badge";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 
 const CoordinatorHeader = ({ title = "Coordinator" }) => {
   const [hasScrolled, setHasScrolled] = useState(false);
+  const [notifications, setNotifications] = useState(3); // Example: 3 unread notifications
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,6 +17,13 @@ const CoordinatorHeader = ({ title = "Coordinator" }) => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Example: handle notifications click
+  const handleNotificationsClick = () => {
+    alert("Opening notifications panel...");
+    // You can open a dropdown or side panel here
+    setNotifications(0); // Reset after viewing
+  };
 
   return (
     <header
@@ -35,6 +45,30 @@ const CoordinatorHeader = ({ title = "Coordinator" }) => {
           </Link>
         </div>
 
+         <div className="hidden md:flex items-center gap-4">
+          {/* 🔔 Notification Icon with Badge */}
+          <button
+            onClick={handleNotificationsClick}
+            className="relative p-2 rounded-md hover:bg-gray-100"
+            aria-label="Notifications"
+          >
+            <Badge
+              badgeContent={notifications}
+              color="error"
+              overlap="circular"
+              sx={{
+                "& .MuiBadge-badge": {
+                  fontSize: "0.7rem",
+                  height: 18,
+                  minWidth: 18,
+                },
+              }}
+            >
+              <NotificationsIcon className="text-gray-700" />
+            </Badge>
+          </button>
+          
+
         <div className="hidden md:flex items-center gap-3">
           {/* Logout button */}
           <button
@@ -47,6 +81,7 @@ const CoordinatorHeader = ({ title = "Coordinator" }) => {
             <span className="text-sm text-gray-700">Logout</span>
           </button>
         </div>
+</div>
       </div>
     </header>
   );

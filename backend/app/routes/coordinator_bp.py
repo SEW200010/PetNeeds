@@ -1,12 +1,27 @@
-from flask import Blueprint, jsonify ,request
+import os
+from flask import Blueprint, jsonify ,request, current_app, send_from_directory
 from werkzeug.security import generate_password_hash
 from flask_jwt_extended import jwt_required, get_jwt
 from app import mongo
 from bson import ObjectId
 from datetime import datetime
+from werkzeug.utils import secure_filename
 
 
 coordinator_bp = Blueprint("coordinator_bp", __name__)
+
+# Folder to store uploaded module documents
+UPLOAD_FOLDER = "uploads/modules"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Allowed file extensions
+ALLOWED_EXTENSIONS = {"pdf", "doc", "docx", "pptx", "txt", "png", "jpg", "jpeg"}
+
+
+def is_allowed_file(filename):
+    """Check if uploaded file has an allowed extension."""
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 # -------------------------
 # ✅ Get Zones by District Name for Coordinator (directly using district_name)
@@ -37,86 +52,6 @@ def get_zones_by_district_name(district_name):
             "district": district_name
         },
         "zones": zones_list
-    }), 200
-
-
-# -------------------------
-# ✅ Get Events by Zone ID
-# -------------------------
-@coordinator_bp.route("/zone/<zone_id>/events", methods=["GET"])
-@jwt_required()
-def get_events_by_zone(zone_id):
-    claims = get_jwt()
-    role = claims.get("role", "")
-
-    # Ensure only coordinators can access
-    if role != "coordination":
-        return jsonify({"error": "Access denied"}), 403
-
-    try:
-        from bson import ObjectId
-        zone_obj_id = ObjectId(zone_id)
-    except Exception:
-        return jsonify({"error": "Invalid zone ID"}), 400
-
-    # Fetch events for this zone
-    events = list(
-        mongo.db.events.find({"zone_id": zone_obj_id}, {"_id": 1, "name": 1, "date": 1, "description": 1})
-    )
-
-    if not events:
-        return jsonify({"error": "No events found for this zone"}), 404
-
-    events_list = [
-        {
-            "id": str(e["_id"]),
-            "name": e["name"],
-            "date": e.get("date"),
-            "description": e.get("description", "")
-        }
-        for e in events
-    ]
-
-    return jsonify({"zone_id": zone_id, "events": events_list}), 200
-
-
-
-@coordinator_bp.route("/zone/<zone_name>/events", methods=["GET"])
-@jwt_required()
-def get_events_by_zone_name(zone_name):
-    claims = get_jwt()
-    role = claims.get("role", "")
-
-    # ✅ Only coordinators can access
-    if role != "coordination":
-        return jsonify({"error": "Access denied"}), 403
-
-    # ✅ Find the zone by its name
-    zone = mongo.db.zones.find_one({"name": zone_name})
-    if not zone:
-        return jsonify({"error": f"No zone found with name '{zone_name}'"}), 404
-
-    # ✅ Fetch events for this zone
-    events = list(
-        mongo.db.events.find(
-            {"zone_name": zone_name},   # assuming events collection stores zone_name
-            {"_id": 1, "title": 1, "date": 1, "location": 1}
-        )
-    )
-
-    events_list = [
-        {
-            "id": str(event["_id"]),
-            "title": event["title"],
-            "date": event.get("date"),
-            "location": event.get("location"),
-        }
-        for event in events
-    ]
-
-    return jsonify({
-        "zone": zone_name,
-        "events": events_list
     }), 200
 
 
@@ -719,3 +654,153 @@ def delete_faculty(faculty_id):
         return jsonify({"error": "Faculty not found"}), 404
 
     return jsonify({"message": "Faculty deleted successfully"}), 200
+
+
+# -----------------------------------------------------------------
+# 📌 Get all modules
+# -----------------------------------------------------------------
+@coordinator_bp.route("/modules", methods=["GET"])
+@jwt_required()
+def get_modules():
+    try:
+        modules = list(mongo.db.modules.find())
+        for m in modules:
+            m["id"] = str(m["_id"])
+            m["_id"] = str(m["_id"])
+        return jsonify({"items": modules}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# -----------------------------------------------------------------
+# 📌 Add new module (with file uploads)
+# -----------------------------------------------------------------
+@coordinator_bp.route("/modules/add", methods=["POST"])
+@jwt_required()
+def add_module():
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    module_name = request.form.get("module_name", "").strip()
+    if not module_name:
+        return jsonify({"error": "Module name is required"}), 400
+
+    # Handle file uploads
+    files = request.files.getlist("documents")
+    documents = []
+
+    for file in files:
+        if not file or file.filename == "":
+            continue  # skip empty uploads
+        if not is_allowed_file(file.filename):
+            return jsonify({"error": f"Invalid file type: {file.filename}"}), 400
+
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        documents.append({
+            "name": filename,
+            "url": f"/modules/files/{filename}"
+        })
+
+    module_data = {
+        "module_name": module_name,
+        "documents": documents,
+        "created_at": datetime.utcnow()
+    }
+
+    inserted = mongo.db.modules.insert_one(module_data)
+    return jsonify({
+        "message": "Module added successfully",
+        "id": str(inserted.inserted_id)
+    }), 201
+
+
+# -----------------------------------------------------------------
+# 📌 Update existing module (optional new files)
+# -----------------------------------------------------------------
+@coordinator_bp.route("/modules/<module_id>", methods=["PUT"])
+@jwt_required()
+def update_module(module_id):
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    try:
+        obj_id = ObjectId(module_id)
+    except:
+        return jsonify({"error": "Invalid module ID"}), 400
+
+    module = mongo.db.modules.find_one({"_id": obj_id})
+    if not module:
+        return jsonify({"error": "Module not found"}), 404
+
+    module_name = request.form.get("module_name", module["module_name"])
+    new_files = request.files.getlist("documents")
+
+    updated_docs = module.get("documents", [])
+
+    # Add new documents
+    for file in new_files:
+        if not file or file.filename == "":
+            continue
+        if not is_allowed_file(file.filename):
+            return jsonify({"error": f"Invalid file type: {file.filename}"}), 400
+
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        updated_docs.append({
+            "name": filename,
+            "url": f"/modules/files/{filename}"
+        })
+
+    mongo.db.modules.update_one(
+        {"_id": obj_id},
+        {"$set": {"module_name": module_name, "documents": updated_docs}}
+    )
+
+    return jsonify({"message": "Module updated successfully"}), 200
+
+
+# -----------------------------------------------------------------
+# 📌 Delete module
+# -----------------------------------------------------------------
+@coordinator_bp.route("/modules/<module_id>", methods=["DELETE"])
+@jwt_required()
+def delete_module(module_id):
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    try:
+        obj_id = ObjectId(module_id)
+    except:
+        return jsonify({"error": "Invalid module ID"}), 400
+
+    deleted = mongo.db.modules.delete_one({"_id": obj_id})
+    if deleted.deleted_count == 0:
+        return jsonify({"error": "Module not found"}), 404
+
+    return jsonify({"message": "Module deleted successfully"}), 200
+
+
+# -----------------------------------------------------------------
+# 📌 Serve uploaded files
+# -----------------------------------------------------------------
+@coordinator_bp.route("/modules/files/<filename>", methods=["GET"])
+def get_file(filename):
+    """Serve uploaded files from the uploads/modules directory."""
+    try:
+        return send_from_directory(UPLOAD_FOLDER, filename)
+    except FileNotFoundError:
+        return jsonify({"error": "File not found"}), 404
+
+    return send_from_directory(UPLOAD_FOLDER, filename)
