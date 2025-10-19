@@ -45,6 +45,9 @@ import ModulesPage from "./pages/User/UserEvent/ModulesPage";
 import EventsAndUsers from "./pages/Coordinator/EventsAndUsers";
 import FacilitatorDashboard from "./pages/Facilitator/FacilitatorDashboard";
 
+// for student
+import MyEvents  from "./pages/User/UserEvent/MyEvents";  
+
 const App = () => {
   return (
     <Router>
@@ -97,6 +100,8 @@ const App = () => {
         <Route path="/faculty-information" element={<FacultyInfo />} /> {/* ✅ New Faculty Information Route */}
 
         <Route path="facilitator-dashboard" element={<FacilitatorDashboard/>}/>
+
+        <Route path="/my-events" element={<MyEvents />} />  {/* For Student's My Events page */}
  
   {/* For Faculty (university coordinators) */}
   <Route
