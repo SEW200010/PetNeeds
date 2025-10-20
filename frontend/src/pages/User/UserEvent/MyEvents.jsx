@@ -3,8 +3,8 @@ import axios from "axios";
 import Header from "../../../components/User/UserHeader";
 import UserSidebar from "../../../components/User/UserSidebar";
 import { CircularProgress } from "@mui/material";
-import EventCard from "./EventCard"; // Assuming you have EventCard
-import {jwtDecode} from "jwt-decode";
+import EventCard from "./EventCard";
+import { jwtDecode } from "jwt-decode";
 
 export default function MyEvents() {
   const [loading, setLoading] = useState(true);
@@ -19,19 +19,19 @@ export default function MyEvents() {
         // Get JWT from localStorage or cookie
         const token = localStorage.getItem("token");
         const id = localStorage.getItem("userId");
-         // adjust as per your auth
+        // adjust as per your auth
         if (!token) return;
         console.log("Token:", id);
         const decoded = jwtDecode(token);
-       
+
         const studentId = id; // adjust according to your token
         setUserId(studentId);
 
         const eventIdsRes = await axios.get(
           `${API}/students/${studentId}/joined-events`,);
-          console.log("Event IDs Response:", eventIdsRes.data);
+        console.log("Event IDs Response:", eventIdsRes.data);
         // Fetch all joined events details
-        
+
 
         setJoinedEvents(eventIdsRes.data.events || []);
       } catch (err) {
@@ -65,11 +65,11 @@ export default function MyEvents() {
             {joinedEvents.length === 0 ? (
               <p className="text-gray-500">You have not joined any events yet.</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {joinedEvents.map((event) => (
                   <EventCard
                     key={event._id}
-                    event={{ ...event, joined: true }} 
+                    event={{ ...event, joined: true }}
                     userId={userId}
                   />
                 ))}
