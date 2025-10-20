@@ -67,6 +67,8 @@ def create_app():
     from app.routes.coordinator_bp import coordinator_bp
     from app.routes.subscriber_routes import subscribe_bp
     from app.routes.reset_password_routes import password_bp
+
+    from app.routes.facilitator_bp import facilitator_bp    
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(transaction_bp)
@@ -84,6 +86,8 @@ def create_app():
     app.register_blueprint(user_event_bp)  # Register user_event_bp with a URL prefix
     app.register_blueprint(subscribe_bp)
     app.register_blueprint(password_bp)
+
+    app.register_blueprint(facilitator_bp)
     
     @app.route('/uploads/<path:filename>')
     def serve_uploaded_file(filename):

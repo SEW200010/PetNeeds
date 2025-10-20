@@ -24,6 +24,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.0",
     "jwt-decode": "^4.0.0",
+    "lottie-react": "^2.4.1",
     "lucide-react": "^0.487.0",
     "mui": "^0.0.1",
     "react": "^19.0.0",
