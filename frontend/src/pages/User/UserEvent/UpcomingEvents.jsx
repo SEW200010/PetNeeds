@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { Button } from "../../../components/ui/button";
 import EventCard from "./EventCard";
-import Header from "../../../components/Header";
+import Header from "../../../components/User/UserHeader";
 import UserSidebar from "../../../components/User/UserSidebar";
 import { jwtDecode } from "jwt-decode";
 
