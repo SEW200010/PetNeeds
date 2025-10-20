@@ -115,6 +115,11 @@ def join_event():
             {"$push": {"joined_events": event_obj_id}}
         )
 
+        mongo.db.students.update_one(
+            {"_id": user_obj_id, "joined_events": {"$ne": event_obj_id}},
+            {"$push": {"joined_events": event_obj_id}}
+        )
+
         return jsonify({"message": "Event joined successfully"}), 200
 
     except Exception as e:
@@ -159,4 +164,35 @@ def get_completed_events():
 
     except Exception as e:
         print("Error in get_completed_events:", e)
+        return jsonify({"error": "Something went wrong"}), 500
+
+
+
+# Get all events joined by a specific student
+@user_event_bp.route("/students/<student_id>/joined-events", methods=["GET"])
+def get_student_joined_events(student_id):
+    try:
+        try:
+            student_obj_id = ObjectId(student_id)
+        except Exception:
+            return jsonify({"error": "Invalid student_id"}), 400
+        
+        # Fetch student
+        student = mongo.db.users.find_one({"_id": student_obj_id})
+        if not student:
+            return jsonify({"error": "Student not found"}), 404
+
+        joined_event_ids = student.get("joined_events", [])
+        # Convert to ObjectId list
+        event_obj_ids = [ObjectId(eid) for eid in joined_event_ids]
+        print(f"Student {student_id} has joined event IDs: {joined_event_ids}")
+
+        # Fetch events
+        events = list(mongo.db.events.find({"_id": {"$in": event_obj_ids}}))
+        serialized_events = [serialize_event(e) for e in events]
+        print(f"Student {student_id} joined events: {serialized_events}")           
+        return jsonify({"events": serialized_events}), 200
+
+    except Exception as e:
+        print("Error in get_student_joined_events:", e)
         return jsonify({"error": "Something went wrong"}), 500
