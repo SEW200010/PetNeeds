@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import FacilitatorSidebar from "@/components/Facilitator/FacilitatorSidebar";
-import Header from "@/components/Admin/Header";
+import Header from "@/components/Facilitator/FacilitatorHeader";
 import { useNavigate } from "react-router-dom";
 
 const FacilitatorDashboard = () => {
