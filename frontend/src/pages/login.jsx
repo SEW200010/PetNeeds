@@ -1,37 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { BiUser, BiLock, BiHide, BiShow } from "react-icons/bi";
 import { Link, useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";// ✅ install with: npm install jwt-decode
+import { jwtDecode } from "jwt-decode"; // ✅ install with: npm install jwt-decode
+
 const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const Login = () => {
   const navigate = useNavigate();
-
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
 
-  // ✅ Clear old session tokens when visiting login page
   useEffect(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("name");
-    localStorage.removeItem("organization_unit");
-    localStorage.removeItem("university_name");
-    localStorage.removeItem("zone");
+    localStorage.clear();
   }, []);
 
-  // ✅ Auto-login if valid token exists in localStorage
   useEffect(() => {
     const token = localStorage.getItem("token");
-    console.log(token);
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        console.log(decoded);
         const currentTime = Math.floor(Date.now() / 1000);
-        
         if (decoded.exp && decoded.exp < currentTime) {
-          // Token expired → clear it
           localStorage.clear();
           return;
         }
@@ -42,7 +31,6 @@ const Login = () => {
         else if (role === "facilitator") navigate("/facilitator-dashboard");
         else if (role === "coordinator") navigate("/coordinator-dashboard");
         else navigate("/upcoming-events");
-
       } catch (error) {
         console.error("Token decoding error:", error);
         localStorage.clear();
@@ -58,19 +46,14 @@ const Login = () => {
     e.preventDefault();
     try {
       const res = await fetch(`${API}/login`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(credentials),
-});
-
-
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+      });
       const data = await res.json();
-      console.log(data);
+
       if (res.ok) {
         const decoded = jwtDecode(data.access_token);
-        console.log("Decoded JWT:", decoded);
-  
-        // ✅ Store token and decoded info in localStorage
         localStorage.setItem("token", data.access_token);
         localStorage.setItem("role", decoded.role);
         localStorage.setItem("name", decoded.name || decoded.identity || "");
@@ -79,23 +62,12 @@ const Login = () => {
         localStorage.setItem("zone", decoded.zone || "");
         localStorage.setItem("userId", data.user_id || decoded.sub || "");
 
-        console.log("Stored in localStorage:", {
-          token: data.access_token,
-          role: decoded.role, 
-          name: decoded.name || decoded.identity || "",
-          organization_unit: decoded.organization_unit || "",
-          university_name: decoded.university || "",
-          zone: decoded.zone || "",
-        });
-        
-        // ✅ Navigate based on role
         const role = decoded.role;
         if (role === "admin") navigate("/admin-dashboard");
         else if (role === "teacher-in-charge") navigate("/teacher-dashboard");
         else if (role === "facilitator") navigate("/facilitator-dashboard");
         else if (role === "coordinator") navigate("/coordinator-dashboard");
         else navigate("/upcoming-events");
-
       } else if (data.error === "facilitator_not_verified") {
         alert("Your facilitator account is not verified yet.");
       } else {
@@ -116,30 +88,34 @@ const Login = () => {
 
   return (
     <div
-      className="relative h-screen flex items-center justify-center"
+      className="relative min-h-screen flex flex-col lg:flex-row items-center justify-center bg-cover bg-center"
       style={{
         backgroundImage: "url('/Home_images/image2copy.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
       }}
     >
+      {/* Overlay */}
       <div className="absolute inset-0 bg-black opacity-70 z-0"></div>
 
-      <div className="relative flex flex-col items-start text-white px-12 z-10">
-        <h1 className="text-5xl font-bold">Welcome Back!</h1>
-        <p className="text-lg text-emerald-600 mt-2">
+      {/* Left Section */}
+      <div className="relative text-center lg:text-left px-6 sm:px-10 lg:px-16 z-10 mb-8 lg:mb-0">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+          Welcome Back!
+        </h1>
+        <p className="text-md sm:text-lg text-emerald-400 mt-3">
           Sign in to access your account
         </p>
       </div>
 
-      <div className="relative border-[5px] border-white bg-gray-900/70 p-8 rounded-2xl shadow-lg max-w-md w-full z-10">
-        <h2 className="text-white text-center text-5xl font-semibold mb-6">
+      {/* Right Section (Login Form) */}
+      <div className="relative border-[3px] sm:border-[4px] lg:border-[5px] border-white bg-gray-900/80 p-6 sm:p-8 rounded-2xl shadow-xl w-11/12 sm:w-3/4 md:w-2/3 lg:max-w-md z-10">
+        <h2 className="text-white text-center text-3xl sm:text-4xl font-semibold mb-6">
           Sign In
         </h2>
+
         <form onSubmit={handleSubmit}>
           {/* Email */}
           <div className="mb-4 relative">
-            <label htmlFor="email" className="text-lg text-white">Email</label>
+            <label htmlFor="email" className="text-white text-lg">Email</label>
             <div className="flex items-center mt-2">
               <BiUser className="absolute left-3 text-gray-400" size={20} />
               <input
@@ -156,7 +132,7 @@ const Login = () => {
 
           {/* Password */}
           <div className="mb-6 relative">
-            <label htmlFor="password" className="text-lg text-white">Password</label>
+            <label htmlFor="password" className="text-white text-lg">Password</label>
             <div className="relative mt-2">
               <BiLock className="absolute left-3 top-3 text-gray-400" size={20} />
               <input
@@ -170,29 +146,26 @@ const Login = () => {
               />
               <button
                 type="button"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition duration-300"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition"
               >
                 {showPassword ? <BiHide size={20} /> : <BiShow size={20} />}
               </button>
             </div>
           </div>
 
-
-          {/* Remember Me */}
-          <div className="flex justify-between items-center text-md text-white mb-6">
-            <label className="flex items-center">
+          {/* Remember + Forgot */}
+          <div className="flex flex-col sm:flex-row justify-between items-center text-md text-white mb-6">
+            <label className="flex items-center mb-2 sm:mb-0">
               <input type="checkbox" className="mr-2" /> Remember Me
             </label>
-             <Link to="/forgot-password" className="text-green-400 hover:underline">
-              Forgot Password
+            <Link to="/forgot-password" className="text-green-400 hover:underline">
+              Forgot Password?
             </Link>
           </div>
 
-  
-          
-
+          {/* Button */}
           <button
             type="submit"
             className="w-full bg-emerald-600 hover:bg-green-600 text-white py-3 rounded-lg font-semibold
@@ -201,11 +174,12 @@ const Login = () => {
             Sign In
           </button>
 
-          <p className="text-white text-center text-md mt-4">
+          {/* Register link */}
+          <p className="text-white text-center text-sm sm:text-md mt-4">
             Don't have an account?{" "}
             <Link
               to="/register"
-              className="text-[#27987A] font-semibold hover:underline hover:text-emerald-400 transition duration-300"
+              className="text-emerald-400 font-semibold hover:underline transition"
             >
               Register here
             </Link>
