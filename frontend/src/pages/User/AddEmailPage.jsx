@@ -59,7 +59,7 @@ const AddEmailPage = () => {
 
     try {
       const res = await axios.post(
-        `http://localhost:5000/api/user/${userId}/add-email`,
+        `${API}/api/user/${userId}/add-email`,
         { email: newEmail },
         {
           headers: {
