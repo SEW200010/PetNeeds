@@ -30,7 +30,7 @@ style={{ backgroundColor: "#083636" }}
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <img src={Logo} alt="Logo" className="h-10" />
-          <span className="text-lg font-semibold text-white">Varppu Counseling</span>
+          <span className="text-lg font-semibold text-white">Varppu Life Skill Development </span>
         </Link>
         
         {/* Navigation Links for desktop */}
