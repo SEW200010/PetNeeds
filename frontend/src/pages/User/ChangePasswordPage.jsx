@@ -7,6 +7,9 @@ import AddEmailAddress from "@/components/User/AddEmailAddress";
 import ProfileImageUploader from "@/components/User/ProfileImageUploader";
 import FacilitatorSidebar from '@/components/Facilitator/FacilitatorSidebar'
 import CoordinatorSidebar from '@/components/Coordinator/CoordinatorSidebar'
+
+const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
 function ChangePasswordPage() {
   const [user, setUser] = useState(null);
   const [newPassword, setNewPassword] = useState("");
@@ -22,7 +25,7 @@ function ChangePasswordPage() {
     const userId = decoded.sub || decoded.user_id;
 
     axios
-      .get(`http://localhost:5000/api/user/${userId}`, {
+      .get(`${API}/api/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
@@ -66,7 +69,7 @@ function ChangePasswordPage() {
       const userId = user._id?.$oid || user._id;
 
       await axios.put(
-        `http://localhost:5000/api/user/${userId}/change-password`,
+        `${API}/api/user/${userId}/change-password`,
         { newPassword },
         {
           headers: {

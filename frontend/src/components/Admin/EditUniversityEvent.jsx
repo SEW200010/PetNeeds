@@ -13,6 +13,7 @@ import {
   Autocomplete,
   Typography
 } from "@mui/material";
+const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university, faculty }) => {
   const [formData, setFormData] = useState({
@@ -78,7 +79,7 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
     if (!university) return; // need university to fetch facilitators
 
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:5000/facilitators/${encodeURIComponent(university)}`, {
+    fetch(`${API}/facilitators/${encodeURIComponent(university)}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then((res) => res.json())

@@ -9,7 +9,7 @@ import {
   MenuItem,
   Typography,
 } from "@mui/material";
-
+const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const UserForm = ({ open, onClose, onSubmit, initialData = null, role: presetRole = "", university , faculty }) => {
   const isEditMode = Boolean(initialData);
@@ -164,8 +164,8 @@ const UserForm = ({ open, onClose, onSubmit, initialData = null, role: presetRol
       const method = isEditMode ? "PUT" : "POST";
       const userId = isEditMode ? (initialData?._id || initialData?.id || initialData?._id_str) : null;
       const url = isEditMode
-        ? `http://localhost:5000/users/${userId}/edit`
-        : `http://localhost:5000/users/add`;
+        ? `${API}/users/${userId}/edit`
+        : `${API}/users/add`;
 
       const res = await fetch(url, {
         method,

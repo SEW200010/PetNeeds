@@ -16,7 +16,7 @@ import {
   FormControlLabel,
   Checkbox
 } from "@mui/material";
-
+const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const CreateSchoolEvent = ({ open, onClose, onSubmit, zone, school }) => {
   const [formData, setFormData] = useState({
@@ -39,7 +39,7 @@ const CreateSchoolEvent = ({ open, onClose, onSubmit, zone, school }) => {
   const [facilitators, setFacilitators] = useState([]);
    const moduleList = Array.from({ length: 16 }, (_, i) => `Module ${i + 1}`);
   useEffect(() => {
-    fetch("http://localhost:5000/facilitators")
+    fetch("${API}/facilitators")
       .then((res) => res.json())
       .then((data) => setFacilitators(data))
       .catch((err) => console.error("Error fetching facilitators:", err));
@@ -127,7 +127,7 @@ const CreateSchoolEvent = ({ open, onClose, onSubmit, zone, school }) => {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/events/school", {
+      const res = await fetch("${API}/events/school", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

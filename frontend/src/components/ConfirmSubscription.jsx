@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const ConfirmSubscription = () => {
   const { token } = useParams();
@@ -12,7 +13,7 @@ const ConfirmSubscription = () => {
     const confirm = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/confirm-subscription/${token}`
+          `${API}/confirm-subscription/${token}`
         );
         setStatus("success");
         setMessage(res.data.message);

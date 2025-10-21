@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box } from "@mui/material";
+const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const ViewUserDialog = ({ open, onClose, userId }) => {
   const [user, setUser] = useState(null);
@@ -7,7 +8,7 @@ const ViewUserDialog = ({ open, onClose, userId }) => {
   useEffect(() => {
     if (!open || !userId) return;
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:5000/api/users/${userId}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+    fetch(`${API}/api/users/${userId}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
       .then((r) => r.json())
       .then((data) => setUser(data))
       .catch((err) => console.error("Error fetching user:", err));

@@ -14,6 +14,7 @@ import {
   Link,
   Divider,
 } from "@mui/material";
+const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const safeTime = (t) => {
   if (!t) return "";
@@ -85,7 +86,7 @@ const ViewEventDialog = ({ open, onClose, event, university, faculty }) => {
         const uni = event?.University || event?.university || university;
         if (!uni) return;
         const token = localStorage.getItem("token");
-        const res = await fetch(`http://localhost:5000/facilitators/${encodeURIComponent(uni)}`, {
+        const res = await fetch(`${API}/facilitators/${encodeURIComponent(uni)}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         const data = await res.json();

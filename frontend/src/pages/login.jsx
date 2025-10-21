@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { BiUser, BiLock, BiHide, BiShow } from "react-icons/bi";
 import { Link, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";// ✅ install with: npm install jwt-decode
+const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/login", {
+      const res = await fetch("${API}/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(credentials),

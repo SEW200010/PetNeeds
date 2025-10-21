@@ -13,6 +13,7 @@ import {
   Autocomplete,
   Typography
 } from "@mui/material";
+const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }) => {
 
@@ -49,7 +50,7 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
     if (!university) return;
 
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:5000/facilitators/${encodeURIComponent(university)}`, {
+    fetch(`${API}/facilitators/${encodeURIComponent(university)}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then((res) => res.json())
@@ -143,7 +144,7 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
 
     try {
       console.log("Submitting payload:", payload);
-      const res = await fetch("http://localhost:5000/events/university", {
+      const res = await fetch("${API}/events/university", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
