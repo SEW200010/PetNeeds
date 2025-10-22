@@ -100,10 +100,13 @@ export default function CoordinatorSidebar({ date = new Date(), setDate = () => 
     <div className="p-6 w-full">
       {/* User Profile */}
       <div className="flex items-center space-x-3 mb-8">
-        <Avatar className="h-12 w-12">
-          <AvatarImage src={UserImg} alt="User" />
-          <AvatarFallback>{user.fullName ? user.fullName.slice(0, 2).toUpperCase() : "YN"}</AvatarFallback>
-        </Avatar>
+        <div onClick={() => navigate("/profile")} className="cursor-pointer">
+          <Avatar className="h-12 w-12 hover:scale-105 transition-transform">
+            <AvatarImage src={UserImg} alt="User" />
+            <AvatarFallback>{user.fullName?.slice(0,2).toUpperCase() || "YN"}</AvatarFallback>
+          </Avatar>
+        </div>
+
         <div>
           <p className="font-medium text-gray-900">{user.fullName || "User"}</p>
           <p className="text-sm text-gray-500">{user.email || "user@example.com"}</p>
