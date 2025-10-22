@@ -5,6 +5,21 @@ import Header from "../components/Header";
 import { FaWhatsappSquare, FaFacebook, FaTwitter, FaInstagram } from "react-icons/fa";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+
+import img1 from "../assets/Team_images/image1.png";
+import img2 from "../assets/Team_images/image2.png";
+import img3 from "../assets/Team_images/image3.png";
+import img4 from "../assets/Team_images/image4.png";
+import img5 from "../assets/Team_images/image5.png";
+import img6 from "../assets/Team_images/image6.png";
+import img7 from "../assets/Team_images/image7.png";
+import img8 from "../assets/Team_images/image8.png";
+import img9 from "../assets/Team_images/image9.png";
+import rec2 from "../assets/Team_images/rec2.png";
+import rec from "../assets/Team_images/rec.png";
+import man from "../assets/Team_images/man.png"
+
+
 const specialistsData = [
   {
     name: "K",
@@ -12,7 +27,7 @@ const specialistsData = [
     title: "Senior 2",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img: "/Team_images/image1.png",
+    img: img1,
     description:
       "Dr. Kumar is a leading expert in life skills education with over 10 years of experience specializing in youth empowerment.",
     since: 2019,
@@ -23,7 +38,7 @@ const specialistsData = [
     title: "Senior 1",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img: "/Team_images/image2.png",
+    img: img2,
     description: "Dr. Harini focuses on mental health support and counseling for young adults.",
     since: 2015,
   },
@@ -33,7 +48,7 @@ const specialistsData = [
     title: "Senior 4",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img: "/Team_images/image3.png",
+    img: img3,
     description: "Dr. Nimal has been actively involved in community leadership training programs.",
     since: 2012,
   },
@@ -43,7 +58,7 @@ const specialistsData = [
     title: "Senior 3",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img: "/Team_images/image4.png",
+    img:img1,
     description: "Dr. Anusha specializes in interactive learning methodologies and life coaching.",
     since: 2022,
   },
@@ -53,7 +68,7 @@ const specialistsData = [
     title: "Senior 9",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img: "/Team_images/image4.png",
+    img: img4,
     description: "Dr. Fas specializes in interactive learning methodologies and life coaching.",
     since: 2000,
   },
@@ -66,7 +81,7 @@ const trainersData = [
     title: "Senior 1",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img: "/Team_images/image5.png",
+    img: img5,
     description: "Mr. Bandara trains students on leadership and communication skills.",
     since: 2023,
   },
@@ -76,7 +91,7 @@ const trainersData = [
     title: "Senior 2",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img: "/Team_images/image6.png",
+    img:img6,
     description: "Ms. Anjali focuses on personal development and team building exercises.",
     since: 2028,
   },
@@ -86,7 +101,7 @@ const trainersData = [
     title: "Senior 4",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img: "/Team_images/image7.png",
+    img:img7,
     description: "Mr. Xavier specializes in motivational training and goal setting.",
     since: 2022,
   },
@@ -96,7 +111,7 @@ const trainersData = [
     title: "Senior 3",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img: "/Team_images/image8.png",
+    img: img8,
     description: "Ms. Saroja trains students on conflict resolution and stress management.",
     since: 2026,
   },
@@ -106,7 +121,7 @@ const trainersData = [
     title: "Senior 13",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img: "/Team_images/image8.png",
+    img: img8,
     description: "Ms. Oja trains students on conflict resolution and stress management.",
     since: 2026,
   },
@@ -119,7 +134,7 @@ const mentorsData = [
     title: "Senior 3",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img: "/Team_images/image9.png",
+    img: img9,
     description: "Mr. Fernando offers mentorship in career guidance and personal growth.",
     since: 2020,
   },
@@ -129,7 +144,7 @@ const mentorsData = [
     title: "Senior 2",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img: "/Team_images/image10.png",
+    img: img2,
     description: "Ms. Chandrika mentors students on academic excellence and leadership.",
     since: 2021,
   },
@@ -139,7 +154,7 @@ const mentorsData = [
     title: "Senior 1",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img: "/Team_images/image11.png",
+    img:img2,
     description: "Mr. Jayasuriya supports youth in building resilience and decision-making skills.",
     since: 2009,
   },
@@ -149,7 +164,7 @@ const mentorsData = [
     title: "Senior 4",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img: "/Team_images/image12.png",
+    img: img1,
     description: "Ms. Priyanka focuses on mentoring students in creativity and innovation.",
     since: 2019,
   },
@@ -159,7 +174,7 @@ const mentorsData = [
     title: "Senior 14",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img: "/Team_images/image12.png",
+    img: img1,
     description: "Ms. Qyanka focuses on mentoring students in creativity and innovation.",
     since: 2019,
   },
@@ -212,7 +227,11 @@ const Team = () => {
           className="flex flex-col w-full sm:w-60 m-5 rounded-xl shadow-lg overflow-hidden"
           style={{ minHeight: "200px" }}
         >
-          <div className="h-30 bg-[url('/Team_images/rec2.png')] bg-cover bg-center"></div>
+          <div
+  className="h-30 bg-cover bg-center"
+  style={{ backgroundImage: `url(${rec2})` }}
+></div>
+
           <div className="h-70 bg-[#CFE8DF] p-6 text-center flex flex-col items-center">
             <img
               src={member.img}
@@ -258,7 +277,7 @@ const Team = () => {
     <div>
       <Header />
       <main className="bg-gray-100 pt-[65px]">
-        <section className="relative h-[600px] bg-cover bg-center text-center text-white flex flex-col items-center justify-center" style={{ backgroundImage: "url('/Team_images/man.png')" }}>
+        <section className="relative h-[600px] bg-cover bg-center text-center text-white flex flex-col items-center justify-center" style={{ backgroundImage: `url(${man})` }}>
 
           <div className="relative w-full h-[600px] flex flex-col items-center justify-center text-center overflow-hidden pt-8">
             <div className="absolute inset-0 bg-black opacity-60">
@@ -287,7 +306,7 @@ const Team = () => {
         {/*founder section*/}
         <section
           className="relative min-h-[600px] bg-cover bg-center bg-no-repeat flex items-center justify-center"
-          style={{ backgroundImage: "url('/Team_images/rec.png')" }}
+          style={{ backgroundImage: `url(${rec})` }}
         >
           <div className="text-center px-4">
             <h2 className="mb-10 text-5xl sm:text-6xl font-bold text-black drop-shadow-lg">Founder</h2>

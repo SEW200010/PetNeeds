@@ -268,7 +268,7 @@ export default function CoordinatorSidebar({ date = new Date(), setDate = () => 
           <div className="fixed inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
           <div className="relative w-80 max-w-full h-full bg-white shadow-xl overflow-auto">
             <div className="p-4 flex items-center justify-between border-b border-gray-200">
-              <div className="text-lg font-semibold">Coordinator Menu</div>
+              <div className="text-lg font-semibold">User Menu</div>
               <button ref={closeBtnRef} className="p-2" onClick={() => setMobileOpen(false)} aria-label="Close menu">
                 <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />

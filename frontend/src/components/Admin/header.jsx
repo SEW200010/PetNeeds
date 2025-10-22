@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Logo from "../../assets/logo.png";
+import Logo from "../../assets/logoNew.png";
 import img from "../../assets/Admin/image.png";
 import { FaBell } from "react-icons/fa"; // Font Awesome
 import { MdLogout } from "react-icons/md"; // Material Design

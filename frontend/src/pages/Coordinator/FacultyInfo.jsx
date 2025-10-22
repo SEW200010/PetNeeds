@@ -10,6 +10,7 @@ import FacultyForm from "@/components/Admin/FacultyForm";
 import Stack from "@mui/material/Stack";
 import IconButton from "@mui/material/IconButton";
 import { Visibility, Edit, Delete } from "@mui/icons-material";
+
 const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const FacultyInfo = () => {

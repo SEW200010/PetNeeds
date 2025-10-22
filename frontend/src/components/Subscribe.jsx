@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const Subscribe = () => {
   const [email, setEmail] = useState("");
@@ -16,7 +17,7 @@ const Subscribe = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:5000/subscribe", { email });
+      const res = await axios.post("${API}/subscribe", { email });
       setType("success");
       setMessage(res.data.message || "Subscribed successfully!");
       setEmail("");

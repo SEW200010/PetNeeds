@@ -5,6 +5,7 @@ import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import CardActionArea from "@mui/material/CardActionArea";
 import { useNavigate } from "react-router-dom";
+const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const CoordinatorActionCard = () => {
   const navigate = useNavigate();
@@ -37,9 +38,9 @@ const CoordinatorActionCard = () => {
 
     let apiUrl = "";
     if (organizationUnit.toLowerCase() === "university") {
-      apiUrl = `http://localhost:5000/faculties/${encodeURIComponent(universityName)}`;
+      apiUrl = `${API}/faculties/${encodeURIComponent(universityName)}`;
     } else if (organizationUnit.toLowerCase() === "school") {
-      apiUrl = `http://localhost:5000/schools/${encodeURIComponent(zone)}`;
+      apiUrl = `${API}/schools/${encodeURIComponent(zone)}`;
     }
 
     if (!apiUrl) return;
