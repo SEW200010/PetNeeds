@@ -11,8 +11,9 @@ import {
   FormControlLabel,
   Checkbox,
   Autocomplete,
-  Typography
+  Typography,
 } from "@mui/material";
+
 const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university, faculty }) => {
@@ -29,15 +30,15 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
     faculty: "",
     participants: { registered_users: [] },
     eventMedia: [],
-    modules: []
+    modules: [],
   });
 
   const [facilitators, setFacilitators] = useState([]);
   const [formError, setFormError] = useState("");
+  const [errors, setErrors] = useState({});
 
   const moduleList = Array.from({ length: 16 }, (_, i) => `Module ${i + 1}`);
 
-  // Populate form with initialData whenever the dialog opens
   useEffect(() => {
     if (initialData && open) {
       const startTime = initialData.start_time
@@ -47,11 +48,10 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
         ? new Date(initialData.end_time).toISOString().split("T")[1].slice(0, 5)
         : "";
 
-      // Map facilitator entries (could be IDs or objects) to normalized objects with _id and fullname
       const facilitatorObjects = (initialData.facilitator || []).map((f) => {
         if (!f) return { _id: "", fullname: "" };
-        if (typeof f === "string" || typeof f === "number") return { _id: String(f), fullname: "" };
-        // f may already be an object
+        if (typeof f === "string" || typeof f === "number")
+          return { _id: String(f), fullname: "" };
         return { _id: f._id || f.id || "", fullname: f.fullname || f.name || "" };
       });
 
@@ -68,56 +68,74 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
         faculty: faculty || initialData.faculty || "",
         participants: initialData.participants || { registered_users: [] },
         eventMedia: initialData.eventMedia || [],
-        modules: initialData.modules || []
+        modules: initialData.modules || [],
       });
       setFormError("");
+      setErrors({});
     }
   }, [initialData, open, university, faculty]);
 
-  // Fetch facilitator objects for this university and normalize shape to {_id, fullname}
   useEffect(() => {
-    if (!university) return; // need university to fetch facilitators
-
+    if (!university) return;
     const token = localStorage.getItem("token");
     fetch(`${API}/facilitators/${encodeURIComponent(university)}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then((res) => res.json())
       .then((data) => {
-        // API may return { facilitators: [...] } or an array directly
         const list = data?.facilitators || data || [];
-
         const normalized = list.map((f) => ({
           _id: f._id || f.id || String(f._id || f.id),
-          fullname: f.fullname || f.name || f.fullname || f.name || "",
-          email: f.email || f.email
+          fullname: f.fullname || f.name || "",
+          email: f.email || "",
         }));
-
         setFacilitators(normalized);
-
-        // Match IDs in formData with real objects
         setFormData((prev) => ({
           ...prev,
           facilitator: prev.facilitator.map((f) => {
-            const match = normalized.find((d) => String(d._id) === String(f._id || f.id || f));
-            // Keep existing object if no match
+            const match = normalized.find(
+              (d) => String(d._id) === String(f._id || f.id || f)
+            );
             return match ? match : f;
-          })
+          }),
         }));
       })
       .catch((err) => console.error("Error fetching facilitators:", err));
   }, [university]);
 
+  // ✅ Validation logic
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.name.trim()) newErrors.name = "Event name is required";
+    if (!formData.date) newErrors.date = "Date is required";
+    if (!formData.start_time) newErrors.start_time = "Start time is required";
+    if (!formData.end_time) newErrors.end_time = "End time is required";
+    if (!formData.venue.trim()) newErrors.venue = "Venue is required";
+    if (formData.facilitator.length === 0)
+      newErrors.facilitator = "At least one facilitator must be selected";
+
+    // Optional time validation
+    if (formData.start_time && formData.end_time) {
+      const start = new Date(`${formData.date}T${formData.start_time}`);
+      const end = new Date(`${formData.date}T${formData.end_time}`);
+      if (end <= start) newErrors.end_time = "End time must be after start time";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    setErrors({ ...errors, [name]: "" });
   };
 
   const handleModuleCheck = (moduleName, checked) => {
     const updatedModules = [...formData.modules];
-    if (checked) {
-      updatedModules.push({ moduleName, enrollmentKey: "" });
-    } else {
+    if (checked) updatedModules.push({ moduleName, enrollmentKey: "" });
+    else {
       const index = updatedModules.findIndex((m) => m.moduleName === moduleName);
       if (index > -1) updatedModules.splice(index, 1);
     }
@@ -139,20 +157,25 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
     const payload = {
       ...formData,
       facilitator: formData.facilitator.map((f) => f._id),
       participants: { registered: formData.participants.registered_users.length || 0 },
       start_time: combineDateTime(formData.date, formData.start_time),
-      end_time: combineDateTime(formData.date, formData.end_time)
+      end_time: combineDateTime(formData.date, formData.end_time),
     };
 
     try {
-      const res = await fetch(`http://localhost:5000/events/university/${initialData.id || initialData._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      const res = await fetch(
+        `${API}/events/university/${initialData.id || initialData._id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (!res.ok) {
         const err = await res.json();
@@ -160,7 +183,7 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
       }
 
       alert("University event updated successfully!");
-      if (onUpdate) onUpdate(); // callback to refresh list
+      if (onUpdate) onUpdate();
       onClose();
     } catch (err) {
       setFormError(err.message);
@@ -178,7 +201,10 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
           onChange={handleChange}
           fullWidth
           margin="normal"
+          error={!!errors.name}
+          helperText={errors.name}
         />
+
         <TextField
           label="Date"
           type="date"
@@ -188,7 +214,10 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
           fullWidth
           margin="normal"
           InputLabelProps={{ shrink: true }}
+          error={!!errors.date}
+          helperText={errors.date}
         />
+
         <TextField
           label="Description"
           name="description"
@@ -199,6 +228,7 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
           rows={3}
           margin="normal"
         />
+
         <TextField
           label="Start Time"
           type="time"
@@ -208,7 +238,10 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
           fullWidth
           margin="normal"
           InputLabelProps={{ shrink: true }}
+          error={!!errors.start_time}
+          helperText={errors.start_time}
         />
+
         <TextField
           label="End Time"
           type="time"
@@ -218,7 +251,10 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
           fullWidth
           margin="normal"
           InputLabelProps={{ shrink: true }}
+          error={!!errors.end_time}
+          helperText={errors.end_time}
         />
+
         <TextField
           label="Venue"
           name="venue"
@@ -226,22 +262,25 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
           onChange={handleChange}
           fullWidth
           margin="normal"
+          error={!!errors.venue}
+          helperText={errors.venue}
         />
+
         <TextField
           label="University"
           name="University"
           value={formData.University}
-          onChange={handleChange}
           fullWidth
           margin="normal"
+          disabled
         />
         <TextField
           label="Faculty"
           name="faculty"
           value={formData.faculty}
-          onChange={handleChange}
           fullWidth
           margin="normal"
+          disabled
         />
 
         <Autocomplete
@@ -252,8 +291,18 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
             String(option._id || option.id) === String(value._id || value.id)
           }
           value={formData.facilitator}
-          onChange={(event, newValue) => setFormData({ ...formData, facilitator: newValue })}
-          renderInput={(params) => <TextField {...params} label="Facilitators" />}
+          onChange={(event, newValue) => {
+            setFormData({ ...formData, facilitator: newValue });
+            setErrors({ ...errors, facilitator: "" });
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Facilitators"
+              error={!!errors.facilitator}
+              helperText={errors.facilitator}
+            />
+          )}
           sx={{ mb: 2 }}
         />
 
@@ -265,18 +314,29 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
           <FormGroup>
             {moduleList.map((module) => {
               const checked = formData.modules.some((m) => m.moduleName === module);
-              const enrollmentKey = formData.modules.find((m) => m.moduleName === module)?.enrollmentKey || "";
+              const enrollmentKey =
+                formData.modules.find((m) => m.moduleName === module)?.enrollmentKey || "";
               return (
-                <div key={module} style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+                <div
+                  key={module}
+                  style={{ display: "flex", alignItems: "center", marginBottom: 8 }}
+                >
                   <FormControlLabel
-                    control={<Checkbox checked={checked} onChange={(e) => handleModuleCheck(module, e.target.checked)} />}
+                    control={
+                      <Checkbox
+                        checked={checked}
+                        onChange={(e) => handleModuleCheck(module, e.target.checked)}
+                      />
+                    }
                     label={module}
                   />
                   {checked && (
                     <TextField
                       label="Enrollment Key"
                       value={enrollmentKey}
-                      onChange={(e) => handleEnrollmentKeyChange(module, e.target.value)}
+                      onChange={(e) =>
+                        handleEnrollmentKeyChange(module, e.target.value)
+                      }
                       size="small"
                       sx={{ ml: 2, flex: 1 }}
                     />
