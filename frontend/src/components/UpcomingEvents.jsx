@@ -1,46 +1,84 @@
 import { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import img1 from "../assets/Home_images/flyer1.jpg";
-import img2 from "../assets/Home_images/flyer2.jpg";
-import img3 from "../assets/Home_images/flyer3.jpg";
-import img4 from "../assets/Home_images/flyer4.jpg";
-
-const events = [
-  { id: 1, image: img1, title: "Event One", description: "Brief description of event one." },
-  { id: 2, image: img2, title: "Event Two", description: "Brief description of event two." },
-  { id: 3, image: img3, title: "Event Three", description: "Brief description of event three." },
-  { id: 4, image: img4, title: "Event Four", description: "Brief description of event four." },
-  { id: 5, image: img1, title: "Event Five", description: "Brief description of event five." },
-  { id: 6, image: img2, title: "Event Six", description: "Brief description of event six." },
-];
+import defaultImg from "../assets/Home_images/varrpu_flyer.png";
+import { useNavigate } from "react-router-dom";
 
 const UpcomingEvents = () => {
-  const sliderRef = useRef(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [visibleEvents, setVisibleEvents] = useState(events.slice(0, 4)); // Show only 4
+  const navigate = useNavigate();
 
-  const scrollLeft = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + events.length) % events.length);
+  const handleJoinClick = () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/upcoming-events"); // if logged in
+    } else {
+      navigate("/login"); // if not logged in
+    }
   };
 
+  const sliderRef = useRef(null);
+  const [events, setEvents] = useState([]); 
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [visibleEvents, setVisibleEvents] = useState([]);
+
+  const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
+  // optional (if your API requires auth)
+  const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("user_id");
+
+  // ✅ Fetch events from backend
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await axios.get(`${API}/upcoming-events`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          params: userId ? { user_id: userId } : {},
+        });
+
+        // If no image provided, assign a default image
+        const updatedEvents = res.data.map((event) => ({
+          ...event,
+          image: event.image ? event.image : defaultImg,
+        }));
+
+        setEvents(updatedEvents);
+        setVisibleEvents(updatedEvents.slice(0, 4));
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  // ✅ Scroll left
+  const scrollLeft = () => {
+    setCurrentIndex(
+      (prevIndex) => (prevIndex - 1 + events.length) % events.length
+    );
+  };
+
+  // ✅ Scroll right
   const scrollRight = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % events.length);
   };
 
+  // ✅ Auto scroll every 5 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      scrollRight();
-    }, 5000);
+    const interval = setInterval(scrollRight, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [events]);
 
+  // ✅ Update visible events on index change
   useEffect(() => {
-    const nextEvents = [
-      ...events.slice(currentIndex),
-      ...events.slice(0, currentIndex),
-    ];
-    setVisibleEvents(nextEvents.slice(0, 4)); // Show only 4
-  }, [currentIndex]);
+    if (events.length > 0) {
+      const nextEvents = [
+        ...events.slice(currentIndex),
+        ...events.slice(0, currentIndex),
+      ];
+      setVisibleEvents(nextEvents.slice(0, 4));
+    }
+  }, [currentIndex, events]);
 
   return (
     <section className="p-10 bg-gray-300 relative">
@@ -58,8 +96,10 @@ const UpcomingEvents = () => {
         </button>
 
         {/* Event Slider */}
-        <div ref={sliderRef} className="flex gap-4 overflow-hidden p-2 justify-center">
-
+        <div
+          ref={sliderRef}
+          className="flex gap-4 overflow-hidden p-2 justify-center"
+        >
           {visibleEvents.map((event) => (
             <div
               key={event.id}
@@ -72,7 +112,10 @@ const UpcomingEvents = () => {
               />
               <h3 className="text-base font-semibold mt-2">{event.title}</h3>
               <p className="text-sm text-gray-600">{event.description}</p>
-              <button className="mt-3 bg-blue-500 text-white px-3 py-1.5 rounded-md hover:bg-blue-600 text-sm">
+              <button
+                onClick={handleJoinClick}
+                className="mt-3 bg-blue-500 text-white px-3 py-1.5 rounded-md hover:bg-blue-600 text-sm"
+              >
                 Join
               </button>
             </div>
@@ -101,4 +144,3 @@ const UpcomingEvents = () => {
 };
 
 export default UpcomingEvents;
-
