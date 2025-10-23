@@ -4,7 +4,7 @@ import axios from "axios";
 import Header from "../../../components/User/UserHeader";
 import UserSidebar from "../../../components/User/UserSidebar";
 import { Button } from "../../../components/ui/button";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 export default function ModulesPage() {
   const { eventId } = useParams(); // from /modules/:event_id
@@ -58,7 +58,7 @@ export default function ModulesPage() {
         // Update module's enrolled status locally
         setModules((prevModules) =>
           prevModules.map((m) =>
-            m._id === module._id ? { ...m, enrolled: true } : m
+            m.moduleName === module.moduleName ? { ...m, enrolled: true } : m
           )
         );
         alert(`✅ Successfully enrolled in ${module.moduleName}`);
