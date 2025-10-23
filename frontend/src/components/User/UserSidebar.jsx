@@ -32,7 +32,7 @@ export default function CoordinatorSidebar({ date = new Date(), setDate = () => 
   const [mobileOpen, setMobileOpen] = useState(false);
   const closeBtnRef = useRef(null);
   const [user, setUser] = useState({
-    fullName: "",
+    fullname: "",
     email: "",
     zone: "",
     organization_unit: "",
@@ -53,7 +53,7 @@ export default function CoordinatorSidebar({ date = new Date(), setDate = () => 
       // Fetch user info
       axios.get(`${API}/api/users/${userId}`, { headers: { Authorization: `Bearer ${token}` } })
         .then(res => setUser({
-          fullName: res.data.fullName,
+          fullname: res.data.fullname,
           email: res.data.email,
           organization_unit: res.data.organization_unit || "",
           zone: res.data.zone || "",
@@ -103,12 +103,12 @@ export default function CoordinatorSidebar({ date = new Date(), setDate = () => 
         <div onClick={() => navigate("/profile")} className="cursor-pointer">
           <Avatar className="h-12 w-12 hover:scale-105 transition-transform">
             <AvatarImage src={UserImg} alt="User" />
-            <AvatarFallback>{user.fullName?.slice(0,2).toUpperCase() || "YN"}</AvatarFallback>
+            <AvatarFallback>{user.fullname?.slice(0,2).toUpperCase() || "YN"}</AvatarFallback>
           </Avatar>
         </div>
 
         <div>
-          <p className="font-medium text-gray-900">{user.fullName || "User"}</p>
+          <p className="font-medium text-gray-900">{user.fullname || "User"}</p>
           <p className="text-sm text-gray-500">{user.email || "user@example.com"}</p>
         </div>
       </div>

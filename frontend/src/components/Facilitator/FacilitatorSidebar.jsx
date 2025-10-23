@@ -40,7 +40,7 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const closeBtnRef = useRef(null);
   const [user, setUser] = useState({
-    fullName: "",
+    fullname: "",
     email: "",
     zone: "",
     organization_unit: "",
@@ -63,7 +63,7 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
         })
         .then((res) =>
           setUser({
-            fullName: res.data.fullName,
+            fullname: res.data.fullname,
             email: res.data.email,
             organization_unit: res.data.organization_unit || "",
             zone: res.data.zone || "",
@@ -104,11 +104,11 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
         <Avatar className="h-12 w-12">
           <AvatarImage src={UserImg} alt="User" />
           <AvatarFallback>
-            {user.fullName ? user.fullName.slice(0, 2).toUpperCase() : "YN"}
+            {user.fullname ? user.fullname.slice(0, 2).toUpperCase() : "YN"}
           </AvatarFallback>
         </Avatar>
         <div>
-          <p className="font-medium text-gray-900">{user.fullName || "User"}</p>
+          <p className="font-medium text-gray-900">{user.fullname || "User"}</p>
           <p className="text-sm text-gray-500">{user.email || "user@example.com"}</p>
         </div>
       </div>
@@ -123,7 +123,7 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
       </div>
 
       {/* Sidebar Title */}
-      <div className="text-xl font-bold mt-6 mb-6 text-gray-800">Coordinator Menu</div>
+      <div className="text-xl font-bold mt-6 mb-6 text-gray-800">Facilitator Menu</div>
 
       {/* Navigation Menu */}
       <nav className="space-y-2">
