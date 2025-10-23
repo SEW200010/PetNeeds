@@ -11,12 +11,12 @@ import {
   FormControlLabel,
   Checkbox,
   Autocomplete,
-  Typography
+  Typography,
 } from "@mui/material";
+
 const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }) => {
-
+const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty }) => {
   const [formData, setFormData] = useState({
     name: "",
     date: "",
@@ -30,12 +30,14 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
     faculty: faculty || "",
     participants: { registered_users: [] },
     eventMedia: [],
-    modules: [] // modules with { moduleName, enrollmentKey }
+    modules: [],
   });
 
   const [facilitators, setFacilitators] = useState([]);
-  const [formError, setFormError] = useState("");
+  const [formError, setFormError] = useState({});
+  const moduleList = Array.from({ length: 16 }, (_, i) => `Module ${i + 1}`);
 
+  // Load university & faculty dynamically
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
@@ -44,12 +46,11 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
     }));
   }, [university, faculty]);
 
-
   // Fetch facilitators
   useEffect(() => {
     if (!university) return;
-
     const token = localStorage.getItem("token");
+
     fetch(`${API}/facilitators/${encodeURIComponent(university)}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
@@ -59,57 +60,26 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
         const normalized = list.map((f) => ({
           _id: f._id || f.id || String(f._id || f.id),
           fullname: f.fullname || f.name || "",
-          email: f.email || f.email
+          email: f.email || f.email,
         }));
         setFacilitators(normalized);
       })
       .catch((err) => console.error("Error fetching facilitators:", err));
   }, [university]);
 
-
-  const moduleList = Array.from({ length: 16 }, (_, i) => `Module ${i + 1}`);
-
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      date: "",
-      description: "",
-      start_time: "",
-      end_time: "",
-      venue: "",
-      status: "Drafted",
-      facilitator: [],
-      University: "",
-      faculty: "",
-      participants: { registered_users: [] },
-      eventMedia: [],
-      modules: []
-    });
-    setFormError("");
-  };
-
+  // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    if (name === "facilitator" || name === "eventMedia") {
-      setFormData({ ...formData, [name]: value.split(",").map((v) => v.trim()) });
-    } else if (name === "participants") {
-      setFormData({
-        ...formData,
-        participants: { registered_users: value.split(",").map((v) => v.trim()) },
-      });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    setFormData({ ...formData, [name]: value });
+    setFormError({ ...formError, [name]: "" }); // clear field error when typing
   };
 
+  // Handle module checkbox
   const handleModuleCheck = (moduleName, checked) => {
     const updatedModules = [...formData.modules];
     if (checked) {
-      // Add module
       updatedModules.push({ moduleName, enrollmentKey: "" });
     } else {
-      // Remove module
       const index = updatedModules.findIndex((m) => m.moduleName === moduleName);
       if (index > -1) updatedModules.splice(index, 1);
     }
@@ -123,16 +93,54 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
     setFormData({ ...formData, modules: updatedModules });
   };
 
-  // Combine date + time and convert to ISO with +00:00
+  // Combine date + time
   const combineDateTime = (date, time) => {
     if (!date || !time) return null;
-    const dt = new Date(`${date}T${time}:00Z`); // UTC
-    return dt.toISOString().replace('Z', '+00:00'); // Convert Zulu to +00:00
+    const dt = new Date(`${date}T${time}:00Z`);
+    return dt.toISOString().replace("Z", "+00:00");
+  };
+
+  // Validate form fields
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.name.trim()) errors.name = "Event name is required";
+    if (!formData.date) errors.date = "Date is required";
+    if (!formData.start_time) errors.start_time = "Start time is required";
+    if (!formData.end_time) errors.end_time = "End time is required";
+    if (!formData.venue.trim()) errors.venue = "Venue is required";
+    if (formData.start_time && formData.end_time && formData.start_time >= formData.end_time)
+      errors.end_time = "End time must be later than start time";
+    if (formData.facilitator.length === 0)
+      errors.facilitator = "At least one facilitator must be selected";
+
+    setFormError(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      date: "",
+      description: "",
+      start_time: "",
+      end_time: "",
+      venue: "",
+      status: "Drafted",
+      facilitator: [],
+      University: university || "",
+      faculty: faculty || "",
+      participants: { registered_users: [] },
+      eventMedia: [],
+      modules: [],
+    });
+    setFormError({});
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validateForm()) return;
 
     const payload = {
       ...formData,
@@ -143,8 +151,7 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
     };
 
     try {
-      console.log("Submitting payload:", payload);
-      const res = await fetch("${API}/events/university", {
+      const res = await fetch(`${API}/events/university`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -159,7 +166,7 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
       resetForm();
       onClose();
     } catch (err) {
-      setFormError(err.message);
+      alert(err.message);
     }
   };
 
@@ -174,7 +181,11 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
           onChange={handleChange}
           fullWidth
           margin="normal"
+          required
+          error={!!formError.name}
+          helperText={formError.name}
         />
+
         <TextField
           label="Date"
           type="date"
@@ -184,7 +195,11 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
           fullWidth
           margin="normal"
           InputLabelProps={{ shrink: true }}
+          required
+          error={!!formError.date}
+          helperText={formError.date}
         />
+
         <TextField
           label="Description"
           name="description"
@@ -195,6 +210,7 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
           rows={3}
           margin="normal"
         />
+
         <TextField
           label="Start Time"
           type="time"
@@ -204,7 +220,11 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
           fullWidth
           margin="normal"
           InputLabelProps={{ shrink: true }}
+          required
+          error={!!formError.start_time}
+          helperText={formError.start_time}
         />
+
         <TextField
           label="End Time"
           type="time"
@@ -214,7 +234,11 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
           fullWidth
           margin="normal"
           InputLabelProps={{ shrink: true }}
+          required
+          error={!!formError.end_time}
+          helperText={formError.end_time}
         />
+
         <TextField
           label="Venue"
           name="venue"
@@ -222,12 +246,15 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
           onChange={handleChange}
           fullWidth
           margin="normal"
+          required
+          error={!!formError.venue}
+          helperText={formError.venue}
         />
+
         <TextField
           label="University"
           name="University"
           value={formData.University}
-          onChange={handleChange}
           fullWidth
           margin="normal"
           disabled
@@ -236,31 +263,38 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
           label="Faculty"
           name="faculty"
           value={formData.faculty}
-          onChange={handleChange}
           fullWidth
           margin="normal"
           disabled
         />
 
-        {/* Facilitators */}
         <Autocomplete
           multiple
           options={facilitators}
           getOptionLabel={(option) => option.fullname}
-          isOptionEqualToValue={(option, value) => String(option._id || option.id) === String(value._id || value.id)}
+          isOptionEqualToValue={(option, value) =>
+            String(option._id || option.id) === String(value._id || value.id)
+          }
           value={formData.facilitator}
           onChange={(event, newValue) =>
             setFormData({ ...formData, facilitator: newValue })
           }
-          renderInput={(params) => <TextField {...params} label="Facilitators" />}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Facilitators"
+              required
+              error={!!formError.facilitator}
+              helperText={formError.facilitator}
+            />
+          )}
           sx={{ mb: 2 }}
         />
 
-        <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>
+        <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: "bold" }}>
           Select Modules & Add Enrollment Keys
         </Typography>
 
-        {/* Modules Checkboxes with Enrollment Key */}
         <FormControl component="fieldset" fullWidth margin="normal">
           <FormGroup>
             {moduleList.map((module) => {
@@ -269,7 +303,10 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
                 formData.modules.find((m) => m.moduleName === module)?.enrollmentKey || "";
 
               return (
-                <div key={module} style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+                <div
+                  key={module}
+                  style={{ display: "flex", alignItems: "center", marginBottom: 8 }}
+                >
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -281,9 +318,12 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
                   />
                   {checked && (
                     <TextField
+                    required
                       label="Enrollment Key"
                       value={enrollmentKey}
-                      onChange={(e) => handleEnrollmentKeyChange(module, e.target.value)}
+                      onChange={(e) =>
+                        handleEnrollmentKeyChange(module, e.target.value)
+                      }
                       size="small"
                       sx={{ ml: 2, flex: 1 }}
                     />
@@ -293,9 +333,8 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty, }
             })}
           </FormGroup>
         </FormControl>
-
-        {formError && <p style={{ color: "red" }}>{formError}</p>}
       </DialogContent>
+
       <DialogActions>
         <Button onClick={resetForm} color="secondary">
           Reset
