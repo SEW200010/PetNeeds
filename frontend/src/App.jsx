@@ -52,6 +52,7 @@ import MyAchievements from "./pages/Facilitator/MyAchievements";
 
 // for student
 import MyEvents  from "./pages/User/UserEvent/MyEvents";  
+import FacilitatorEvents from "./pages/Facilitator/MyEvents";
 
 const App = () => {
   return (
@@ -99,6 +100,8 @@ const App = () => {
         
         
         <Route path="/facilitator-verification" element={<Facilitator />} /> {/* ✅ New Facilitator Verification Route */}
+        <Route path="/facilitator-events" element={<FacilitatorEvents />} />
+
         <Route path="/school/:id/events" element={<EventsAndUsers type="school" />} />
         <Route path="/faculty/:id/events" element={<EventsAndUsers type="faculty" />} />
         <Route path="/faculty-information" element={<FacultyInfo />} /> {/* ✅ New Faculty Information Route */}

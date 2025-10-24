@@ -34,7 +34,7 @@ const menuItems = [
   { icon: FileText, label: "Coordinator Reports", path: "/reports", hasChevron: true },
   { icon: Settings, label: "Settings", hasChevron: true },
   { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
-  { icon: LogOut, label: "Log Out", hasChevron: false },
+  { icon: LogOut, label: "Log Out",path: "/", hasChevron: false },
 ];
 
 export default function CoordinatorSidebar({ date, setDate, eventDates }) {

@@ -27,12 +27,12 @@ import "react-calendar/dist/Calendar.css";
 const menuItems = [
   { icon: Home, label: "Dashboard", path: "/facilitator-dashboard", hasChevron: true },
   { icon: User, label: "My Profile", path: "/profile", hasChevron: true },
-  { icon: CalendarIcon, label: "My Events", path: "", hasChevron: true },
+  { icon: CalendarIcon, label: "My Events", path: "/facilitator-events", hasChevron: true },
   { icon: CheckSquare, label: "My IOT", path: "", hasChevron: true },
   { icon: Award, label: "My Achievements", path: "/my-achievements", hasChevron: true },
   { icon: Settings, label: "Settings", hasChevron: true },
   { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
-  { icon: LogOut, label: "Log Out", hasChevron: false },
+  { icon: LogOut, label: "Log Out",path: "/", hasChevron: false },
 ];
 
 export default function CoordinatorSidebar({ date, setDate, eventDates }) {

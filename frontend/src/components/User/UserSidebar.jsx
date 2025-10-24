@@ -24,7 +24,7 @@ const menuItems = [
   { icon: CalendarIcon, label: "My Events", path: "/my-events", hasChevron: true },
   { icon: Settings, label: "Settings", hasChevron: true },
   { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
-  { icon: LogOut, label: "Log Out", hasChevron: false },
+  { icon: LogOut, label: "Log Out", path: "/",hasChevron: false },
 ];
 
 export default function CoordinatorSidebar({ date = new Date(), setDate = () => { } }) {

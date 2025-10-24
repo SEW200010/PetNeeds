@@ -4,6 +4,8 @@ import FacilitatorSidebar from "@/components/Facilitator/FacilitatorSidebar";
 import Header from "@/components/Facilitator/FacilitatorHeader";
 import FacilitatorEventCard from "@/components/Facilitator/FacilitatorEventCard";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+
 
 const FacilitatorDashboard = () => {
   const navigate = useNavigate();
@@ -18,7 +20,6 @@ const FacilitatorDashboard = () => {
     const name = localStorage.getItem("fullname");
     const facilitatorId = localStorage.getItem("userId");
 
-    // ✅ Role check
     if (!role || role !== "facilitator") {
       alert("Access denied. Only facilitators can access this page.");
       navigate("/login");
@@ -27,7 +28,6 @@ const FacilitatorDashboard = () => {
 
     setFacilitatorName(name || "Facilitator");
 
-    // ✅ Fetch events conducted by facilitator
     const fetchFacilitatorEvents = async () => {
       try {
         const res = await axios.get(`${API}/api/facilitator/events/${facilitatorId}`);
@@ -43,44 +43,72 @@ const FacilitatorDashboard = () => {
   }, [navigate]);
 
   return (
-    <div>
+    <div className="bg-gray-50 min-h-screen">
       <Header />
-      <main className="pt-[65px] min-h-screen flex flex-col md:flex-row">
+
+      <main className="pt-[65px] flex flex-col md:flex-row">
         <FacilitatorSidebar />
 
-        <div className="w-full md:w-3/4 p-6">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-2">
-              Welcome, {facilitatorName}
-            </h1>
-            <p className="text-gray-500">
-              {new Date().toLocaleDateString("en-GB", {
-                weekday: "short",
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
+        {/* Main Content */}
+        <motion.div
+          className="w-full md:w-3/4 p-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          {/* Header Section */}
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-1">
+                Welcome, {facilitatorName}
+              </h1>
+              <p className="text-gray-500 text-sm">
+                {new Date().toLocaleDateString("en-GB", {
+                  weekday: "long",
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
           </div>
 
           {/* Event Section */}
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Upcoming Events 
+          <h2 className="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
+            Upcoming Events
           </h2>
 
           {loading ? (
-            <p className="text-gray-500">Loading events...</p>
+            <p className="text-gray-500 animate-pulse">Loading events...</p>
           ) : events.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {events.map((event) => (
-                <FacilitatorEventCard key={event._id} event={event} />
+            <motion.div
+              layout
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {events.map((event, index) => (
+                <motion.div
+                  key={event._id || index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <FacilitatorEventCard event={event} />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           ) : (
-            <p className="text-gray-500">No upcoming events found.</p>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-gray-500 text-center mt-16"
+            >
+              <p className="text-lg font-medium">No upcoming events found 😕</p>
+              <p className="text-sm text-gray-400 mt-1">
+                You can create a new event using the button above.
+              </p>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       </main>
     </div>
   );
