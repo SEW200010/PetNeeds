@@ -66,8 +66,28 @@ def compute_event_status(event):
 @user_event_bp.route("/upcoming-events", methods=["GET"])
 def get_upcoming_events():
     try:
+        # Get user_id from query params if provided
+        user_id = request.args.get("user_id")
+        user_faculty = None
+
+        if user_id:
+            try:
+                user_obj_id = ObjectId(user_id)
+                user = mongo.db.users.find_one({"_id": user_obj_id})
+
+                if user:
+                    user_faculty = user.get("faculty_name")
+            except Exception:
+                pass  # Ignore invalid user_id
+
+
         events = list(mongo.db.events.find())
         upcoming = [serialize_event(e) for e in events if compute_event_status(e) == "upcoming"]
+
+        # Filter by faculty if user_faculty is available
+        if user_faculty:
+            upcoming = [e for e in upcoming if e.get("faculty") == user_faculty]
+
         return jsonify(upcoming), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -75,8 +95,26 @@ def get_upcoming_events():
 @user_event_bp.route("/ongoing-events", methods=["GET"])
 def get_ongoing_events():
     try:
+        # Get user_id from query params if provided
+        user_id = request.args.get("user_id")
+        user_faculty = None
+
+        if user_id:
+            try:
+                user_obj_id = ObjectId(user_id)
+                user = mongo.db.users.find_one({"_id": user_obj_id})
+                if user:
+                    user_faculty = user.get("faculty_name")
+            except Exception:
+                pass  # Ignore invalid user_id
+
         events = list(mongo.db.events.find())
         ongoing = [serialize_event(e) for e in events if compute_event_status(e) == "ongoing"]
+
+        # Filter by faculty if user_faculty is available
+        if user_faculty:
+            ongoing = [e for e in ongoing if e.get("faculty") == user_faculty]
+
         return jsonify(ongoing), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -126,46 +164,33 @@ def join_event():
         print("Error in join_event:", e)
         return jsonify({"error": "Something went wrong"}), 500
 
-@user_event_bp.route("/completed-events", methods=["GET"])
-def get_completed_events():
+@user_event_bp.route("/completed-events/<user_id>", methods=["GET"])
+def get_completed_events(user_id):
     try:
-        from datetime import datetime, timezone
+        # Get user_id from query params if provided
+        # user_id = request.args.get("user_id")
+        user_faculty = None
 
-        # Get all events
+        # if user_id:
+        try:
+            user_obj_id = ObjectId(user_id)
+            user = mongo.db.users.find_one({"_id": user_obj_id})
+
+            if user:
+                user_faculty = user.get("faculty_name")
+        except Exception:
+            pass  # Ignore invalid user_id
+
         events = list(mongo.db.events.find())
-        print(f"Total events fetched: {len(events)}")
-        completed_events = []
+        completed = [serialize_event(e) for e in events if compute_event_status(e) == "completed"]
 
-        for e in events:
-            end_time_value = e.get("end_time")
-            if end_time_value:
-                try:
-                    # If it's already a datetime object
-                    if isinstance(end_time_value, datetime):
-                        end_time = end_time_value
-                    # If it's a string, convert it
-                    elif isinstance(end_time_value, str):
-                        end_time = datetime.fromisoformat(end_time_value)
-                    else:
-                        # Skip invalid types
-                        print(f"Invalid end_time type for event {e.get('_id')}: {type(end_time_value)}")
-                        continue
+        # Filter by faculty if user_faculty is available
+        if user_faculty:
+            completed = [e for e in completed if e.get("faculty") == user_faculty]
 
-                    # Compare with current UTC time
-                    if end_time < datetime.now(timezone.utc):
-                        completed_events.append(e)
-
-                except Exception as err:
-                    print(f"Error parsing end_time for event {e.get('_id')}: {err}")
-                    continue
-                
-        serialized = [serialize_event(e) for e in completed_events]
-        return jsonify(serialized), 200
-
+        return jsonify(completed), 200
     except Exception as e:
-        print("Error in get_completed_events:", e)
-        return jsonify({"error": "Something went wrong"}), 500
-
+        return jsonify({"error": str(e)}), 500
 
 
 # Get all events joined by a specific student
@@ -176,21 +201,34 @@ def get_student_joined_events(student_id):
             student_obj_id = ObjectId(student_id)
         except Exception:
             return jsonify({"error": "Invalid student_id"}), 400
-        
+
         # Fetch student
         student = mongo.db.users.find_one({"_id": student_obj_id})
         if not student:
             return jsonify({"error": "Student not found"}), 404
 
         joined_event_ids = student.get("joined_events", [])
+        user_faculty = student.get("faculty_name")
+        user_university = student.get("university")
+
         # Convert to ObjectId list
         event_obj_ids = [ObjectId(eid) for eid in joined_event_ids]
         print(f"Student {student_id} has joined event IDs: {joined_event_ids}")
 
         # Fetch events
         events = list(mongo.db.events.find({"_id": {"$in": event_obj_ids}}))
+
+        # Filter by university and faculty for consistency
+        if user_university and user_faculty:
+            events = [e for e in events if e.get("University") == user_university and e.get("faculty") == user_faculty]
+        elif user_faculty:
+            events = [e for e in events if e.get("faculty") == user_faculty]
+
+        # Filter out completed events
+        events = [e for e in events if compute_event_status(e) != "completed"]
+
         serialized_events = [serialize_event(e) for e in events]
-        print(f"Student {student_id} joined events: {serialized_events}")           
+        print(f"Student {student_id} joined events (filtered): {serialized_events}")
         return jsonify({"events": serialized_events}), 200
 
     except Exception as e:

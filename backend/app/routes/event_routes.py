@@ -264,13 +264,17 @@ def get_all_events():
     try:
         user_id = request.args.get("user_id")  # optional: frontend can send ?user_id=<id>
         joined_events = []
+        user_faculty = None
 
-        # If user_id is provided, fetch joined_events list
+        # If user_id is provided, fetch joined_events list, faculty, and university
         if user_id:
             try:
                 user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
-                if user and "joined_events" in user:
-                    joined_events = user["joined_events"]
+                if user:
+                    if "joined_events" in user:
+                        joined_events = user["joined_events"]
+                    user_faculty = user.get("faculty_name")
+                    user_university = user.get("university")
             except Exception:
                 pass  # ignore invalid ObjectId or missing user
 
@@ -285,6 +289,12 @@ def get_all_events():
             e['joined'] = str(e['_id']) in joined_events
 
             events.append(e)
+
+        # Filter by university and faculty if user_university and user_faculty are available
+        if user_university and user_faculty:
+            events = [e for e in events if e.get("University") == user_university and e.get("faculty") == user_faculty]
+        elif user_faculty:
+            events = [e for e in events if e.get("faculty") == user_faculty]
 
         response = make_response(jsonify(events), 200)
         response.headers.add("Access-Control-Allow-Origin", "*")
@@ -606,13 +616,6 @@ def join_event():
 def enroll_module():
     """
     Enroll a user in a module of an event using the enrollment key.
-    Expects JSON body:
-    {
-        "user_id": "<user ObjectId>",
-        "event_id": "<event ObjectId>",
-        "moduleName": "<module name>",
-        "enrollmentKey": "<key>"
-    }
     """
     try:
         data = request.get_json()
@@ -641,7 +644,7 @@ def enroll_module():
         if module.get("enrollmentKey") != key_entered:
             return jsonify({"error": "Invalid enrollment key"}), 400
 
-        # Add module to user's enrolledModules if not already enrolled
+        # Update user
         user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
         if not user:
             return jsonify({"error": "User not found"}), 404
@@ -649,7 +652,6 @@ def enroll_module():
         if "enrolledModules" not in user:
             user["enrolledModules"] = []
 
-        # Check if already enrolled in this event module
         already_enrolled = any(
             em.get("event_id") == event_id and em.get("moduleName") == module_name
             for em in user["enrolledModules"]
@@ -658,10 +660,15 @@ def enroll_module():
         if already_enrolled:
             return jsonify({"message": "Already enrolled"}), 200
 
-        # Append enrolled module
         mongo.db.users.update_one(
             {"_id": ObjectId(user_id)},
             {"$push": {"enrolledModules": {"event_id": event_id, "moduleName": module_name}}}
+        )
+
+        # Update event module participants
+        mongo.db.events.update_one(
+            {"_id": ObjectId(event_id), "modules.moduleName": module_name},
+            {"$addToSet": {"modules.$.participants": ObjectId(user_id)}}
         )
 
         return jsonify({"message": "Enrolled successfully"}), 200
