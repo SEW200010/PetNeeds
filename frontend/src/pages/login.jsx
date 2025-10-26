@@ -56,7 +56,7 @@ const Login = () => {
         const decoded = jwtDecode(data.access_token);
         localStorage.setItem("token", data.access_token);
         localStorage.setItem("role", decoded.role);
-        localStorage.setItem("name", decoded.name || decoded.identity || "");
+        localStorage.setItem("fullname", decoded.fullname || decoded.identity || "");
         localStorage.setItem("organization_unit", decoded.organization_unit || "");
         localStorage.setItem("university_name", decoded.university || "");
         localStorage.setItem("zone", decoded.zone || "");

@@ -189,7 +189,7 @@ def login():
                 identity=user_id,
                  additional_claims={
                 "role": role,
-                "name": name,
+                "fullname": name,
                 "zone": zone,
                 "organization_unit": organization_unit,  # 🆕 include in token
                 "university": university  # 🆕 include in token
