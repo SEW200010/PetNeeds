@@ -104,7 +104,7 @@ const FacilitatorDashboard = () => {
             >
               <p className="text-lg font-medium">No upcoming events found 😕</p>
               <p className="text-sm text-gray-400 mt-1">
-                You can create a new event using the button above.
+                You can wait for events to be assigned or contact the coordinator for more information.
               </p>
             </motion.div>
           )}
