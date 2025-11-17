@@ -32,7 +32,7 @@ const menuItems = [
   { icon: CheckSquare, label: "TOT Sessions", path: "/tot-sessions", hasChevron: true },
   { icon: Award, label: "My Achievements", path: "/my-achievements", hasChevron: true },
   { icon: Settings, label: "Settings",path: "/facilitator-setting", hasChevron: true },
-  { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
+  
   { icon: LogOut, label: "Log Out", action: "logout", hasChevron: false },
 ];
 
