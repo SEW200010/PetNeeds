@@ -30,7 +30,7 @@ const menuItems = [
   { icon: CalendarIcon, label: "My Events", path: "/facilitator-events", hasChevron: true },
   { icon: CheckSquare, label: "My IOT", path: "", hasChevron: true },
   { icon: Award, label: "My Achievements", path: "/my-achievements", hasChevron: true },
-  { icon: Settings, label: "Settings", hasChevron: true },
+  { icon: Settings, label: "Settings",path: "/settings", hasChevron: true },
   { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
   { icon: LogOut, label: "Log Out",path: "/", hasChevron: false },
 ];
@@ -119,7 +119,7 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
           <MapPin className="h-4 w-4 mr-2" /> Location Info
         </h3>
         <p className="text-sm text-gray-700"><strong>Organization Unit:</strong> {user.organization_unit || "N/A"}</p>
-        <p className="text-sm text-gray-700"><strong>Zone:</strong> {user.zone || user.university_name}</p>
+        <p className="text-sm text-gray-700"><strong>Sub Unit:</strong> {user.zone || user.university_name}</p>
       </div>
 
       {/* Sidebar Title */}
@@ -180,7 +180,7 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
           <div className="fixed inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
           <div className="relative w-80 max-w-full h-full bg-white shadow-xl overflow-auto">
             <div className="p-4 flex items-center justify-between border-b border-gray-200">
-              <div className="text-lg font-semibold">Coordinator Menu</div>
+              <div className="text-lg font-semibold">Facilitator Menu</div>
               <button ref={closeBtnRef} className="p-2" onClick={() => setMobileOpen(false)} aria-label="Close menu">
                 <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
