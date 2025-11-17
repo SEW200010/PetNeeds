@@ -65,7 +65,7 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
         })
         .then((res) =>
           setUser({
-            fullName: res.data.fullName,
+            fullName: res.data.fullname,
             email: res.data.email,
             organization_unit: res.data.organization_unit || "",
             zone: res.data.zone || "",
