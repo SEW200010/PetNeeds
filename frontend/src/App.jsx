@@ -41,6 +41,8 @@ import CoordinatorDashboard from "./pages/Coordinator/CoordinatorDashboard"; // 
 import Facilitator from "./pages/Coordinator/FacilitatorVerify";  // ✅ new import
 import FacultyInfo from "./pages/Coordinator/FacultyInfo";
 import ModuleManage from "./pages/Coordinator/ModuleManage";
+import CoordinatorReports from "./pages/Coordinator/CoordinatorReports";
+import Settings from "./pages/Settings";
 
 // ✅ New import for Modules page
 import ModulesPage from "./pages/User/UserEvent/ModulesPage";
@@ -105,6 +107,9 @@ const App = () => {
         <Route path="/school/:id/events" element={<EventsAndUsers type="school" />} />
         <Route path="/faculty/:id/events" element={<EventsAndUsers type="faculty" />} />
         <Route path="/faculty-information" element={<FacultyInfo />} /> {/* ✅ New Faculty Information Route */}
+
+        <Route path="/reports" element={<CoordinatorReports />} />
+        <Route path="/settings" element={<Settings />} />
 
         <Route path="facilitator-dashboard" element={<FacilitatorDashboard/>}/>
         <Route path="/my-achievements" element={<MyAchievements/>}/>

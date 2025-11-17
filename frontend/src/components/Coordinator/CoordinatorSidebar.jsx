@@ -32,9 +32,9 @@ const menuItems = [
   { icon: BookOpen, label: "Module Management", path: "/module-management", hasChevron: true },
   { icon: University, label: "Faculty Information", path: "/faculty-information", hasChevron: true },
   { icon: FileText, label: "Coordinator Reports", path: "/reports", hasChevron: true },
-  { icon: Settings, label: "Settings", hasChevron: true },
+  { icon: Settings, label: "Settings", path: "/settings" ,hasChevron: true },
   { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
-  { icon: LogOut, label: "Log Out",path: "/", hasChevron: false },
+  { icon: LogOut, label: "Log Out", hasChevron: false },
 ];
 
 export default function CoordinatorSidebar({ date, setDate, eventDates }) {
@@ -42,7 +42,7 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const closeBtnRef = useRef(null);
   const [user, setUser] = useState({
-    fullname: "",
+    fullName: "",
     email: "",
     zone: "",
     organization_unit: "",
@@ -65,9 +65,7 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
         })
         .then((res) =>
           setUser({
-
-            fullName: res.data.fullname,
-
+            fullName: res.data.fullName,
             email: res.data.email,
             organization_unit: res.data.organization_unit || "",
             zone: res.data.zone || "",
@@ -105,13 +103,12 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
     <div className="p-6 w-full">
       {/* User Profile */}
       <div className="flex items-center space-x-3 mb-8">
-        <div onClick={() => navigate("/profile")} className="cursor-pointer">
-          <Avatar className="h-12 w-12 hover:scale-105 transition-transform">
-            <AvatarImage src={UserImg} alt="User" />
-            <AvatarFallback>{user.fullName?.slice(0,2).toUpperCase() || "YN"}</AvatarFallback>
-          </Avatar>
-        </div>
-
+        <Avatar className="h-12 w-12">
+          <AvatarImage src={UserImg} alt="User" />
+          <AvatarFallback>
+            {user.fullName ? user.fullName.slice(0, 2).toUpperCase() : "YN"}
+          </AvatarFallback>
+        </Avatar>
         <div>
           <p className="font-medium text-gray-900">{user.fullName || "User"}</p>
           <p className="text-sm text-gray-500">{user.email || "user@example.com"}</p>
@@ -124,7 +121,7 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
           <MapPin className="h-4 w-4 mr-2" /> Location Info
         </h3>
         <p className="text-sm text-gray-700"><strong>Organization Unit:</strong> {user.organization_unit || "N/A"}</p>
-        <p className="text-sm text-gray-700"><strong>Sub Unit:</strong> {user.zone || user.university_name}</p>
+        <p className="text-sm text-gray-700"><strong>Zone:</strong> {user.zone || user.university_name}</p>
       </div>
 
       {/* Sidebar Title */}

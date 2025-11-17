@@ -23,6 +23,13 @@ def is_allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+# Folder for coordinator reports
+REPORTS_FOLDER = "uploads/reports"
+os.makedirs(REPORTS_FOLDER, exist_ok=True)
+
+
+
+
 # -------------------------
 # ✅ Get Zones by District Name for Coordinator (directly using district_name)
 # -------------------------
@@ -804,3 +811,125 @@ def get_file(filename):
         return jsonify({"error": "File not found"}), 404
 
     return send_from_directory(UPLOAD_FOLDER, filename)
+
+
+# -------------------------
+# Coordinator Reports Endpoints
+# -------------------------
+@coordinator_bp.route("/coordinator/reports", methods=["POST"])
+@jwt_required()
+def upload_report():
+    """Upload a coordinator report (file + metadata).
+    Expects multipart/form-data with fields: title, summary, month (optional), year (optional), university_name (optional) and file field 'file'.
+    """
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    # Try to derive university from token claims first, fallback to form
+    university_name = claims.get("university_name") or request.form.get("university_name") or ""
+
+    title = request.form.get("title", "").strip()
+    summary = request.form.get("summary", "").strip()
+    month = request.form.get("month")
+    year = request.form.get("year")
+
+    if not title or "file" not in request.files:
+        return jsonify({"error": "Missing title or file"}), 400
+
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "Empty file"}), 400
+
+    if not is_allowed_file(file.filename):
+        return jsonify({"error": "Invalid file type"}), 400
+
+    filename = secure_filename(file.filename)
+    # add timestamp prefix to avoid overwriting
+    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    saved_name = f"{timestamp}_{filename}"
+    file_path = os.path.join(REPORTS_FOLDER, saved_name)
+    file.save(file_path)
+
+    report_doc = {
+        "university_name": university_name,
+        "title": title,
+        "summary": summary,
+        "month": month,
+        "year": year,
+        "filename": saved_name,
+        "original_filename": filename,
+        "uploaded_by": claims.get("sub") or claims.get("email") or "",
+        "uploaded_at": datetime.utcnow()
+    }
+
+    inserted = mongo.db.reports.insert_one(report_doc)
+
+    return jsonify({"message": "Report uploaded", "id": str(inserted.inserted_id)}), 201
+
+
+@coordinator_bp.route("/coordinator/reports/<university_name>", methods=["GET"])
+@jwt_required()
+def list_reports(university_name):
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    reports = list(mongo.db.reports.find({"university_name": {"$regex": f"^{university_name}$", "$options": "i"}}).sort("uploaded_at", -1))
+
+    items = []
+    for r in reports:
+        items.append({
+            "id": str(r.get("_id")),
+            "title": r.get("title"),
+            "summary": r.get("summary"),
+            "month": r.get("month"),
+            "year": r.get("year"),
+            "filename": r.get("filename"),
+            "original_filename": r.get("original_filename"),
+            "uploaded_by": r.get("uploaded_by"),
+            "uploaded_at": (r.get("uploaded_at").isoformat() if r.get("uploaded_at") else None)
+        })
+
+    return jsonify({"university": university_name, "items": items}), 200
+
+
+@coordinator_bp.route("/coordinator/reports/files/<filename>", methods=["GET"])
+def serve_report_file(filename):
+    try:
+        return send_from_directory(REPORTS_FOLDER, filename)
+    except FileNotFoundError:
+        return jsonify({"error": "File not found"}), 404
+
+
+@coordinator_bp.route("/coordinator/reports/<report_id>", methods=["DELETE"])
+@jwt_required()
+def delete_report(report_id):
+    claims = get_jwt()
+    role = claims.get("role", "")
+
+    if role != "coordinator":
+        return jsonify({"error": "Access denied"}), 403
+
+    try:
+        obj_id = ObjectId(report_id)
+    except Exception:
+        return jsonify({"error": "Invalid report id"}), 400
+
+    report = mongo.db.reports.find_one({"_id": obj_id})
+    if not report:
+        return jsonify({"error": "Report not found"}), 404
+
+    filename = report.get("filename")
+    if filename:
+        try:
+            os.remove(os.path.join(REPORTS_FOLDER, filename))
+        except Exception:
+            pass
+
+    mongo.db.reports.delete_one({"_id": obj_id})
+    return jsonify({"message": "Report deleted"}), 200
