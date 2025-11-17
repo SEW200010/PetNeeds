@@ -42,7 +42,7 @@ import Facilitator from "./pages/Coordinator/FacilitatorVerify";  // ✅ new imp
 import FacultyInfo from "./pages/Coordinator/FacultyInfo";
 import ModuleManage from "./pages/Coordinator/ModuleManage";
 import CoordinatorReports from "./pages/Coordinator/CoordinatorReports";
-import Settings from "./pages/Settings";
+import Setting_coordinator from "./pages/Coordinator/Settings";
 
 // ✅ New import for Modules page
 import ModulesPage from "./pages/User/UserEvent/ModulesPage";
@@ -51,6 +51,7 @@ import EventsAndUsers from "./pages/Coordinator/EventsAndUsers";
 // Facilitator Imports
 import FacilitatorDashboard from "./pages/Facilitator/FacilitatorDashboard";
 import MyAchievements from "./pages/Facilitator/MyAchievements";
+import Setting_facilitator from "./pages/Facilitator/Settings";
 
 // for student
 import MyEvents  from "./pages/User/UserEvent/MyEvents";  
@@ -109,10 +110,12 @@ const App = () => {
         <Route path="/faculty-information" element={<FacultyInfo />} /> {/* ✅ New Faculty Information Route */}
 
         <Route path="/reports" element={<CoordinatorReports />} />
-        <Route path="/settings" element={<Settings />} />
+ 
+        <Route path="/coordinator-setting" element={<Setting_coordinator/>}/>
 
         <Route path="facilitator-dashboard" element={<FacilitatorDashboard/>}/>
         <Route path="/my-achievements" element={<MyAchievements/>}/>
+      <Route path="/facilitator-setting" element={<Setting_facilitator/>}/>
 
         <Route path="/my-events" element={<MyEvents />} />  {/* For Student's My Events page */}
  

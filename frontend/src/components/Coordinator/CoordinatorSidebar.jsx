@@ -33,7 +33,7 @@ const menuItems = [
   { icon: BookOpen, label: "Module Management", path: "/module-management", hasChevron: true },
   { icon: University, label: "Faculty Information", path: "/faculty-information", hasChevron: true },
   { icon: FileText, label: "Coordinator Reports", path: "/reports", hasChevron: true },
-  { icon: Settings, label: "Settings", path: "/settings" ,hasChevron: true },
+  { icon: Settings, label: "Settings", path: "/coordinator-setting" ,hasChevron: true },
 
   { icon: LogOut, label: "Log Out", action: "logout", hasChevron: false },
 ];

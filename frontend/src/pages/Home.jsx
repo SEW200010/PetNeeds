@@ -106,7 +106,7 @@ const Home = () => {
           {/* Image Section */}
           <div className="flex justify-center">
             <img
-              src="public/Home_images/imagesec.jpg"
+              src="src/assets/Home_images/imagesec.jpg"
               alt="About Varppu Counselling"
               className="w-full max-w-sm md:max-w-md lg:max-w-lg h-auto rounded-lg shadow-lg"
             />

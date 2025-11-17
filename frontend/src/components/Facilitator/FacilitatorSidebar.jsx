@@ -30,7 +30,7 @@ const menuItems = [
   { icon: CalendarIcon, label: "My Events", path: "/facilitator-events", hasChevron: true },
   { icon: CheckSquare, label: "My IOT", path: "", hasChevron: true },
   { icon: Award, label: "My Achievements", path: "/my-achievements", hasChevron: true },
-  { icon: Settings, label: "Settings",path: "/settings", hasChevron: true },
+  { icon: Settings, label: "Settings",path: "/facilitator-setting", hasChevron: true },
   { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
   { icon: LogOut, label: "Log Out",path: "/", hasChevron: false },
 ];
