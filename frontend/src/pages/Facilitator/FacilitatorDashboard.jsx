@@ -31,7 +31,18 @@ const FacilitatorDashboard = () => {
     const fetchFacilitatorEvents = async () => {
       try {
         const res = await axios.get(`${API}/api/facilitator/events/${facilitatorId}`);
-        setEvents(res.data || []);
+        const all = res.data || [];
+        const now = new Date();
+        const upcoming = all
+          .filter((ev) => {
+            const startStr = ev.start_time || ev.date || ev.startDate || ev.start || ev.begin;
+            if (!startStr) return false;
+            const start = new Date(startStr);
+            return start > now;
+          })
+          .sort((a, b) => new Date(a.start_time || a.date || a.startDate || a.start || a.begin) - new Date(b.start_time || b.date || b.startDate || b.start || b.begin));
+
+        setEvents(upcoming);
       } catch (err) {
         console.error("Error fetching facilitator events:", err);
       } finally {
