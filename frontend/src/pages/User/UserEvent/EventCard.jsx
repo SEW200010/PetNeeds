@@ -64,14 +64,25 @@ export default function EventCard({ event, userId, onJoinSuccess, completed = fa
     }
   };
 
-  const formatToSLST = (utcDate) => {
-    const slstDate = new Date(new Date(utcDate).getTime() + 5.5 * 60 * 60 * 1000);
-    const optionsDate = { year: "numeric", month: "short", day: "numeric" };
-    const optionsTime = { hour: "2-digit", minute: "2-digit" };
-    return {
-      date: slstDate.toLocaleDateString("en-GB", optionsDate),
-      time: slstDate.toLocaleTimeString("en-GB", optionsTime),
-    };
+  const formatToSLST = (isoDate) => {
+    if (!isoDate) return { date: "N/A", time: "N/A" };
+    try {
+      const d = new Date(isoDate);
+      const date = d.toLocaleDateString("en-GB", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        timeZone: "Asia/Colombo",
+      });
+      const time = d.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Asia/Colombo",
+      });
+      return { date, time };
+    } catch (err) {
+      return { date: "N/A", time: "N/A" };
+    }
   };
 
   const startSLST = formatToSLST(event.start_time);

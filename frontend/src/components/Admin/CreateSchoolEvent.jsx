@@ -87,12 +87,12 @@ const CreateSchoolEvent = ({ open, onClose, onSubmit, zone, school }) => {
     });
   };
 
-    // Combine date + time and convert to ISO with +00:00
-  const combineDateTime = (date, time) => {
-    if (!date || !time) return null;
-    const dt = new Date(`${date}T${time}:00Z`); // UTC
-    return dt.toISOString().replace('Z', '+00:00'); // Convert Zulu to +00:00
-  };
+    // Combine date + time (interpret inputs as local, convert to UTC ISO)
+    const combineDateTime = (date, time) => {
+      if (!date || !time) return null;
+      const dtLocal = new Date(`${date}T${time}`);
+      return dtLocal.toISOString();
+    };
 
 
    const handleModuleCheck = (moduleName, checked) => {

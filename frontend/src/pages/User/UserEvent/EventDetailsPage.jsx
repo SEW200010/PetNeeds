@@ -35,8 +35,8 @@ export default function EventDetailsPage() {
       <CardContent>
         <h2 className="text-xl font-bold mb-2">{event.name}</h2>
         <p className="text-sm text-gray-600 mb-4">
-          {new Date(event.start_time).toLocaleString()} -{" "}
-          {new Date(event.end_time).toLocaleString()}
+          {new Date(event.start_time).toLocaleString("en-GB", { timeZone: "Asia/Colombo" })} -{" "}
+          {new Date(event.end_time).toLocaleString("en-GB", { timeZone: "Asia/Colombo" })}
         </p>
 
         <h3 className="font-semibold mb-2">Modules</h3>

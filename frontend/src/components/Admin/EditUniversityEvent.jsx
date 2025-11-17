@@ -42,10 +42,10 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
   useEffect(() => {
     if (initialData && open) {
       const startTime = initialData.start_time
-        ? new Date(initialData.start_time).toISOString().split("T")[1].slice(0, 5)
+        ? new Date(initialData.start_time).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
         : "";
       const endTime = initialData.end_time
-        ? new Date(initialData.end_time).toISOString().split("T")[1].slice(0, 5)
+        ? new Date(initialData.end_time).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
         : "";
 
       const facilitatorObjects = (initialData.facilitator || []).map((f) => {
@@ -149,10 +149,11 @@ const EditUniversityEvent = ({ open, onClose, initialData, onUpdate, university,
     setFormData({ ...formData, modules: updatedModules });
   };
 
+  // Combine date + time: treat inputs as local and convert to UTC ISO
   const combineDateTime = (date, time) => {
     if (!date || !time) return null;
-    const dt = new Date(`${date}T${time}:00Z`);
-    return dt.toISOString().replace("Z", "+00:00");
+    const dtLocal = new Date(`${date}T${time}`);
+    return dtLocal.toISOString();
   };
 
   const handleUpdate = async (e) => {

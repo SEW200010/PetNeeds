@@ -93,11 +93,12 @@ const CreateUniversityEvent = ({ open, onClose, onSubmit, university, faculty })
     setFormData({ ...formData, modules: updatedModules });
   };
 
-  // Combine date + time
+  // Combine date + time (interpret date+time as local, convert to UTC ISO)
   const combineDateTime = (date, time) => {
     if (!date || !time) return null;
-    const dt = new Date(`${date}T${time}:00Z`);
-    return dt.toISOString().replace("Z", "+00:00");
+    // Create a local Date from date and time (no Z) so it's treated as local
+    const dtLocal = new Date(`${date}T${time}`);
+    return dtLocal.toISOString();
   };
 
   // Validate form fields
