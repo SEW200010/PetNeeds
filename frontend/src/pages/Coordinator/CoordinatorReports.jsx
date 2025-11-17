@@ -139,15 +139,19 @@ export default function CoordinatorReports() {
   }
 
   return (
-    <Box>
+    <div>
+
+        
       <Header />
-      <Box component="main" sx={{ pt: 8, minHeight: "100vh" }}>
-        <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" } }}>
+      <main className="pt-[65px] min-h-screen">
+        <div className="flex flex-col md:flex-row">
           <CoordinatorSidebar />
-          <Container maxWidth="md" sx={{ py: 3 }}>
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
+<div className="w-full md:w-3/4 p-6">
+            <h2 className="text-2xl font-bold mb-4">
+     
+      
               Coordinator Reports
-            </Typography>
+            </h2>
 
             <Typography variant="subtitle1" color="text.secondary" mb={3}>
               This portal allows you to add monthly summaries.
@@ -268,9 +272,11 @@ export default function CoordinatorReports() {
                 ))}
               </Stack>
             )}
-          </Container>
-        </Box>
-      </Box>
-    </Box>
+         
+       
+</div>
+      </div>
+      </main>
+    </div>
   );
 }
