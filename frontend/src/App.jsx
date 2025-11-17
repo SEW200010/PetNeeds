@@ -52,6 +52,7 @@ import EventsAndUsers from "./pages/Coordinator/EventsAndUsers";
 import FacilitatorDashboard from "./pages/Facilitator/FacilitatorDashboard";
 import MyAchievements from "./pages/Facilitator/MyAchievements";
 import Setting_facilitator from "./pages/Facilitator/Settings";
+import TOTSessions from "./pages/Facilitator/TOTSessions";
 
 // for student
 import MyEvents  from "./pages/User/UserEvent/MyEvents";  
@@ -115,7 +116,8 @@ const App = () => {
 
         <Route path="facilitator-dashboard" element={<FacilitatorDashboard/>}/>
         <Route path="/my-achievements" element={<MyAchievements/>}/>
-      <Route path="/facilitator-setting" element={<Setting_facilitator/>}/>
+        <Route path="/facilitator-setting" element={<Setting_facilitator/>}/>
+        <Route path="/tot-sessions" element={<TOTSessions/>}/>
 
         <Route path="/my-events" element={<MyEvents />} />  {/* For Student's My Events page */}
  

@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { logout } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
@@ -28,11 +29,11 @@ const menuItems = [
   { icon: Home, label: "Dashboard", path: "/facilitator-dashboard", hasChevron: true },
   { icon: User, label: "My Profile", path: "/profile", hasChevron: true },
   { icon: CalendarIcon, label: "My Events", path: "/facilitator-events", hasChevron: true },
-  { icon: CheckSquare, label: "My IOT", path: "", hasChevron: true },
+  { icon: CheckSquare, label: "TOT Sessions", path: "/tot-sessions", hasChevron: true },
   { icon: Award, label: "My Achievements", path: "/my-achievements", hasChevron: true },
   { icon: Settings, label: "Settings",path: "/facilitator-setting", hasChevron: true },
   { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
-  { icon: LogOut, label: "Log Out",path: "/", hasChevron: false },
+  { icon: LogOut, label: "Log Out", action: "logout", hasChevron: false },
 ];
 
 export default function CoordinatorSidebar({ date, setDate, eventDates }) {
@@ -134,14 +135,21 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
               key={index}
               variant="ghost"
               className="w-full justify-between text-left font-normal text-gray-700 hover:bg-gray-50"
-              onClick={() => { item.path && navigate(item.path); setMobileOpen(false); }}
+              onClick={() => {
+                if (item.action === "logout") {
+                  logout();
+                } else if (item.path) {
+                  navigate(item.path);
+                  setMobileOpen(false);
+                }
+              }}
             >
               <div className="flex items-center space-x-3">
                 <IconComponent className="h-5 w-5" />
                 <span>{item.label}</span>
               </div>
               {item.hasChevron && <ChevronRight className="h-4 w-4" />}
-              {item.action && <span className="text-sm text-gray-500">{item.action}</span>}
+              {item.action && item.action !== "logout" && <span className="text-sm text-gray-500">{item.action}</span>}
             </Button>
           );
         })}
