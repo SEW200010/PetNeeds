@@ -77,6 +77,21 @@ def add_user():
     }
 
     mongo.db.users.insert_one(new_user)
+    # Also create role-specific document for consistency with coordinator endpoints
+    role_lower = (new_user.get("role") or "").lower()
+    try:
+        if role_lower == "coordinator":
+            mongo.db.coordinators.insert_one(new_user)
+        elif role_lower == "facilitator":
+            # facilitators collection expects a field isVerified in some flows
+            fac_doc = dict(new_user)
+            fac_doc.setdefault("isVerified", False)
+            mongo.db.facilitators.insert_one(fac_doc)
+        elif role_lower == "student":
+            mongo.db.students.insert_one(new_user)
+    except Exception as e:
+        # If role-specific insert fails, log but still return success for user creation
+        print("Warning: failed to insert role-specific document:", e)
     return jsonify({"message": "User added successfully", "user": new_user}), 201
 # ---------------------- GET USER BY ID ----------------------
 @user_bp.route("/<user_id>", methods=["GET"])

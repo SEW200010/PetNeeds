@@ -265,6 +265,7 @@ def get_all_events():
         user_id = request.args.get("user_id")  # optional: frontend can send ?user_id=<id>
         joined_events = []
         user_faculty = None
+        user_university = None
 
         # If user_id is provided, fetch joined_events list, faculty, and university
         if user_id:
@@ -275,10 +276,15 @@ def get_all_events():
                         joined_events = user["joined_events"]
                     user_faculty = user.get("faculty_name")
                     user_university = user.get("university")
-            except Exception:
+            except Exception as e:
+                print(f"Error fetching user: {e}")
                 pass  # ignore invalid ObjectId or missing user
 
         events = []
+        if mongo.db.events.count_documents({}) == 0:
+            # No events in database
+            return jsonify([]), 200
+            
         for e in mongo.db.events.find():
             e['_id'] = str(e['_id'])
             e['participants'] = e.get('participants', {"registered": 0, "confirmed": 0})
@@ -300,6 +306,9 @@ def get_all_events():
         response.headers.add("Access-Control-Allow-Origin", "*")
         return response
     except Exception as e:
+        print(f"Error in get_all_events: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 # Get event by ObjectId

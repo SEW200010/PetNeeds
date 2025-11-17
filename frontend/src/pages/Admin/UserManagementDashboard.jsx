@@ -3,11 +3,23 @@
 import { useEffect, useState } from "react";
 import Header from "../../components/Admin/header";
 import AdminSidebar from "../../components/Admin/AdminSidebar";
-import StickyHeadTable from "../../components/Admin/StickyHeadTable";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
+import UserForm from "../../components/Admin/UserForm";
 import { Search, ArrowLeft } from "lucide-react";
+import {
+  Container,
+  Paper,
+  Box,
+  TextField,
+  Button as MUIButton,
+  Chip,
+  Typography,
+  MenuItem,
+  Stack,
+  IconButton,
+  Avatar,
+} from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
+import { Edit, Delete, Visibility } from "@mui/icons-material";
 
 const UserManagementDashboard = () => {
   const [users, setUsers] = useState([]);
@@ -19,6 +31,8 @@ const UserManagementDashboard = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [editUserData, setEditUserData] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewUserData, setViewUserData] = useState(null);
   const [showAddUserForm, setShowAddUserForm] = useState(false);
   const [newUserData, setNewUserData] = useState({
     fullName: "",
@@ -30,46 +44,27 @@ const UserManagementDashboard = () => {
     joinDate: "2025-01-01",
   });
 
-  useEffect(() => {
-    fetch("http://127.0.0.1:5000/api/users/")
-      .then((res) => res.json())
-      .then((data) => setUsers(data))
-      .catch((err) => console.error("Error loading users:", err));
-  }, []);
+    useEffect(() => {
+      fetch("http://127.0.0.1:5000/api/users/")
+        .then((res) => res.json())
+        .then((data) => setUsers(data))
+        .catch((err) => console.error("Error loading users:", err));
+    }, []);
 
-  const handleVerifyUser = (userId) => {
-    setSelectedUserId(userId);
-    setShowVerifyDialog(true);
-  };
+  
 
   const handleDeleteUser = (userId) => {
     setSelectedUserId(userId);
     setShowDeleteDialog(true);
   };
 
-  const confirmVerifyUser = () => {
-    fetch(`http://127.0.0.1:5000/api/users/verify/${selectedUserId}`, {
-      method: "PUT",
-    })
-      .then((res) => {
-        if (res.ok) {
-          setUsers((prev) =>
-            prev.map((user) =>
-              user.id === selectedUserId ? { ...user, status: "Active" } : user
-            )
-          );
-          console.log("Verified user:", selectedUserId);
-        } else {
-          console.error("Failed to verify user");
-        }
-        setShowVerifyDialog(false);
-      })
-      .catch((err) => {
-        console.error("Error verifying user:", err);
-        setShowVerifyDialog(false);
-      });
+  const handleViewUser = (user) => {
+    setViewUserData(user);
+    setShowViewModal(true);
   };
 
+ 
+  
   const confirmDeleteUser = () => {
     fetch(`http://127.0.0.1:5000/api/users/${selectedUserId}`, {
       method: "DELETE",
@@ -100,92 +95,74 @@ const UserManagementDashboard = () => {
   };
 
   const filteredUsers = users.filter(
-    (user) =>
-      user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchQuery.toLowerCase())
+    (user) => {
+      const q = (searchQuery || "").toLowerCase();
+      const name = (user.fullName || "").toLowerCase();
+      const email = (user.email || "").toLowerCase();
+      const role = (user.role || "").toLowerCase();
+      return name.includes(q) || email.includes(q) || role.includes(q);
+    }
   );
 
   const columns = [
-    { id: "id", label: "#", minWidth: 50, align: "center" },
-    { id: "fullName", label: "Full Name", minWidth: 170 },
-    { id: "email", label: "Email", minWidth: 200 },
+    { field: "fullname", headerName: "Full Name", flex: 2, minWidth: 170 },
+    { field: "email", headerName: "Email", flex: 2, minWidth: 200 },
     {
-      id: "role",
-      label: "Role",
+      field: "role",
+      headerName: "Role",
+      flex: 1,
       minWidth: 120,
-      format: (value) => {
-        const colors = {
-          "teacher-in-charge": "bg-blue-100 text-blue-800",
-          student: "bg-green-100 text-green-800",
-          parent: "bg-purple-100 text-purple-800",
+      renderCell: (params) => {
+        const roleConfig = {
+          "teacher-in-charge": {  color: "#1565C0", label: "Teacher" },
+          student: {  color: "#2E7D32", label: "Student" },
+          parent: {  color: "#6A1B9A", label: "Parent" },
+          coordinator: { color: "#C2185B", label: "Coordinator" },
+          facilitator: {  color: "#E65100", label: "Facilitator" },
+          admin: { color: "#B71C1C", label: "Admin" },
         };
+        const config = roleConfig[params.value] || { bg: "#F5F5F5", color: "#616161", label: params.value };
         return (
-          <Badge className={colors[value] || "bg-gray-100 text-gray-800"}>
-            {value}
-          </Badge>
+          <Box
+            sx={{
+              display: "inline-block",
+              backgroundColor: config.bg,
+              color: config.color,
+              padding: "4px 12px",
+              borderRadius: "16px",
+              fontSize: "0.8rem",
+              fontWeight: 600,
+              textTransform: "capitalize",
+            }}
+          >
+            {config.label}
+          </Box>
         );
       },
     },
+    
     {
-      id: "status",
-      label: "Status",
-      minWidth: 100,
-      format: (value) => {
-        const colors = {
-          Active: "bg-green-100 text-green-800",
-          Inactive: "bg-red-100 text-red-800",
-          Pending: "bg-yellow-100 text-yellow-800",
-        };
-        return (
-          <Badge className={colors[value] || "bg-gray-100 text-gray-800"}>
-            {value}
-          </Badge>
-        );
-      },
-    },
-    { id: "joinDate", label: "Join Date", minWidth: 120 },
-    {
-      id: "actions",
-      label: "Actions",
-      minWidth: 200,
-      format: (value, row) => (
-        <div className="flex space-x-2">
-          <Button
-            size="sm"
-            className="bg-red-500 hover:bg-red-700 text-white text-xs"
-            onClick={() => handleDeleteUser(row.id)}
-          >
-            Delete
-          </Button>
-          <Button
-            size="sm"
-            className="bg-blue-400 hover:bg-blue-600 text-white text-xs"
-            onClick={() => handleEditUser(row.id)}
-          >
-            Edit
-          </Button>
-          <Button
-            size="sm"
-            className="bg-green-400 hover:bg-green-600 text-white text-xs"
-            onClick={() => handleVerifyUser(row.id)}
-          >
-            Verify
-          </Button>
-        </div>
+      field: "actions",
+      headerName: "Actions",
+      flex: 1.8,
+      minWidth: 220,
+      sortable: false,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={0.5}>
+          <IconButton color="info" size="small" onClick={() => handleViewUser(params.row)} title="View">
+            <Visibility fontSize="small" />
+          </IconButton>
+          <IconButton color="primary" size="small" onClick={() => handleEditUser(params.row.id)} title="Edit">
+            <Edit fontSize="small" />
+          </IconButton>
+          <IconButton color="error" size="small" onClick={() => handleDeleteUser(params.row.id)} title="Delete">
+            <Delete fontSize="small" />
+          </IconButton>
+          
+        </Stack>
       ),
     },
   ];
-
-  const processedRows = filteredUsers.map((user) => ({
-    ...user,
-    role:
-      columns.find((col) => col.id === "role").format?.(user.role) || user.role,
-    status:
-      columns.find((col) => col.id === "status").format?.(user.status) ||
-      user.status,
-    actions: columns.find((col) => col.id === "actions").format(null, user),
-  }));
 
   return (
     <div className="min-h-screen bg-gray-50 relative">
@@ -197,40 +174,125 @@ const UserManagementDashboard = () => {
         <main className="flex-1 p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm">
+              <MUIButton variant="text" size="small">
                 <ArrowLeft className="h-4 w-4" />
-              </Button>
+              </MUIButton>
               <h2 className="text-2xl font-semibold text-gray-900">
                 User Management
               </h2>
             </div>
-            <Button
-              className="bg-green-600 hover:bg-green-700 text-white"
-              onClick={handleAddNewUser}
-            >
+            <MUIButton variant="contained" color="primary" onClick={handleAddNewUser}>
               Add New User
-            </Button>
+            </MUIButton>
           </div>
 
           <div className="mb-6 flex justify-center w-full">
             <div className="relative max-w-md w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
+              <TextField
                 placeholder="Search users"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                fullWidth
+                size="small"
+                variant="outlined"
               />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-4">
-              <StickyHeadTable columns={columns} rows={processedRows} />
-            </div>
+          <div style={{ height: 400, width: "100%" }}>
+            <DataGrid
+              rows={filteredUsers.map((user, i) => ({
+                id: user.id || i,
+                ...user,
+              }))}
+              columns={columns}
+              pageSize={5}
+              rowsPerPageOptions={[5, 10, 25]}
+              disableSelectionOnClick
+            />
           </div>
         </main>
       </div>
+
+      {/* View User Modal */}
+      {showViewModal && viewUserData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white rounded-xl border border-gray-300 p-6 shadow-lg w-[500px]">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">User Profile</h2>
+            
+            {/* User Info */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4 pb-4 border-b border-gray-200">
+                <Avatar sx={{ width: 60, height: 60, backgroundColor: "#1565C0" }}>
+                  {viewUserData.fullName?.charAt(0).toUpperCase()}
+                </Avatar>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">{viewUserData.fullName}</h3>
+                  <p className="text-sm text-gray-600">{viewUserData.email}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase">Role</p>
+                  <Box
+                    sx={{
+                      display: "inline-block",
+                      backgroundColor: "#E3F2FD",
+                      color: "#1565C0",
+                      padding: "4px 12px",
+                      borderRadius: "16px",
+                      fontSize: "0.85rem",
+                      fontWeight: 600,
+                      marginTop: "4px",
+                    }}
+                  >
+                    {viewUserData.role}
+                  </Box>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase">Status</p>
+                  <Chip label={viewUserData.status || "Pending"} color="success" size="small" sx={{ marginTop: "4px" }} />
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase">School</p>
+                <p className="text-gray-700 mt-1">{viewUserData.school || "N/A"}</p>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase">Location</p>
+                <p className="text-gray-700 mt-1">{viewUserData.location || "N/A"}</p>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase">Contact</p>
+                <p className="text-gray-700 mt-1">{viewUserData.contact || "N/A"}</p>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase">Join Date</p>
+                <p className="text-gray-700 mt-1">{viewUserData.joinDate || "N/A"}</p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-6 flex justify-end space-x-4">
+              <MUIButton variant="outlined" onClick={() => setShowViewModal(false)}>
+                Close
+              </MUIButton>
+              <MUIButton variant="contained" color="primary" onClick={() => {
+                handleEditUser(viewUserData.id);
+                setShowViewModal(false);
+              }}>
+                Edit
+              </MUIButton>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Verify Confirmation Modal */}
       {showVerifyDialog && (
@@ -243,19 +305,12 @@ const UserManagementDashboard = () => {
               This action is permanent and cannot be undone.
             </p>
             <div className="flex justify-end space-x-4">
-              <Button
-                variant="outline"
-                className="bg-gray-200 text-gray-700"
-                onClick={() => setShowVerifyDialog(false)}
-              >
+              <MUIButton variant="outlined" onClick={() => setShowVerifyDialog(false)}>
                 Cancel
-              </Button>
-              <Button
-                className="bg-green-600 hover:bg-green-700 text-white"
-                onClick={confirmVerifyUser}
-              >
+              </MUIButton>
+              <MUIButton variant="contained" color="primary" onClick={confirmVerifyUser}>
                 Verify
-              </Button>
+              </MUIButton>
             </div>
           </div>
         </div>
@@ -272,247 +327,37 @@ const UserManagementDashboard = () => {
               This action will permanently remove the user from the system.
             </p>
             <div className="flex justify-end space-x-3">
-              <Button
-                variant="outline"
-                className="bg-gray-200 text-gray-700 font-medium"
-                onClick={() => setShowDeleteDialog(false)}
-              >
+              <MUIButton variant="outlined" onClick={() => setShowDeleteDialog(false)}>
                 Cancel
-              </Button>
-              <Button
-                className="bg-red-600 hover:bg-red-700 text-white font-medium"
-                onClick={confirmDeleteUser}
-              >
+              </MUIButton>
+              <MUIButton variant="contained" color="error" onClick={confirmDeleteUser}>
                 Delete
-              </Button>
+              </MUIButton>
             </div>
           </div>
         </div>
       )}
 
-      {showEditForm && editUserData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          <div className="bg-white rounded-xl border border-gray-300 p-6 shadow-lg w-[500px]">
-            <h2 className="text-xl font-bold text-gray-900 mb-1">
-              User Details
-            </h2>
-            <p className="text-sm text-gray-600 mb-6">Fill the all fields.</p>
+      {/* Edit/Add User Form */}
+      <UserForm
+        open={showEditForm}
+        onClose={() => setShowEditForm(false)}
+        onSubmit={() => {
+          setShowEditForm(false);
+          fetchEvents();
+        }}
+        initialData={editUserData}
+      />
 
-            {/* Form Fields */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
-                <input
-                  type="text"
-                  value={editUserData.fullName}
-                  className="w-full border rounded-md px-3 py-2"
-                  onChange={(e) =>
-                    setEditUserData({
-                      ...editUserData,
-                      fullName: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Location
-                </label>
-                <input
-                  type="text"
-                  value={editUserData.location || ""}
-                  className="w-full border rounded-md px-3 py-2"
-                  onChange={(e) =>
-                    setEditUserData({
-                      ...editUserData,
-                      location: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">School</label>
-                <input
-                  type="text"
-                  value={editUserData.school || ""}
-                  className="w-full border rounded-md px-3 py-2"
-                  onChange={(e) =>
-                    setEditUserData({ ...editUserData, school: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Contact No
-                </label>
-                <input
-                  type="text"
-                  value={editUserData.contact || ""}
-                  className="w-full border rounded-md px-3 py-2"
-                  onChange={(e) =>
-                    setEditUserData({
-                      ...editUserData,
-                      contact: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input
-                  type="email"
-                  value={editUserData.email || ""}
-                  className="w-full border rounded-md px-3 py-2"
-                  onChange={(e) =>
-                    setEditUserData({
-                      ...editUserData,
-                      email: e.target.value,
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="mt-6 flex justify-end space-x-4">
-              <Button
-                variant="outline"
-                className="bg-gray-200 text-gray-700"
-                onClick={() => setShowEditForm(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                className="bg-green-600 hover:bg-green-700 text-white"
-                onClick={async () => {
-                  try {
-                    const res = await fetch(
-                      `http://127.0.0.1:5000/api/users/${editUserData.id}`,
-                      {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(editUserData),
-                      }
-                    );
-
-                    if (res.ok) {
-                      // Update local state
-                      setUsers((prevUsers) =>
-                        prevUsers.map((user) =>
-                          user.id === editUserData.id ? editUserData : user
-                        )
-                      );
-                      console.log("Updated user:", editUserData);
-                      setShowEditForm(false);
-                    } else {
-                      console.error("Failed to update user");
-                    }
-                  } catch (error) {
-                    console.error("Error updating user:", error);
-                  }
-                }}
-              >
-                Save
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-      {showAddUserForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          <div className="bg-white rounded-xl border border-gray-300 p-6 shadow-lg w-[500px]">
-            <h2 className="text-xl font-bold text-gray-900 mb-1">
-              Add New User
-            </h2>
-            <p className="text-sm text-gray-600 mb-6">
-              Fill all fields to add user.
-            </p>
-
-            <div className="space-y-4">
-              {["fullName", "email", "location", "school", "contact"].map(
-                (field) => (
-                  <div key={field}>
-                    <label className="block text-sm font-medium mb-1 capitalize">
-                      {field}
-                    </label>
-                    <input
-                      type="text"
-                      value={newUserData[field]}
-                      className="w-full border rounded-md px-3 py-2"
-                      onChange={(e) =>
-                        setNewUserData({
-                          ...newUserData,
-                          [field]: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                )
-              )}
-              <div>
-                <label className="block text-sm font-medium mb-1">Role</label>
-                <select
-                  value={newUserData.role}
-                  onChange={(e) =>
-                    setNewUserData({ ...newUserData, role: e.target.value })
-                  }
-                  className="w-full border rounded-md px-3 py-2"
-                >
-                  <option value="student">Student</option>
-                  <option value="parent">Parent</option>
-                  <option value="teacher-in-charge">Teacher in Charge</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="mt-6 flex justify-end space-x-4">
-              <Button
-                variant="outline"
-                className="bg-gray-200 text-gray-700"
-                onClick={() => setShowAddUserForm(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                className="bg-green-600 hover:bg-green-700 text-white"
-                onClick={async () => {
-                  try {
-                    const res = await fetch(
-                      "http://127.0.0.1:5000/api/users/",
-
-                      {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(newUserData),
-                      }
-                    );
-                    if (res.ok) {
-                      const { user } = await res.json();
-                      setUsers((prev) => [...prev, user]);
-                      setShowAddUserForm(false);
-                      setNewUserData({
-                        fullName: "",
-                        email: "",
-                        role: "student",
-                        location: "",
-                        school: "",
-                        contact: "",
-                        joinDate: "2025-01-01",
-                      });
-                    } else {
-                      console.error("Failed to add user");
-                    }
-                  } catch (error) {
-                    console.error("Error adding user:", error);
-                  }
-                }}
-              >
-                Add User
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Add User Form */}
+      <UserForm
+        open={showAddUserForm}
+        onClose={() => setShowAddUserForm(false)}
+        onSubmit={() => {
+          setShowAddUserForm(false);
+          fetchEvents();
+        }}
+      />
     </div>
   );
 };
