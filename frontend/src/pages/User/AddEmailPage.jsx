@@ -51,31 +51,45 @@ const AddEmailPage = () => {
       }
     }
   const handleAddEmail = async () => {
-    const token = localStorage.getItem("token");
-    if (!token || !newEmail) return;
+  const token = localStorage.getItem("token");
 
-    const decoded = jwtDecode(token);
-    const userId = decoded.sub || decoded.user_id;
+  // Basic check: must not be empty
+  if (!token || !newEmail) {
+    alert("Please enter an email address.");
+    return;
+  }
 
-    try {
-      const res = await axios.post(
-        `${API}/api/user/${userId}/add-email`,
-        { email: newEmail },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      setUser(res.data); // update local user data with new email added
-      setNewEmail(""); // clear input field
-      alert("email verfied");
-    } catch (error) {
-      console.error("Error adding email:", error);
-      alert("Failed to add email. Try a different one.");
-    }
-  };
+  // Validate email format using regex
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(newEmail)) {
+    alert("Please enter a valid email address.");
+    return;
+  }
+
+  const decoded = jwtDecode(token);
+  const userId = decoded.sub || decoded.user_id;
+
+  try {
+    const res = await axios.post(
+      `${API}/api/user/${userId}/add-email`,
+      { email: newEmail },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    setUser(res.data); // update local user data with new email added
+    setNewEmail(""); // clear input field
+    alert("Email verified successfully!");
+  } catch (error) {
+    console.error("Error adding email:", error);
+    alert("Failed to add email. Try a different one.");
+  }
+};
+
+
 
   return (
     <div>

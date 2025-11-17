@@ -5,7 +5,7 @@ import { Button } from "../../../components/ui/button";
 import { Card, CardContent } from "../../../components/ui/card";
 import { useNavigate } from "react-router-dom";
 
-export default function EventCard({ event, userId, onJoinSuccess }) {
+export default function EventCard({ event, userId, onJoinSuccess, completed = false }) {
   const [isJoining, setIsJoining] = useState(false);
   const [joined, setJoined] = useState(event.joined || false);
   const [modules, setModules] = useState(event.modules || []);
@@ -88,15 +88,25 @@ export default function EventCard({ event, userId, onJoinSuccess }) {
           {startSLST.date} | {startSLST.time} - {endSLST.time}
         </p>
 
-        {/* Join / Go to Modules Button */}
-        <Button
-          size="sm"
-          className={joined ? "bg-orange-500 hover:bg-orange-600 text-white w-full" : "bg-teal-600 hover:bg-teal-700 text-white w-full"}
-          onClick={handleJoin}
-          disabled={isJoining}
-        >
-          {joined ? "Go to Modules" : isJoining ? "Joining..." : "Join"}
-        </Button>
+        {/* Conditional Button Rendering */}
+        {completed ? (
+          <Button
+            size="sm"
+            className="bg-gray-400 text-white w-full cursor-not-allowed"
+            disabled={true}
+          >
+            Completed
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            className={joined ? "bg-orange-500 hover:bg-orange-600 text-white w-full" : "bg-teal-600 hover:bg-teal-700 text-white w-full"}
+            onClick={handleJoin}
+            disabled={isJoining}
+          >
+            {joined ? "Go to Modules" : isJoining ? "Joining..." : "Join"}
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
