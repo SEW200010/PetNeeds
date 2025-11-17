@@ -65,7 +65,8 @@ export default function EventCard({ event, userId, onJoinSuccess, completed = fa
   };
 
   const formatToSLST = (utcDate) => {
-    const slstDate = new Date(new Date(utcDate).getTime() + 5.5 * 60 * 60 * 1000);
+    const utcDateObj = new Date(utcDate);
+    const slstDate = new Date(utcDateObj.getTime() - (5.5 * 60 * 60 * 1000)); // Add 5.5 hours
     const optionsDate = { year: "numeric", month: "short", day: "numeric" };
     const optionsTime = { hour: "2-digit", minute: "2-digit" };
     return {
