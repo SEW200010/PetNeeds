@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { logout } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
@@ -33,8 +34,8 @@ const menuItems = [
   { icon: University, label: "Faculty Information", path: "/faculty-information", hasChevron: true },
   { icon: FileText, label: "Coordinator Reports", path: "/reports", hasChevron: true },
   { icon: Settings, label: "Settings", path: "/settings" ,hasChevron: true },
-  { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
-  { icon: LogOut, label: "Log Out", hasChevron: false },
+
+  { icon: LogOut, label: "Log Out", action: "logout", hasChevron: false },
 ];
 
 export default function CoordinatorSidebar({ date, setDate, eventDates }) {
@@ -136,7 +137,14 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
               key={index}
               variant="ghost"
               className="w-full justify-between text-left font-normal text-gray-700 hover:bg-gray-50"
-              onClick={() => { item.path && navigate(item.path); setMobileOpen(false); }}
+              onClick={() => {
+                if (item.action === "logout") {
+                  logout();
+                } else if (item.path) {
+                  navigate(item.path);
+                  setMobileOpen(false);
+                }
+              }}
             >
               <div className="flex items-center space-x-3">
                 <IconComponent className="h-5 w-5" />
