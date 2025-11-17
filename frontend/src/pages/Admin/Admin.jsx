@@ -8,25 +8,57 @@ import Header from "../../components/Admin/Header";
 import AdminSidebar from "../../components/Admin/AdminSidebar";
 import 'react-calendar/dist/Calendar.css';
 import BarChartComponent from '@/components/Fund/BarChartComponent';
+import LineChartComponent from '@/components/Fund/LineChartComponent';
 
 const AdminDashboard = () => {
     const [date, setDate] = useState(new Date());
     const [barChartData, setBarChartData] = useState([]);
+    const [engagementMetrics, setEngagementMetrics] = useState({
+        totalLogins: 0,
+        totalUsers: 0,
+        totalEvents: 0,
+        totalParticipants: 0
+    });
+    const [contributionTrends, setContributionTrends] = useState([]);
+    const [managementTrends, setManagementTrends] = useState([]);
+
     useEffect(() => {
-        const fetchChartData = async () => {
+        const fetchAllData = async () => {
             try {
-                const res = await fetch('http://localhost:5000/api/chart-data');
-                const data = await res.json();
+                // Fetch chart data
+                const chartRes = await fetch('http://127.0.0.1:5000/api/chart-data');
+                const chartData = await chartRes.json();
                 setBarChartData([
-                    { name: 'Income', value: data.income },
-                    { name: 'Expense', value: data.expense },
+                    { name: 'Income', value: chartData.income },
+                    { name: 'Expense', value: chartData.expense },
                 ]);
+
+                // Fetch engagement metrics
+                const engagementRes = await fetch('http://127.0.0.1:5000/api/engagement-metrics');
+                if (engagementRes.ok) {
+                    const engagementData = await engagementRes.json();
+                    setEngagementMetrics(engagementData);
+                }
+
+                // Fetch contribution trends (financial)
+                const trendsRes = await fetch('http://127.0.0.1:5000/api/contribution-trends');
+                if (trendsRes.ok) {
+                    const trendsData = await trendsRes.json();
+                    setContributionTrends(trendsData);
+                }
+
+                // Fetch management trends (users & events)
+                const mgRes = await fetch('http://127.0.0.1:5000/api/management-trends');
+                if (mgRes.ok) {
+                    const mgData = await mgRes.json();
+                    setManagementTrends(mgData);
+                }
             } catch (err) {
-                console.error("Failed to fetch bar chart data", err);
+                console.error("Failed to fetch dashboard data", err);
             }
         };
 
-        fetchChartData();
+        fetchAllData();
     }, []);
 
     // Example event dates (you can later fetch or generate these)
@@ -63,14 +95,30 @@ const AdminDashboard = () => {
                                 <h2 className="text-xl font-bold mb-2 text-gray-800">Engagement Metrics</h2>
                                 <div className="bg-[#D9D9D9BA] p-4 rounded-xl shadow-lg">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {["🔐", "👥", "✅", "🆕"].map((icon, idx) => (
-                                            <div key={idx} className="bg-white p-4 rounded-lg shadow">
-                                                <p className="text-gray-800 text-lg font-medium">
-                                                    <span className="mr-2">{icon}</span>
-                                                    1,245 <br /><strong>Total Logins</strong>
-                                                </p>
-                                            </div>
-                                        ))}
+                                        <div className="bg-white p-4 rounded-lg shadow">
+                                            <p className="text-gray-800 text-lg font-medium">
+                                                <span className="mr-2">🔐</span>
+                                                {engagementMetrics.totalLogins} <br /><strong>Total Logins</strong>
+                                            </p>
+                                        </div>
+                                        <div className="bg-white p-4 rounded-lg shadow">
+                                            <p className="text-gray-800 text-lg font-medium">
+                                                <span className="mr-2">👥</span>
+                                                {engagementMetrics.totalUsers} <br /><strong>Total Users</strong>
+                                            </p>
+                                        </div>
+                                        <div className="bg-white p-4 rounded-lg shadow">
+                                            <p className="text-gray-800 text-lg font-medium">
+                                                <span className="mr-2">✅</span>
+                                                {engagementMetrics.totalEvents} <br /><strong>Total Events</strong>
+                                            </p>
+                                        </div>
+                                        <div className="bg-white p-4 rounded-lg shadow">
+                                            <p className="text-gray-800 text-lg font-medium">
+                                                <span className="mr-2">🆕</span>
+                                                {engagementMetrics.totalParticipants} <br /><strong>Participants</strong>
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -84,11 +132,11 @@ const AdminDashboard = () => {
                             </div>
                         </div>
 
-                        {/* Line Chart */}
+                        {/* Management Trends (users & events) */}
                         <div className="mt-10">
-                            <h2 className="text-xl font-bold mb-2 text-gray-800">Contribution Trends</h2>
+                            <h2 className="text-xl font-bold mb-2 text-gray-800">User & Event Management Trends (Last 12 Months)</h2>
                             <div className="bg-[#D9D9D9BA] p-4 rounded-xl shadow-lg">
-                                <div className="h-48 flex items-center justify-center text-gray-500">[ Line Chart Placeholder ]</div>
+                                <LineChartComponent data={managementTrends} title="Registrations vs Events" />
                             </div>
                         </div>
                     </div>

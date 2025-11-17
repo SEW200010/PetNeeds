@@ -186,3 +186,134 @@ def get_chart_data():
         'expenseBreakdown': expense_breakdown
     })
 
+
+@transaction_bp.route('/api/engagement-metrics', methods=['GET'])
+def get_engagement_metrics():
+    """Get real engagement metrics from database"""
+    try:
+        # Total users count
+        total_users = mongo.db.users.count_documents({})
+        
+        # Count users with lastLogin (verified logins)
+        verified_logins = mongo.db.users.count_documents({"lastLogin": {"$exists": True, "$ne": None}})
+        
+        # Count by role
+        roles = mongo.db.users.aggregate([
+            {"$group": {"_id": "$role", "count": {"$sum": 1}}}
+        ])
+        role_breakdown = {r["_id"]: r["count"] for r in roles}
+        
+        # Count events created
+        total_events = mongo.db.events.count_documents({})
+        
+        # Count participants enrolled
+        total_participants = mongo.db.participants.count_documents({})
+        
+        return jsonify({
+            'totalLogins': verified_logins,
+            'totalUsers': total_users,
+            'totalEvents': total_events,
+            'totalParticipants': total_participants,
+            'roleBreakdown': role_breakdown
+        }), 200
+    except Exception as e:
+        print(f"Error in get_engagement_metrics: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@transaction_bp.route('/api/contribution-trends', methods=['GET'])
+def get_contribution_trends():
+    """Get contribution trends over time (monthly)"""
+    try:
+        from datetime import datetime, timedelta
+        
+        # Get last 12 months of transaction data
+        months_data = []
+        for i in range(11, -1, -1):
+            date = datetime.utcnow() - timedelta(days=30*i)
+            month_start = date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            month_end = (month_start + timedelta(days=32)).replace(day=1)
+            
+            pipeline = [
+                {"$match": {
+                    "timestamp": {"$gte": month_start, "$lt": month_end}
+                }},
+                {"$group": {
+                    "_id": "$type",
+                    "amount": {"$sum": "$amount"}
+                }}
+            ]
+            
+            results = list(mongo.db.transactions.aggregate(pipeline))
+            income = next((r['amount'] for r in results if r['_id'] == 'income'), 0)
+            expense = next((r['amount'] for r in results if r['_id'] == 'expense'), 0)
+            
+            months_data.append({
+                "month": month_start.strftime("%b %Y"),
+                "income": income,
+                "expense": expense,
+                "net": income - expense
+            })
+        
+        return jsonify(months_data), 200
+    except Exception as e:
+        print(f"Error in get_contribution_trends: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@transaction_bp.route('/api/management-trends', methods=['GET'])
+def get_management_trends():
+    """Return last 12 months of user registrations and event creations.
+    Attempts to use datetime fields if present, otherwise falls back to
+    string date fields like 'joinDate' (YYYY-MM-DD) and event 'date'.
+    """
+    try:
+        from datetime import datetime, timedelta
+
+        months = []
+        for i in range(11, -1, -1):
+            date = datetime.utcnow() - timedelta(days=30 * i)
+            month_start = date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            # next month start
+            next_month = (month_start + timedelta(days=32)).replace(day=1)
+
+            # string bounds for YYYY-MM-DD comparisons
+            month_start_str = month_start.strftime('%Y-%m-01')
+            next_month_str = next_month.strftime('%Y-%m-01')
+
+            # Users: count those with created_at datetime within month
+            users_with_created_at = mongo.db.users.count_documents({
+                'created_at': {'$gte': month_start, '$lt': next_month}
+            })
+
+            # Users with joinDate string (YYYY-MM-DD) and no created_at
+            users_with_joinDate = mongo.db.users.count_documents({
+                'created_at': {'$exists': False},
+                'joinDate': {'$gte': month_start_str, '$lt': next_month_str}
+            })
+
+            users_count = users_with_created_at + users_with_joinDate
+
+            # Events: prefer created_at if present, otherwise use 'date' string
+            events_with_created_at = mongo.db.events.count_documents({
+                'created_at': {'$gte': month_start, '$lt': next_month}
+            })
+            events_with_date = mongo.db.events.count_documents({
+                'created_at': {'$exists': False},
+                'date': {'$gte': month_start_str, '$lt': next_month_str}
+            })
+            events_count = events_with_created_at + events_with_date
+
+            months.append({
+                'month': month_start.strftime('%b %Y'),
+                'users': users_count,
+                'events': events_count
+            })
+
+        return jsonify(months), 200
+    except Exception as e:
+        print(f"Error in get_management_trends: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
