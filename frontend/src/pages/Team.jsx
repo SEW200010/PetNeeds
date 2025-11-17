@@ -58,7 +58,7 @@ const specialistsData = [
     title: "Senior 3",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img:img1,
+    img: img1,
     description: "Dr. Anusha specializes in interactive learning methodologies and life coaching.",
     since: 2022,
   },
@@ -91,7 +91,7 @@ const trainersData = [
     title: "Senior 2",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img:img6,
+    img: img6,
     description: "Ms. Anjali focuses on personal development and team building exercises.",
     since: 2028,
   },
@@ -101,7 +101,7 @@ const trainersData = [
     title: "Senior 4",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img:img7,
+    img: img7,
     description: "Mr. Xavier specializes in motivational training and goal setting.",
     since: 2022,
   },
@@ -154,7 +154,7 @@ const mentorsData = [
     title: "Senior 1",
     degree: "BSc. fghdfgkjdf",
     qualification: "MBBS, 4560",
-    img:img2,
+    img: img2,
     description: "Mr. Jayasuriya supports youth in building resilience and decision-making skills.",
     since: 2009,
   },
@@ -228,9 +228,9 @@ const Team = () => {
           style={{ minHeight: "200px" }}
         >
           <div
-  className="h-30 bg-cover bg-center"
-  style={{ backgroundImage: `url(${rec2})` }}
-></div>
+            className="h-30 bg-cover bg-center"
+            style={{ backgroundImage: `url(${rec2})` }}
+          ></div>
 
           <div className="h-70 bg-[#CFE8DF] p-6 text-center flex flex-col items-center">
             <img
@@ -276,32 +276,40 @@ const Team = () => {
   return (
     <div>
       <Header />
-      <main className="bg-gray-100 pt-[65px]">
-        <section className="relative h-[600px] bg-cover bg-center text-center text-white flex flex-col items-center justify-center" style={{ backgroundImage: `url(${man})` }}>
+      <main className="bg-gray-100">
+        <section
+          className="relative h-[420px] sm:min-h-[500px]  md:min-h-[620px] bg-cover bg-center text-center text-white flex flex-col items-center justify-center px-4 overflow-hidden"
+          style={{ backgroundImage: `url(${man})` }}
+        >
+          <div className="absolute inset-0 bg-black/60" />
 
-          <div className="relative w-full h-[600px] flex flex-col items-center justify-center text-center overflow-hidden pt-8">
-            <div className="absolute inset-0 bg-black opacity-60">
-            </div>
-            <div className="relative z-10 max-w-7xl w-full">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-bold">Meet The Team</h1>
-              <p className="mt-4 text-xl sm:text-2xl md:text-3xl text-[#27987A] font-semibold">Empower. Lead. Transform.</p>
+        <div className="relative z-10 mx-auto
+                  px-4
+                  max-w-md sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold">
+              Meet The Team
+            </h1>
+            <p className="mt-4 text-xl sm:text-2xl md:text-3xl text-[#27987A] font-semibold">
+              Empower. Lead. Transform.
+            </p>
 
-              <p className="text-white mt-4 text-sm sm:text-base md:text-lg lg:text-xl text-left mx-auto max-w-6xl px-2">
-                The success of the 'வார்ப்பு' (Varppu) Life Skills Development Programme is driven by a dedicated team of educators, mentors,
-                and professionals committed to shaping the future of Sri Lankan youth. With expertise in education, psychology, and leadership
-                development, our team works tirelessly to equip students with essential life skills. Through interactive learning, mentorship,
-                and the 'Manohari' module, we provide the support and guidance needed to navigate challenges like peer pressure, mental health
-                struggles, and decision-making. Together, we are building a resilient and empowered generation ready to lead positive change
-                in society.
-              </p>
-              <Link to="/Aboutus">
-                <button className="mt-6 inline-flex text-white px-6 py-3 text-sm sm:text-base md:text-lg flex rounded-full hover:bg-green-600 hover:scale-110 transition duration-300 mx-auto" style={{ backgroundColor: "#27987A" }}>
-                  Explore about Us →
-                </button>
-              </Link>
-            </div>
+            <p className="text-white mt-4 text-sm sm:text-base md:text-lg leading-relaxed">
+              The success of the 'வார்ப்பு' (Varppu) Life Skills Development Programme relies on a dedicated team of educators, mentors, and professionals specializing in education, psychology, and leadership. They equip youth with vital life skills through interactive learning, mentorship, and the 'Manohari' module. By supporting students facing peer pressure, mental health issues, and decision-making challenges, the team fosters a resilient, empowered generation ready to lead positive social change.
+            </p>
+
+            <Link to="/Aboutus">
+              <button
+                className="mt-6 text-white px-6 py-3 text-sm sm:text-base md:text-lg rounded-full hover:bg-green-600 hover:scale-110 transition mx-auto"
+                style={{ backgroundColor: "#27987A" }}
+              >
+                Explore about Us →
+              </button>
+            </Link>
           </div>
         </section>
+
+
+
 
         {/*founder section*/}
         <section

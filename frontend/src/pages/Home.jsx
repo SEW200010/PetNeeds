@@ -30,46 +30,55 @@ const Home = () => {
   return (
     <div>
       <Header />
-      <main className="bg-gray-100 pt-[65px]">
+      <main className="bg-gray-100">
 
         {/* Hero Section */}
-        <section className="relative h-[400px] md:h-[600px] flex items-center justify-center text-center px-4 overflow-hidden">
-
-          {/* Image Layers */}
+        <section className=" relative  h-[420px] sm:min-h-[500px] md:min-h-[620px] flex items-center justify-center text-center px-4 py-10 md:py-16 overflow-hidden ">
+          {/* Background Images */}
           {images.map((image, index) => (
             <div
               key={index}
-              className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out`}
+              className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
               style={{
                 backgroundImage: `url(${image})`,
                 opacity: currentImage === index ? 1 : 0,
-                zIndex: 0, // keep all images behind
               }}
             />
           ))}
 
-          {/* Single overlay ABOVE all images */}
-          <div className="absolute inset-0 bg-black opacity-60 z-10" />
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-black/60" />
 
-          <div className="relative z-10 max-w-7xl w-full">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-bold">
+          {/* Text Container */}
+          <div className="relative z-10 mx-auto
+                  px-4
+                  max-w-md sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-bold leading-tight">
               Your Journey Begins Here
             </h1>
-            <p className="mt-4  text-xl sm:text-2xl md:text-3xl text-[#27987A] font-semibold ">
+
+            <p className="mt-3 text-lg sm:text-xl md:text-2xl text-[#25d6a4] font-semibold">
               Empower. Lead. Transform.
             </p>
-            <p className="text-white mt-3 text-sm sm:text-base md:text-lg lg:text-m text-left mx-auto max-w-6xl px-2">
-              The "வார்ப்பு" (Varppu) Life Skills Development Programme, launched by the University of Jaffna, empowers Sri Lankan youth, especially in the Northern Province, through educational training and activity-based learning. Targeting university and school students, it addresses issues like substance abuse, peer pressure, and mental health struggles using the "Manohari" module, a psychosocial support system. By fostering problem-solving, emotional intelligence, and leadership, Varppu nurtures resilient young leaders, driving sustainable societal development and positive social change.
+
+            <p className="text-white mt-4 text-sm sm:text-base md:text-lg leading-relaxed">
+              The "வார்ப்பு" (Varppu) Life Skills Development Programme, launched by the University
+              of Jaffna, empowers Sri Lankan youth, especially in the Northern Province, through
+              educational training and activity-based learning. It addresses issues such as substance
+              abuse, peer pressure, and mental health challenges through the "Manohari" psychosocial
+              support system, fostering emotionally resilient and socially responsible young leaders.
             </p>
 
             <Link to="/Aboutus">
-              <button className="mt-6  text-white px-6 py-3 text-sm sm:text-base md:text-lg flex rounded-full hover:bg-green-600 hover:scale-110 transition duration-300 mx-auto" style={{ backgroundColor: "#27987A" }}>
+              <button
+                className="mt-6 text-white px-6 py-3 text-sm sm:text-base md:text-lg rounded-full hover:bg-green-600 hover:scale-110 transition mx-auto"
+                style={{ backgroundColor: "#27987A" }}
+              >
                 Explore about Us →
               </button>
             </Link>
           </div>
         </section>
-
 
         {/* About Section */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-10 p-6 md:p-10 lg:p-20 bg-white items-center">

@@ -28,26 +28,31 @@ const Aboutus = () => {
     { name: "John Doe", title: "Senior Lead", image: memberImage },
   ];
   return (
-    <div className="bg-gray-100 pt-[65px] ">
+    <div className="bg-gray-100 ">
       <Header />
 
       {/* Hero Section */}
-      <section className="relative h-[600px] bg-cover bg-center text-center text-white flex flex-col items-center justify-center" style={{ backgroundImage: `url(${heroImage})` }}>
+      <section className="relative h-[420px] sm:min-h-[500px]  md:min-h-[620px] bg-cover bg-center text-center text-white flex flex-col items-center justify-center" style={{ backgroundImage: `url(${heroImage})` }}>
         {/* Dark overlay */}
-        <div className="absolute top-0 left-0 w-full h-full bg-black opacity-60 z-10"></div>
+        <div className="absolute inset-0 bg-black/60" />
 
-        <div className="relative z-10 max-w-7xl w-full">
+        <div className="relative z-10 mx-auto
+                  px-4
+                  max-w-md sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-bold">
             Who We Are
           </h1>
           <p className="mt-4 text-xl sm:text-2xl md:text-3xl text-[#27987A] font-semibold">
             Empower. Lead. Transform.
           </p>
-          <p className="text-white mt-3 text-sm sm:text-base md:text-lg lg:text-m text-left mx-auto max-w-6xl px-2">
-            The "வார்ப்பு" (Varppu) Life Skills Development Programme, launched by the University of Jaffna, empowers Sri Lankan youth, especially in the Northern Province, through educational training and activity-based learning. Targeting university and school students, it addresses issues like substance abuse, peer pressure, and mental health struggles using the "Manohari" module, a psychosocial support system. By fostering problem-solving, emotional intelligence, and leadership, Varppu nurtures resilient young leaders, driving sustainable societal development and positive social change.
+              <p className="text-white mt-4 text-sm sm:text-base md:text-lg leading-relaxed">
+          
+
+The "வார்ப்பு" (Varppu) Life Skills Development Programme, by the University of Jaffna, empowers youth in the Northern Province through educational and activity-based training. It supports university and school students facing substance abuse, peer pressure, and mental health challenges using the "Manohari" psychosocial module. Varppu builds problem-solving, emotional intelligence, and leadership skills, fostering resilient young leaders who drive positive social change and sustainable community development.
+
           </p>
           <Link to="/Aboutus">
-            <button className="mt-6 inline-flex text-white px-6 py-3 text-sm sm:text-base md:text-lg flex rounded-full hover:bg-green-600 hover:scale-110 transition duration-300 mx-auto" style={{ backgroundColor: "#27987A" }}>
+            <button className="mt-6 text-white px-6 py-3 text-sm sm:text-base md:text-lg rounded-full hover:bg-green-600 hover:scale-110 transition mx-auto"style={{ backgroundColor: "#27987A" }}>
               Explore about Us →
             </button>
           </Link>

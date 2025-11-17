@@ -18,41 +18,38 @@ const Services = () => {
       <div>
         <Header />
       </div>
-      <main className="bg-gray-100 pt-[65px]">
+      <main className="bg-gray-100">
 
 
-        <section className="relative h-[600px] bg-cover bg-center text-center text-white flex flex-col items-center justify-center" style={{ backgroundImage: `url(${HeroImage})` }}>
+        <section
+          className="relative h-[420px] sm:min-h-[500px] md:min-h-[620px] bg-cover bg-center text-center text-white flex flex-col items-center justify-center px-4 overflow-hidden"
+          style={{ backgroundImage: `url(${HeroImage})` }}
+        >
+          <div className="absolute inset-0 bg-black/60" />
 
-          <div className="relative w-full h-[600px] flex flex-col items-center justify-center text-center overflow-hidden pt-7">
-            <div className="absolute top-0 left-0 w-full h-full bg-black opacity-60 z-10"></div>
-            <div className="relative z-10 max-w-7xl w-full">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-bold">
-                Services
-              </h1>
-              <p className="mt-4 text-xl sm:text-2xl md:text-3xl text-[#27987A] font-semibold">
-                Empower. Lead. Transform.
-              </p>
-              <p className="text-white mt-3 text-sm sm:text-base md:text-lg lg:text-m text-left mx-auto max-w-6xl px-2">
-                At the 'வார்ப்பு' (Varppu) Life Skills Development Programme, we are committed to
-                providing impactful services that empower Sri Lankan youth, particularly in the
-                Northern Province. Our services include comprehensive life skills training, mental
-                health support through the 'Manohari' module, leadership development, and
-                educational workshops focused on resilience, problem-solving, and emotional
-                intelligence. We tailor our services to address pressing issues like peer pressure,
-                substance abuse, and stress management, offering a safe space for youth to grow,
-                learn, and become leaders in their communities. By fostering self-awareness and
-                empowering individuals, we aim to create a lasting impact on youth, society, and the
-                future of Sri Lanka.
-              </p>
-              <Link to="/Aboutus">
-                <button className="mt-6 inline-flex text-white px-6 py-3 text-sm sm:text-base md:text-lg flex rounded-full hover:bg-green-600 hover:scale-110 transition duration-300 mx-auto" style={{ backgroundColor: "#27987A" }}>
-                  Explore about Us →
-                </button>
-              </Link>
-            </div>
+         <div className="relative z-10 mx-auto
+                  px-4
+                  max-w-md sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold">
+              Services
+            </h1>
+            <p className="mt-4 text-xl sm:text-2xl md:text-3xl text-[#27987A] font-semibold">
+              Empower. Lead. Transform.
+            </p>
+            <p className="text-white mt-4 text-sm sm:text-base md:text-lg leading-relaxed">
+             At the 'வார்ப்பு' (Varppu) Life Skills Development Programme, we empower Sri Lankan youth—especially in the Northern Province—through life skills training, mental health support, leadership development, and educational workshops. Our programs address challenges such as peer pressure, substance abuse, and stress, helping youth grow with confidence and become future leaders of their communities.
+            </p>
+            <Link to="/Aboutus">
+              <button
+                className="mt-6 text-white px-6 py-3 text-sm sm:text-base md:text-lg rounded-full hover:bg-green-600 hover:scale-110 transition mx-auto"
+                style={{ backgroundColor: "#27987A" }}
+              >
+                Explore about Us →
+              </button>
+            </Link>
           </div>
-
         </section>
+
 
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-10 p-6 md:p-10 lg:p-20 bg-white items-center">
