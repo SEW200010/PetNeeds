@@ -57,54 +57,6 @@ const FacultyInfo = () => {
   }, [navigate]);
 
 
-  // ✅ Fetch faculty list
-  /*
-  useEffect(() => {
-    const fetchFaculties = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const organizationUnit = localStorage.getItem("organization_unit");
-        const universityName = localStorage.getItem("university_name");
-        const zone = localStorage.getItem("zone");
-
-        if (!token || !organizationUnit) {
-          console.warn("Missing token or organization unit, cannot fetch data.");
-          setLoading(false);
-          return;
-        }
-
-        let apiUrl = "";
-        if (organizationUnit.toLowerCase() === "university") {
-          apiUrl = `${API}/faculties/${encodeURIComponent(universityName)}`;
-        } else if (organizationUnit.toLowerCase() === "school") {
-          apiUrl = `${API}/schools/${encodeURIComponent(zone)}`;
-        }
-
-        const res = await fetch(apiUrl, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const data = await res.json();
-        console.log("API Response:", data);
-
-        if (!data.error && data.items) {
-          setFaculties(data.items);
-          setUniversity(data.university || "");
-        } else {
-          console.error("API returned error:", data.error);
-        }
-      } catch (error) {
-        console.error("Failed to fetch faculties:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFaculties();
-  }, []);
-
-*/
-
   const fetchFaculties = async () => {
     setLoading(true);
     try {
@@ -182,9 +134,6 @@ const FacultyInfo = () => {
       sortable: false,
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
-          <IconButton color="primary" size="small" onClick={() => handleViewEvent(params.row)}>
-            <Visibility />
-          </IconButton>
           <IconButton
             color="secondary"
             size="small"
