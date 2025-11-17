@@ -65,7 +65,7 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
         })
         .then((res) =>
           setUser({
-            fullName: res.data.fullName,
+            fullName: res.data.fullname,
             email: res.data.email,
             organization_unit: res.data.organization_unit || "",
             zone: res.data.zone || "",
@@ -121,7 +121,7 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
           <MapPin className="h-4 w-4 mr-2" /> Location Info
         </h3>
         <p className="text-sm text-gray-700"><strong>Organization Unit:</strong> {user.organization_unit || "N/A"}</p>
-        <p className="text-sm text-gray-700"><strong>Zone:</strong> {user.zone || user.university_name}</p>
+        <p className="text-sm text-gray-700"><strong>Sub Unit:</strong> {user.zone || user.university_name}</p>
       </div>
 
       {/* Sidebar Title */}
