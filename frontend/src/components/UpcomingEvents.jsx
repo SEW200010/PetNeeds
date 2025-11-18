@@ -110,7 +110,7 @@ const UpcomingEvents = () => {
                 alt={event.title}
                 className="w-full h-48 object-cover rounded-md"
               />
-              <h3 className="text-base font-semibold mt-2">{event.title}</h3>
+              <h3 className="text-base font-semibold mt-2">{event.name}</h3>
               <p className="text-sm text-gray-600">{event.description}</p>
               <button
                 onClick={handleJoinClick}
