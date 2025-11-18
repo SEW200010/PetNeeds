@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import axios from "axios";
+import DefaultImg from "../../assets/User/default.png";
 
 function ProfileImageUploader({ user, setUser }) {
   const fileInputRef = useRef(null);
@@ -56,8 +57,13 @@ function ProfileImageUploader({ user, setUser }) {
     <div>
       {/* Small Profile Avatar */}
       <img
-        src={`${API}${user.profileImage || "/uploads/default.jpg"}`}
+        src={
+          user?.profileImage && user.profileImage !== ""
+            ? `${API}${user.profileImage}`
+            : DefaultImg
+        }
         alt="Profile"
+        onError={(e) => (e.target.src = DefaultImg)}
         onClick={handleAvatarClick}
         className="w-20 h-20 rounded-full object-cover cursor-pointer border-2 border-gray-300 hover:border-blue-500"
       />
@@ -68,27 +74,32 @@ function ProfileImageUploader({ user, setUser }) {
           {/* Profile Image */}
           <div className="relative">
             <img
-              src={`${API}${user.profileImage || "/uploads/default.jpg"}`}
+              src={
+                user.profileImage ? `${API}${user.profileImage}` : DefaultImg
+              }
               alt="Profile"
               className="w-40 h-40 rounded-full object-cover border-4 border-gray-300"
             />
             {/* Close Button near image */}
             <button
-  onClick={() => setOpen(false)}
-  className="absolute -top-2 -right-2 bg-white rounded-full w-7 h-7 flex items-center justify-center shadow hover:bg-gray-100"
->
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="w-4 h-4"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="black"   // 👈 change this color to whatever you like
-    strokeWidth={2}
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-  </svg>
-</button>
-
+              onClick={() => setOpen(false)}
+              className="absolute -top-2 -right-2 bg-white rounded-full w-7 h-7 flex items-center justify-center shadow hover:bg-gray-100"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="black" // 👈 change this color to whatever you like
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </div>
 
           {/* Upload Button */}
