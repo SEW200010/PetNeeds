@@ -1,8 +1,22 @@
+// Register.jsx
 import React, { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { BiUser,BiMailSend, BiLock, BiHide, BiShow, BiPhone, BiMap, BiBuilding, BiBook } from "react-icons/bi";
-import { Link, useNavigate } from "react-router-dom";
+import {
+  TextField,
+  MenuItem,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  FormHelperText,
+  Box,
+  IconButton,
+  InputAdornment,
+  CircularProgress,
+} from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import PasswordStrengthBar from 'react-password-strength-bar';
+import { useNavigate } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -116,7 +130,7 @@ const Register = () => {
   return (
 
      <div
-      className="relative min-h-screen flex flex-col lg:flex-row items-center justify-center bg-cover bg-center bg-fixed py-4 sm:py-6 md:py-8 lg:py-8"
+      className="relative min-h-screen flex flex-col lg:flex-row items-center justify-center bg-cover bg-center"
       style={{
         backgroundImage: "url('/Home_images/image2copy.jpg')",
       }}
@@ -125,7 +139,7 @@ const Register = () => {
       <div className="absolute inset-0 bg-black opacity-70 z-0"></div>
 
      {/* Left Section */}
-<div className="relative text-center lg:text-left px-6 sm:px-10 lg:px-16 z-10 mb-8 lg:mb-0 hidden lg:block">
+<div className="relative text-center lg:text-left px-6 sm:px-10 lg:px-16 z-10 mb-8 lg:mb-0">
   <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
     Join Our Community!
   </h1>
@@ -135,347 +149,152 @@ const Register = () => {
 </div>
 
 
-      {/* Right Section (Register Form) */}
-      <div className="relative border-[3px] sm:border-[4px] lg:border-[5px] border-white bg-gray-900/80 p-6 sm:p-8 rounded-2xl shadow-xl w-full sm:w-11/12 md:w-3/4 lg:max-w-md z-10 mx-4 my-4 sm:mx-6 sm:my-6 md:mx-8 md:my-8 lg:mx-8 lg:my-8 max-h-screen overflow-y-auto">
-        <h2 className="text-white text-center text-3xl sm:text-4xl font-semibold mb-6">
-          Sign Up
-        </h2>
+<div className="relative  p-6 sm:p-8  z-10">
+    <Box sx={{ maxWidth: 600, margin: '0 auto', mt: 5, px: 2, bgcolor: 'white', p: 4, borderRadius: 2, boxShadow: 3, position: 'relative', zIndex: 1 }}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        {/* Full Name */}
+        <Controller
+          name="fullname"
+          control={control}
+          rules={{ required: 'Full name is required' }}
+          render={({ field }) => <TextField {...field} label="Full Name" fullWidth margin="normal" error={!!errors.fullname} helperText={errors.fullname?.message} />}
+        />
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          {/* Full Name */}
-          <div className="mb-4 relative">
-            <label htmlFor="fullname" className="text-white text-lg">Full Name</label>
-            <div className="flex items-center mt-2">
-              <BiUser className="absolute left-3 text-gray-400" size={20} />
-              <Controller
-                name="fullname"
-                control={control}
-                rules={{ required: 'Full name is required' }}
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    type="text"
-                    id="fullname"
-                    placeholder="Enter Full Name"
-                    required
-                    className="w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 hover:bg-gray-700 hover:ring-2 hover:ring-emerald-500 hover:shadow-lg transition duration-300"
-                  />
-                )}
-              />
-            </div>
-            {errors.fullname && <p className="text-red-400 text-sm mt-1">{errors.fullname.message}</p>}
-          </div>
+        {/* Email */}
+        <Controller
+          name="email"
+          control={control}
+          rules={{
+            required: 'Email is required',
+            pattern: { value: /^[^@]+@[^@]+\.[^@]+$/, message: 'Invalid email' },
+          }}
+          render={({ field }) => <TextField {...field} label="Email" fullWidth margin="normal" error={!!errors.email} helperText={errors.email?.message} />}
+        />
 
-          {/* Email */}
-          <div className="mb-4 relative">
-            <label htmlFor="email" className="text-white text-lg">Email</label>
-            <div className="flex items-center mt-2">
-              <BiMailSend className="absolute left-3 text-gray-400" size={20} />
-              <Controller
-                name="email"
-                control={control}
-                rules={{
-                  required: 'Email is required',
-                  pattern: { value: /^[^@]+@[^@]+\.[^@]+$/, message: 'Invalid email' },
+        {/* Password */}
+        <Controller
+          name="password"
+          control={control}
+          rules={{ required: 'Password is required', minLength: { value: 6, message: 'Password too short' } }}
+          render={({ field }) => (
+            <>
+              <TextField
+                {...field}
+                type={showPassword ? 'text' : 'password'}
+                label="Password"
+                fullWidth
+                margin="normal"
+                error={!!errors.password}
+                helperText={errors.password?.message}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
                 }}
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    type="email"
-                    id="email"
-                    placeholder="Enter Email"
-                    required
-                    className="w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 hover:bg-gray-700 hover:ring-2 hover:ring-emerald-500 hover:shadow-lg transition duration-300"
-                  />
-                )}
               />
-            </div>
-            {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email.message}</p>}
-          </div>
-
-          {/* Password */}
-          <div className="mb-4 relative">
-            <label htmlFor="password" className="text-white text-lg">Password</label>
-            <div className="relative mt-2">
-              <BiLock className="absolute left-3 top-3 text-gray-400" size={20} />
-              <Controller
-                name="password"
-                control={control}
-                rules={{ required: 'Password is required', minLength: { value: 6, message: 'Password too short' } }}
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    type={showPassword ? "text" : "password"}
-                    id="password"
-                    placeholder="Enter Password"
-                    required
-                    className="w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 hover:bg-gray-700 hover:ring-2 hover:ring-emerald-500 hover:shadow-lg transition duration-300"
-                  />
-                )}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition"
-              >
-                {showPassword ? <BiHide size={20} /> : <BiShow size={20} />}
-              </button>
-            </div>
-            {errors.password && <p className="text-red-400 text-sm mt-1">{errors.password.message}</p>}
-            <PasswordStrengthBar password={password} />
-          </div>
-
-          {/* Role */}
-          <div className="mb-4 relative">
-            <label htmlFor="role" className="text-white text-lg">Role</label>
-            <div className="flex items-center mt-2">
-              <BiBook className="absolute left-3 text-gray-400" size={20} />
-              <Controller
-                name="role"
-                control={control}
-                rules={{ required: 'Role is required' }}
-                render={({ field }) => (
-                  <select
-                    {...field}
-                    id="role"
-                    required
-                    className="w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 hover:bg-gray-700 hover:ring-2 hover:ring-emerald-500 hover:shadow-lg transition duration-300"
-                  >
-                    <option value="">Select Role</option>
-                    <option value="student">Student</option>
-                    <option value="facilitator">Facilitator</option>
-                    <option value="coordinator">Coordinator</option>
-                  </select>
-                )}
-              />
-            </div>
-            {errors.role && <p className="text-red-400 text-sm mt-1">{errors.role.message}</p>}
-          </div>
-
-          {/* Organization Unit */}
-          <div className="mb-4 relative">
-            <label htmlFor="organization_unit" className="text-white text-lg">Organization Unit</label>
-            <div className="flex items-center mt-2">
-              <BiBuilding className="absolute left-3 text-gray-400" size={20} />
-              <Controller
-                name="organization_unit"
-                control={control}
-                rules={{ required: 'Organization unit is required' }}
-                render={({ field }) => (
-                  <select
-                    {...field}
-                    id="organization_unit"
-                    required
-                    className="w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 hover:bg-gray-700 hover:ring-2 hover:ring-emerald-500 hover:shadow-lg transition duration-300"
-                  >
-                    <option value="">Select Organization Unit</option>
-                    <option value="school">School</option>
-                    <option value="university">University</option>
-                  </select>
-                )}
-              />
-            </div>
-            {errors.organization_unit && <p className="text-red-400 text-sm mt-1">{errors.organization_unit.message}</p>}
-          </div>
-
-          {/* Conditional School Fields */}
-          {organization_unit === 'school' && (
-            <>
-              <div className="mb-4 relative">
-                <label htmlFor="school_name" className="text-white text-lg">School Name</label>
-                <div className="flex items-center mt-2">
-                  <BiBuilding className="absolute left-3 text-gray-400" size={20} />
-                  <Controller
-                    name="school_name"
-                    control={control}
-                    rules={{ required: 'School name is required' }}
-                    render={({ field }) => (
-                      <input
-                        {...field}
-                        type="text"
-                        id="school_name"
-                        placeholder="Enter School Name"
-                        required
-                        className="w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 hover:bg-gray-700 hover:ring-2 hover:ring-emerald-500 hover:shadow-lg transition duration-300"
-                      />
-                    )}
-                  />
-                </div>
-                {errors.school_name && <p className="text-red-400 text-sm mt-1">{errors.school_name.message}</p>}
-              </div>
-              <div className="mb-4 relative">
-                <label htmlFor="zone" className="text-white text-lg">Zone</label>
-                <div className="flex items-center mt-2">
-                  <BiMap className="absolute left-3 text-gray-400" size={20} />
-                  <Controller
-                    name="zone"
-                    control={control}
-                    rules={{ required: 'Zone is required' }}
-                    render={({ field }) => (
-                      <input
-                        {...field}
-                        type="text"
-                        id="zone"
-                        placeholder="Enter Zone"
-                        required
-                        className="w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 hover:bg-gray-700 hover:ring-2 hover:ring-emerald-500 hover:shadow-lg transition duration-300"
-                      />
-                    )}
-                  />
-                </div>
-                {errors.zone && <p className="text-red-400 text-sm mt-1">{errors.zone.message}</p>}
-              </div>
-              <div className="mb-4 relative">
-                <label htmlFor="district" className="text-white text-lg">District</label>
-                <div className="flex items-center mt-2">
-                  <BiMap className="absolute left-3 text-gray-400" size={20} />
-                  <Controller
-                    name="district"
-                    control={control}
-                    rules={{ required: 'District is required' }}
-                    render={({ field }) => (
-                      <input
-                        {...field}
-                        type="text"
-                        id="district"
-                        placeholder="Enter District"
-                        required
-                        className="w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 hover:bg-gray-700 hover:ring-2 hover:ring-emerald-500 hover:shadow-lg transition duration-300"
-                      />
-                    )}
-                  />
-                </div>
-                {errors.district && <p className="text-red-400 text-sm mt-1">{errors.district.message}</p>}
-              </div>
+              <PasswordStrengthBar password={field.value} />
             </>
           )}
+        />
 
-          {/* Conditional University Fields */}
-          {organization_unit === 'university' && (
-            <>
-              <div className="mb-4 relative">
-                <label htmlFor="university_name" className="text-white text-lg">University Name</label>
-                <div className="flex items-center mt-2">
-                  <BiBuilding className="absolute left-3 text-gray-400" size={20} />
-                  <Controller
-                    name="university_name"
-                    control={control}
-                    rules={{ required: 'University name is required' }}
-                    render={({ field }) => (
-                      <select
-                        {...field}
-                        id="university_name"
-                        required
-                        className="w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 hover:bg-gray-700 hover:ring-2 hover:ring-emerald-500 hover:shadow-lg transition duration-300"
-                      >
-                        <option value="">Select University</option>
-                        {universities.map((uni) => <option key={uni} value={uni}>{uni}</option>)}
-                      </select>
-                    )}
-                  />
-                </div>
-                {errors.university_name && <p className="text-red-400 text-sm mt-1">{errors.university_name.message}</p>}
-              </div>
-              <div className="mb-4 relative">
-                <label htmlFor="faculty_name" className="text-white text-lg">Faculty Name</label>
-                <div className="flex items-center mt-2">
-                  <BiBook className="absolute left-3 text-gray-400" size={20} />
-                  <Controller
-                    name="faculty_name"
-                    control={control}
-                    rules={{ required: 'Faculty name is required' }}
-                    render={({ field }) => (
-                      <select
-                        {...field}
-                        id="faculty_name"
-                        required
-                        disabled={!university_name}
-                        className="w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 hover:bg-gray-700 hover:ring-2 hover:ring-emerald-500 hover:shadow-lg transition duration-300"
-                      >
-                        <option value="">Select Faculty</option>
-                        {(faculties[university_name] || []).map((fac) => <option key={fac} value={fac}>{fac}</option>)}
-                      </select>
-                    )}
-                  />
-                </div>
-                {errors.faculty_name && <p className="text-red-400 text-sm mt-1">{errors.faculty_name.message}</p>}
-              </div>
-            </>
+        {/* Role */}
+        <Controller
+          name="role"
+          control={control}
+          rules={{ required: 'Role is required' }}
+          render={({ field }) => (
+            <FormControl fullWidth margin="normal" error={!!errors.role}>
+              <InputLabel>Role</InputLabel>
+              <Select {...field} label="Role">
+                <MenuItem value="student">Student</MenuItem>
+                <MenuItem value="facilitator">Facilitator</MenuItem>
+                <MenuItem value="coordinator">Coordinator</MenuItem>
+              </Select>
+              <FormHelperText>{errors.role?.message}</FormHelperText>
+            </FormControl>
           )}
+        />
 
-          {/* Address */}
-          <div className="mb-4 relative">
-            <label htmlFor="address" className="text-white text-lg">Address</label>
-            <div className="flex items-center mt-2">
-              <BiMap className="absolute left-3 text-gray-400" size={20} />
-              <Controller
-                name="address"
-                control={control}
-                rules={{ required: 'Address is required' }}
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    type="text"
-                    id="address"
-                    placeholder="Enter Address"
-                    required
-                    className="w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 hover:bg-gray-700 hover:ring-2 hover:ring-emerald-500 hover:shadow-lg transition duration-300"
-                  />
-                )}
-              />
-            </div>
-            {errors.address && <p className="text-red-400 text-sm mt-1">{errors.address.message}</p>}
-          </div>
+        {/* Organization Unit */}
+        <Controller
+          name="organization_unit"
+          control={control}
+          rules={{ required: 'Organization unit is required' }}
+          render={({ field }) => (
+            <FormControl fullWidth margin="normal" error={!!errors.organization_unit}>
+              <InputLabel>Organization Unit</InputLabel>
+              <Select {...field} label="Organization Unit">
+                <MenuItem value="school">School</MenuItem>
+                <MenuItem value="university">University</MenuItem>
+              </Select>
+              <FormHelperText>{errors.organization_unit?.message}</FormHelperText>
+            </FormControl>
+          )}
+        />
 
-          {/* Contact */}
-          <div className="mb-6 relative">
-            <label htmlFor="contact" className="text-white text-lg">Contact</label>
-            <div className="flex items-center mt-2">
-              <BiPhone className="absolute left-3 text-gray-400" size={20} />
-              <Controller
-                name="contact"
-                control={control}
-                rules={{ required: 'Contact is required', pattern: { value: /^[0-9]{10}$/, message: 'Contact must be 10 digits' } }}
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    type="text"
-                    id="contact"
-                    placeholder="Enter Contact"
-                    required
-                    className="w-full p-3 pl-10 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 hover:bg-gray-700 hover:ring-2 hover:ring-emerald-500 hover:shadow-lg transition duration-300"
-                  />
-                )}
-              />
-            </div>
-            {errors.contact && <p className="text-red-400 text-sm mt-1">{errors.contact.message}</p>}
-          </div>
+        {/* Conditional School Fields */}
+        {organization_unit === 'school' && (
+          <>
+            <Controller name="school_name" control={control} rules={{ required: 'School name is required' }} render={({ field }) => <TextField {...field} label="School Name" fullWidth margin="normal" error={!!errors.school_name} helperText={errors.school_name?.message} />} />
+            <Controller name="zone" control={control} rules={{ required: 'Zone is required' }} render={({ field }) => <TextField {...field} label="Zone" fullWidth margin="normal" error={!!errors.zone} helperText={errors.zone?.message} />} />
+            <Controller name="district" control={control} rules={{ required: 'District is required' }} render={({ field }) => <TextField {...field} label="District" fullWidth margin="normal" error={!!errors.district} helperText={errors.district?.message} />} />
+          </>
+        )}
 
-          {/* Button */}
-          <button
-            type="submit"
-            className="w-full bg-emerald-600 hover:bg-green-600 text-white py-3 rounded-lg font-semibold transition duration-300 transform hover:scale-105 hover:shadow-lg"
-            disabled={loading}
-          >
-            {loading ? 'Registering...' : 'Sign Up'}
-          </button>
+        {/* Conditional University Fields */}
+        {organization_unit === 'university' && (
+          <>
+            <Controller
+              name="university_name"
+              control={control}
+              rules={{ required: 'University name is required' }}
+              render={({ field }) => (
+                <FormControl fullWidth margin="normal" error={!!errors.university_name}>
+                  <InputLabel>University Name</InputLabel>
+                  <Select {...field} label="University Name">
+                    {universities.map((uni) => <MenuItem key={uni} value={uni}>{uni}</MenuItem>)}
+                  </Select>
+                  <FormHelperText>{errors.university_name?.message}</FormHelperText>
+                </FormControl>
+              )}
+            />
+            <Controller
+              name="faculty_name"
+              control={control}
+              rules={{ required: 'Faculty name is required' }}
+              render={({ field }) => (
+                <FormControl fullWidth margin="normal" error={!!errors.faculty_name}>
+                  <InputLabel>Faculty Name</InputLabel>
+                  <Select {...field} label="Faculty Name" disabled={!university_name}>
+                    {(faculties[university_name] || []).map((fac) => <MenuItem key={fac} value={fac}>{fac}</MenuItem>)}
+                  </Select>
+                  <FormHelperText>{errors.faculty_name?.message}</FormHelperText>
+                </FormControl>
+              )}
+            />
+          </>
+        )}
 
-          {/* Message */}
-          {message && <p className={`text-center mt-4 ${message.includes('successful') ? 'text-green-400' : 'text-red-400'}`}>{message}</p>}
+        {/* Address */}
+        <Controller name="address" control={control} rules={{ required: 'Address is required' }} render={({ field }) => <TextField {...field} label="Address" fullWidth margin="normal" error={!!errors.address} helperText={errors.address?.message} />} />
 
-          {/* Login link */}
-          <p className="text-white text-center text-sm sm:text-md mt-4">
-            Already have an account?{" "}
-            <Link
-              to="/login"
-              className="text-emerald-400 font-semibold hover:underline transition"
-            >
-              Sign in here
-            </Link>
-          </p>
-        </form>
-      </div>
+        {/* Contact */}
+        <Controller name="contact" control={control} rules={{ required: 'Contact is required', pattern: { value: /^[0-9]{10}$/, message: 'Contact must be 10 digits' } }} render={({ field }) => <TextField {...field} label="Contact" fullWidth margin="normal" error={!!errors.contact} helperText={errors.contact?.message} />} />
+
+        {/* Submit */}
+        <Button type="submit" fullWidth variant="contained" color="primary" sx={{ mt: 2 }} disabled={loading}>
+          {loading ? <CircularProgress size={24} /> : 'Register'}
+        </Button>
+
+        {/* Message */}
+        {message && <Box sx={{ mt: 2, color: message.includes('successful') ? 'green' : 'red' }}>{message}</Box>}
+      </form>
+    </Box>
+    </div>
 
     </div>
   );
