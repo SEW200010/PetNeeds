@@ -36,10 +36,10 @@ const menuItems = [
   { icon: User, label: "Dashboard", path: "/admin-dashboard", hasChevron: true },
   { icon: Users, label: "User Management", path: "/user-management", hasChevron: true },
   { icon: CalendarIcon, label: "Event Management", path: "/event-management", hasChevron: true },
-  { icon: GraduationCap, label: "Monitor Students", path: "/monitor-students", hasChevron: true },
+  { icon: GraduationCap, label: "Reports", path: "/monitor-students", hasChevron: true },
   { icon: Bot, label: "Explore Model", path: "/explore-model", hasChevron: true },
   { icon: DollarSign, label: "Manage Fundraising", path: "/fundraising", hasChevron: true },
-  { icon: BarChart3, label: "Monitor Sessions", path: "/monitor-sessions", hasChevron: true },
+  { icon: BarChart3, label: "TOT Sessions", path: "/monitor-sessions", hasChevron: true },
   { icon: Settings, label: "Settings", path: "/settings", hasChevron: true },
 ];
 

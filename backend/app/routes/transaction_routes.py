@@ -317,3 +317,90 @@ def get_management_trends():
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
+
+@transaction_bp.route('/api/coordinator-reports', methods=['GET'])
+def get_coordinator_reports():
+    """Fetch all coordinator reports from MongoDB with optional filtering"""
+    try:
+        # Get optional query parameters for filtering
+        search_query = request.args.get('search', '').strip()
+        university = request.args.get('university', '').strip()
+        month = request.args.get('month', '').strip()
+        year = request.args.get('year', '').strip()
+        
+        # Build the filter query
+        filter_query = {}
+        
+        if search_query:
+            # Search across title, summary, and filename
+            filter_query['$or'] = [
+                {'title': {'$regex': search_query, '$options': 'i'}},
+                {'summary': {'$regex': search_query, '$options': 'i'}},
+                {'original_filename': {'$regex': search_query, '$options': 'i'}}
+            ]
+        
+        if university:
+            filter_query['university_name'] = university
+        
+        if month:
+            filter_query['month'] = month.lower()
+        
+        if year:
+            filter_query['year'] = year
+        
+        # Fetch reports from database, sorted by upload date (newest first)
+        reports = list(mongo.db.reports.find(filter_query).sort('uploaded_at', -1))
+        
+        # Convert ObjectId to string and format dates
+        for report in reports:
+            report['_id'] = str(report['_id'])
+            if 'uploaded_at' in report and isinstance(report['uploaded_at'], datetime):
+                report['uploaded_at'] = report['uploaded_at'].isoformat()
+            if 'uploaded_by' in report:
+                report['uploaded_by'] = str(report['uploaded_by'])
+        
+        return jsonify(reports), 200
+    except Exception as e:
+        print(f"Error in get_coordinator_reports: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@transaction_bp.route('/api/coordinator-reports/download/<report_id>', methods=['GET'])
+def download_coordinator_report(report_id):
+    """Download a coordinator report file by ID"""
+    try:
+        import os
+        
+        # Fetch report metadata from database
+        report = mongo.db.reports.find_one({'_id': ObjectId(report_id)})
+        
+        if not report:
+            return jsonify({'error': 'Report not found'}), 404
+        
+        # Get the file path
+        filename = report.get('filename')
+        if not filename:
+            return jsonify({'error': 'File not found'}), 404
+        
+        # Use the uploads directory from current working directory
+        uploads_dir = os.path.join(os.getcwd(), 'uploads')
+        file_path = os.path.join(uploads_dir, filename)
+        
+        # Check if file exists
+        if not os.path.exists(file_path):
+            return jsonify({'error': 'File does not exist on server'}), 404
+        
+        # Send the file
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name=report.get('original_filename', 'report.pdf')
+        )
+    except Exception as e:
+        print(f"Error in download_coordinator_report: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
