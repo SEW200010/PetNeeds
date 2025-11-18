@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import UserImg from "@/assets/User/DefaultUser.png";
+import UserImg from "@/assets/User/Default.png";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
@@ -122,7 +122,7 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
           <MapPin className="h-4 w-4 mr-2" /> Location Info
         </h3>
         <p className="text-sm text-gray-700"><strong>Organization Unit:</strong> {user.organization_unit || "N/A"}</p>
-        <p className="text-sm text-gray-700"><strong>Zone:</strong> {user.zone || user.university_name}</p>
+        <p className="text-sm text-gray-700"><strong>Sub Unit:</strong> {user.zone || user.university_name}</p>
       </div>
 
       {/* Sidebar Title */}
