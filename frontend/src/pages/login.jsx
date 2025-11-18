@@ -97,7 +97,7 @@ const Login = () => {
       <div className="absolute inset-0 bg-black opacity-70 z-0"></div>
 
       {/* Left Section */}
-      <div className="relative text-center lg:text-left px-6 sm:px-10 lg:px-16 z-10 mb-8 lg:mb-0 hidden lg:block">
+      <div className="relative text-center lg:text-left px-6 sm:px-10 lg:px-16 z-10 mb-8 lg:mb-0">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
           Welcome Back!
         </h1>
