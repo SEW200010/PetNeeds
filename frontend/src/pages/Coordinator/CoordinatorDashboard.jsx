@@ -10,7 +10,7 @@ const CoordinatorDashboard = () => {
 
   useEffect(() => {
     const role = localStorage.getItem("role");
-    const name = localStorage.getItem("name");
+    const name = localStorage.getItem("fullname");
 
     if (!role || role !== "coordinator") {
       alert("Access denied. Only coordinators can access this page.");
