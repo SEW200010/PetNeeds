@@ -57,6 +57,7 @@ import TOTSessions from "./pages/Facilitator/TOTSessions";
 // for student
 import MyEvents  from "./pages/User/UserEvent/MyEvents";  
 import FacilitatorEvents from "./pages/Facilitator/MyEvents";
+import Setting_student from "./pages/User/Settings";
 
 const App = () => {
   return (
@@ -120,7 +121,7 @@ const App = () => {
         <Route path="/tot-sessions" element={<TOTSessions/>}/>
 
         <Route path="/my-events" element={<MyEvents />} />  {/* For Student's My Events page */}
- 
+        <Route path="/student-setting" element={<Setting_student/>}/>
   {/* For Faculty (university coordinators) */}
   <Route
     path="/faculty/:university_name/:faculty_name/events"

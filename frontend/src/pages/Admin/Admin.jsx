@@ -66,6 +66,19 @@ const AdminDashboard = () => {
         new Date(2025, 5, 25),
         new Date(2025, 5, 30)
     ];
+    // derive selected month label from calendar date
+    const selectedMonthLabel = React.useMemo(() => {
+        try {
+            return date ? date.toLocaleString('default', { month: 'short', year: 'numeric' }) : '';
+        } catch (e) {
+            return '';
+        }
+    }, [date]);
+
+    const selectedManagementData = React.useMemo(() => {
+        if (!managementTrends || managementTrends.length === 0) return null;
+        return managementTrends.find(m => m.month === selectedMonthLabel) || null;
+    }, [managementTrends, selectedMonthLabel]);
     return (
         <div>
             <Header />
@@ -136,6 +149,22 @@ const AdminDashboard = () => {
                         <div className="mt-10">
                             <h2 className="text-xl font-bold mb-2 text-gray-800">User & Event Management Trends (Last 12 Months)</h2>
                             <div className="bg-[#D9D9D9BA] p-4 rounded-xl shadow-lg">
+                                {/* Selected month summary (syncs with sidebar calendar) */}
+                                <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div className="bg-white p-3 rounded-lg shadow flex flex-col justify-center">
+                                        <div className="text-sm text-gray-500">Selected Month</div>
+                                        <div className="text-lg font-semibold text-gray-800">{selectedMonthLabel || '—'}</div>
+                                    </div>
+                                    <div className="bg-white p-3 rounded-lg shadow flex flex-col justify-center">
+                                        <div className="text-sm text-gray-500">Registrations</div>
+                                        <div className="text-lg font-semibold text-indigo-600">{selectedManagementData ? selectedManagementData.users : '—'}</div>
+                                    </div>
+                                    <div className="bg-white p-3 rounded-lg shadow flex flex-col justify-center">
+                                        <div className="text-sm text-gray-500">Events Created</div>
+                                        <div className="text-lg font-semibold text-green-600">{selectedManagementData ? selectedManagementData.events : '—'}</div>
+                                    </div>
+                                </div>
+
                                 <LineChartComponent data={managementTrends} title="Registrations vs Events" />
                             </div>
                         </div>
