@@ -5,13 +5,13 @@ import { Button } from "../../../components/ui/button";
 import { Card, CardContent } from "../../../components/ui/card";
 import { useNavigate } from "react-router-dom";
 
-export default function EventCard({ event, userId, onJoinSuccess, completed = false, showJoinButton = true, }) {
+export default function EventCard({ event, userId, onJoinSuccess, completed = false }) {
   const [isJoining, setIsJoining] = useState(false);
   const [joined, setJoined] = useState(event.joined || false);
   const [modules, setModules] = useState(event.modules || []);
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-  
+
   useEffect(() => {
     setJoined(event.joined || false);
     setModules(event.modules || []);
@@ -100,8 +100,7 @@ export default function EventCard({ event, userId, onJoinSuccess, completed = fa
         </p>
 
         {/* Conditional Button Rendering */}
-        {showJoinButton && (
-          completed ? (
+        {completed ? (
           <Button
             size="sm"
             className="bg-gray-400 text-white w-full cursor-not-allowed"
@@ -118,7 +117,6 @@ export default function EventCard({ event, userId, onJoinSuccess, completed = fa
           >
             {joined ? "Go to Modules" : isJoining ? "Joining..." : "Join"}
           </Button>
-        )
         )}
       </CardContent>
     </Card>
