@@ -22,8 +22,7 @@ const menuItems = [
   { icon: User, label: "Dashboard", path: "/upcoming-events", hasChevron: true },
   { icon: User, label: "My Profile", hasChevron: true, path: "/profile" },
   { icon: CalendarIcon, label: "My Events", path: "/my-events", hasChevron: true },
-  { icon: Settings, label: "Settings", hasChevron: true },
-  { icon: Bell, label: "Notification", hasChevron: false, action: "Allow" },
+  { icon: Settings, label: "Settings",path: "/student-setting", hasChevron: true },
   { icon: LogOut, label: "Log Out", path: "/",hasChevron: false },
 ];
 
