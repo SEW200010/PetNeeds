@@ -97,7 +97,7 @@ const AdminDashboard = () => {
                         <div className="bg-[#D9D9D9BA] p-6 rounded-lg shadow-md flex flex-wrap justify-center gap-4">
                             <DashboardCard to="/user-management" icon={userIcon} title="User Management" gradientColors={['#F222E4', '#AC2CEB']} />
                             <DashboardCard to="/event-management" icon={eventIcon} title="Event Management" gradientColors={['#1CAB21', '#091E11']} />
-                            <DashboardCard to="/monitor-students" icon={monitorIcon} title="Monitor Students" gradientColors={['#3750E0', '#695AE1']} />
+                            <DashboardCard to="/monitor-students" icon={monitorIcon} title="Analyze Reports" gradientColors={['#3750E0', '#695AE1']} />
                             <DashboardCard to="/explore-model" icon={modelIcon} title="Explore model" gradientColors={['#F2AD22', '#EA371B']} />
                         </div>
 
