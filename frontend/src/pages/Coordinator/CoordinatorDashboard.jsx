@@ -24,12 +24,12 @@ const CoordinatorDashboard = () => {
   return (
     <div>
       <Header />
-      <main className="pt-[65px] min-h-screen">
+      <main className="bg-gray-50 pt-[65px] min-h-screen">
         <div className="flex flex-col md:flex-row">
           <CoordinatorSidebar />
           <div className="w-full md:w-3/4 p-6">
 
-            <h2 className="text-2xl font-bold mb-6">Welcome </h2>
+            <h2 className="text-2xl font-bold mb-6">Welcome, {coordinatorName} </h2>
 
             <CoordinatorActionCards />
           </div>
