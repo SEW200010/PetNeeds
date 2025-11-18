@@ -147,6 +147,7 @@ export default function UpcomingEvents() {
                     event={event}
                     userId={user._id}
                     onJoin={handleJoin}
+                    showJoinButton={false}
                   />
                 ))
               ) : (
