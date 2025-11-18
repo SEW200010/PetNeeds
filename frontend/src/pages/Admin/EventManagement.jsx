@@ -102,10 +102,10 @@ const EventManagement = () => {
   });
 
   const statusColorMap = {
-    Upcoming: { bg: "#E8F5E9", color: "#2E7D32", label: "Upcoming" },
-    Ongoing: { bg: "#E3F2FD", color: "#1565C0", label: "Ongoing" },
-    Completed: { bg: "#F5F5F5", color: "#616161", label: "Completed" },
-    Drafted: { bg: "#FFF3E0", color: "#E65100", label: "Drafted" },
+    Upcoming: {  color: "#2E7D32", label: "Upcoming" },
+    Ongoing: { color: "#1565C0", label: "Ongoing" },
+    Completed: {  color: "#616161", label: "Completed" },
+    Drafted: { color: "#E65100", label: "Drafted" },
   };
 
   const columns = [
@@ -153,7 +153,7 @@ const EventManagement = () => {
             onClick={() => handleViewEvent(params.row)}
             title="View"
           >
-            <Edit fontSize="small" />
+            <Visibility fontSize="small" />
           </IconButton>
           <IconButton
             color="primary"
