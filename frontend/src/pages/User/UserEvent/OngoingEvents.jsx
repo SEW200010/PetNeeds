@@ -34,7 +34,7 @@ export default function OngoingEvents() {
         ]);
 
         setUser({
-          fullName: userRes.data.fullName,
+          fullName: userRes.data.fullname,
           email: userRes.data.email,
           _id: userRes.data._id,
           faculty: userRes.data.faculty_name,
