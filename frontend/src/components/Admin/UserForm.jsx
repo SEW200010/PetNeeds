@@ -11,7 +11,15 @@ import {
 } from "@mui/material";
 const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-const UserForm = ({ open, onClose, onSubmit, initialData = null, role: presetRole = "", university , faculty }) => {
+const UserForm = ({
+  open,
+  onClose,
+  onSubmit,
+  initialData = null,
+  role: presetRole = "",
+  university,
+  faculty,
+}) => {
   const isEditMode = Boolean(initialData);
 
   const [formData, setFormData] = useState({
@@ -19,7 +27,8 @@ const UserForm = ({ open, onClose, onSubmit, initialData = null, role: presetRol
     email: "",
     password: "",
     role: "",
-    organization_unit: localStorage.getItem("organization_unit") ||"university", // or "school"
+    organization_unit:
+      localStorage.getItem("organization_unit") || "university", // or "school"
     university_name: localStorage.getItem("university_name") || "",
     faculty_name: localStorage.getItem("faculty_name") || "",
     district: "",
@@ -27,7 +36,7 @@ const UserForm = ({ open, onClose, onSubmit, initialData = null, role: presetRol
     school_name: "",
     address: "",
     contact: "",
-    
+
     //joinedDate: new Date().toISOString(),
     //organization_unit: "university",
     //profileImage: "/uploads/default.png",
@@ -41,12 +50,26 @@ const UserForm = ({ open, onClose, onSubmit, initialData = null, role: presetRol
       // Map incoming shape (from various endpoints) into the form shape
       setFormData((prev) => ({
         ...prev,
-        fullname: initialData.fullname || initialData.name || initialData.fullName || "",
+        fullname:
+          initialData.fullname ||
+          initialData.name ||
+          initialData.fullName ||
+          "",
         email: initialData.email || initialData.email_address || "",
         role: initialData.role || prev.role || "",
         // prefer initialData but fallback to props (university/faculty) then previous state
-        university_name: initialData.university_name || initialData.university || university || prev.university_name || "",
-        faculty_name: initialData.faculty_name || initialData.faculty || faculty || prev.faculty_name || "",
+        university_name:
+          initialData.university_name ||
+          initialData.university ||
+          university ||
+          prev.university_name ||
+          "",
+        faculty_name:
+          initialData.faculty_name ||
+          initialData.faculty ||
+          faculty ||
+          prev.faculty_name ||
+          "",
         district: initialData.district || prev.district || "",
         zone: initialData.zone || prev.zone || "",
         school_name: initialData.school_name || prev.school_name || "",
@@ -70,11 +93,23 @@ const UserForm = ({ open, onClose, onSubmit, initialData = null, role: presetRol
             const district = localStorage.getItem("district") || "";
             const zone = localStorage.getItem("zone") || "";
             const school_name = localStorage.getItem("school_name") || "";
-            setFormData((prev) => ({ ...prev, organization_unit: "school", district, zone, school_name }));
+            setFormData((prev) => ({
+              ...prev,
+              organization_unit: "school",
+              district,
+              zone,
+              school_name,
+            }));
           } else if (orgUnit === "university") {
-            const university_name = localStorage.getItem("university_name") || "";
+            const university_name =
+              localStorage.getItem("university_name") || "";
             const faculty_name = localStorage.getItem("faculty_name") || "";
-            setFormData((prev) => ({ ...prev, organization_unit: "university", university_name, faculty_name }));
+            setFormData((prev) => ({
+              ...prev,
+              organization_unit: "university",
+              university_name,
+              faculty_name,
+            }));
           }
         } else {
           // Edit mode: only fill missing organization fields from localStorage
@@ -90,7 +125,8 @@ const UserForm = ({ open, onClose, onSubmit, initialData = null, role: presetRol
               school_name: prev.school_name || school_name,
             }));
           } else if (orgUnit === "university") {
-            const university_name = localStorage.getItem("university_name") || "";
+            const university_name =
+              localStorage.getItem("university_name") || "";
             const faculty_name = localStorage.getItem("faculty_name") || "";
             setFormData((prev) => ({
               ...prev,
@@ -113,7 +149,8 @@ const UserForm = ({ open, onClose, onSubmit, initialData = null, role: presetRol
         updates.university_name = university;
       }
       if (faculty) updates.faculty_name = faculty;
-      if (Object.keys(updates).length) setFormData((prev) => ({ ...prev, ...updates }));
+      if (Object.keys(updates).length)
+        setFormData((prev) => ({ ...prev, ...updates }));
     }
   }, [initialData, isEditMode, presetRole, open]);
 
@@ -128,8 +165,10 @@ const UserForm = ({ open, onClose, onSubmit, initialData = null, role: presetRol
         role: presetRole || "",
         address: "",
         contact: "",
-        organization_unit: localStorage.getItem("organization_unit") || "university",
-        university_name: university || localStorage.getItem("university_name") || "",
+        organization_unit:
+          localStorage.getItem("organization_unit") || "university",
+        university_name:
+          university || localStorage.getItem("university_name") || "",
         faculty_name: faculty || localStorage.getItem("faculty_name") || "",
         district: localStorage.getItem("district") || "",
         zone: localStorage.getItem("zone") || "",
@@ -157,19 +196,33 @@ const UserForm = ({ open, onClose, onSubmit, initialData = null, role: presetRol
       };
 
       // ensure university/faculty values are derived from props or initialData if missing
-      const uniName = formData.university_name || university || (initialData && (initialData.university_name || initialData.university)) || "";
-      const facName = formData.faculty_name || faculty || (initialData && (initialData.faculty_name || initialData.faculty)) || "";
+      const uniName =
+        formData.university_name ||
+        university ||
+        (initialData &&
+          (initialData.university_name || initialData.university)) ||
+        "";
+      const facName =
+        formData.faculty_name ||
+        faculty ||
+        (initialData && (initialData.faculty_name || initialData.faculty)) ||
+        "";
 
       const token = localStorage.getItem("token");
       const method = isEditMode ? "PUT" : "POST";
-      const userId = isEditMode ? (initialData?._id || initialData?.id || initialData?._id_str) : null;
+      const userId = isEditMode
+        ? initialData?._id || initialData?.id || initialData?._id_str
+        : null;
       const url = isEditMode
         ? `${API}/users/${userId}/edit`
         : `${API}/users/add`;
 
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           fullname: payload.fullname,
           email: payload.email,
@@ -190,7 +243,9 @@ const UserForm = ({ open, onClose, onSubmit, initialData = null, role: presetRol
         throw new Error(err.error || "Failed to save user");
       }
 
-      alert(isEditMode ? "User updated successfully!" : "User created successfully!");
+      alert(
+        isEditMode ? "User updated successfully!" : "User created successfully!"
+      );
       onSubmit?.();
       onClose();
     } catch (err) {
@@ -209,20 +264,31 @@ const UserForm = ({ open, onClose, onSubmit, initialData = null, role: presetRol
       contact: "",
       isVerified: true,
       joinedDate: new Date().toISOString(),
-      organization_unit: localStorage.getItem("organization_unit") || "university",
+      organization_unit:
+        localStorage.getItem("organization_unit") || "university",
       district: localStorage.getItem("district") || "",
       zone: localStorage.getItem("zone") || "",
       school_name: localStorage.getItem("school_name") || "",
-      university_name: university || localStorage.getItem("university_name") || "",
+      university_name:
+        university || localStorage.getItem("university_name") || "",
       faculty_name: faculty || localStorage.getItem("faculty_name") || "",
       profileImage: "/uploads/default.png",
     });
     setError("");
   };
 
+  const getRoleLabel = () => {
+    const r = formData.role || presetRole || "";
+    if (!r) return "User";
+    return r.charAt(0).toUpperCase() + r.slice(1);
+  };
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{isEditMode ? "Edit User" : "Add New User"}</DialogTitle>
+      <DialogTitle>
+        {isEditMode ? `Edit ${getRoleLabel()}` : `Add ${getRoleLabel()}`}
+      </DialogTitle>
+
       <DialogContent dividers>
         <TextField
           label="Full Name"
@@ -363,8 +429,8 @@ const UserForm = ({ open, onClose, onSubmit, initialData = null, role: presetRol
         <Button onClick={onClose} color="error">
           Cancel
         </Button>
-        <Button onClick={handleSubmit} variant="contained" color="primary">
-          {isEditMode ? "Update User" : "Create User"}
+        <Button type="submit" variant="contained" color="primary">
+          {isEditMode ? `Update ${getRoleLabel()()}` : `Add ${getRoleLabel()}`}
         </Button>
       </DialogActions>
     </Dialog>
