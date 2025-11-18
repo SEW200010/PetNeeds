@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import UserImg from "@/assets/User/Default.png";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-
+import { Link } from "react-router-dom";
 
 const menuItems = [
   { icon: Home, label: "Dashboard", path: "/coordinator-dashboard", hasChevron: true },
@@ -104,12 +104,14 @@ export default function CoordinatorSidebar({ date, setDate, eventDates }) {
     <div className="p-6 w-full">
       {/* User Profile */}
       <div className="flex items-center space-x-3 mb-8">
-        <Avatar className="h-12 w-12">
+        <Link to="/profile">
+          <Avatar className="h-12 w-12">
           <AvatarImage src={UserImg} alt="User" />
           <AvatarFallback>
             {user.fullName ? user.fullName.slice(0, 2).toUpperCase() : "YN"}
           </AvatarFallback>
         </Avatar>
+        </Link>
         <div>
           <p className="font-medium text-gray-900">{user.fullName || "User"}</p>
           <p className="text-sm text-gray-500">{user.email || "user@example.com"}</p>
