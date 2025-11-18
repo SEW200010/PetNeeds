@@ -9,7 +9,9 @@ import { jwtDecode } from 'jwt-decode'
 import { useNavigate } from 'react-router-dom'
 import AddEmailAddress from '@/components/User/AddEmailAddress'
 import ProfileImageUploader from '@/components/User/ProfileImageUploader'
-
+import FacilitatorHeader from '@/components/Facilitator/FacilitatorHeader'
+import CoordinatorHeader from '@/components/Coordinator/CoordinatorHeader'
+//import AdminHeader from '@/components/Admin/AdminHeader'
 function Profile() {
   const [user, setUser] = useState(null)
   const navigate = useNavigate()
@@ -47,6 +49,21 @@ function Profile() {
     }
   }
 
+  // header selection 
+  const getHeader = () => {
+  switch (user.role) {
+    case 'admin':
+      return <AdminHeader title="Admin" />;
+    case 'facilitator':
+      return <FacilitatorHeader title="Facilitator" />;
+    case 'coordinator':
+      return <CoordinatorHeader title="Coordinator" />;
+    default:
+      return <UserHeader title="Student" />;
+  }
+};
+
+
   // ✅ Handle ToT confirmation
   const handleTotConfirm = async (checked) => {
     if (checked) {
@@ -82,7 +99,7 @@ function Profile() {
 
   return (
     <div>
-      <Header />
+      {getHeader()}
       <main className="bg-gray-100 pt-[65px] min-h-screen">
         <div className="flex flex-col md:flex-row">
           {getSidebar()}
