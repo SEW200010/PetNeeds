@@ -59,6 +59,9 @@ import MyEvents  from "./pages/User/UserEvent/MyEvents";
 import FacilitatorEvents from "./pages/Facilitator/MyEvents";
 import Setting_student from "./pages/User/Settings";
 
+import Setting_admin from  "./pages/Admin/Settings"
+
+
 const App = () => {
   return (
     <Router>
@@ -73,7 +76,7 @@ const App = () => {
         <Route path="/Register" element={<Register />} />
         <Route path="/user-dashboard" element={<User />} />
         <Route path="/admin-dashboard" element={<Admin />} />
-
+        <Route path= "/admin-setting"  element={<Setting_admin />} />
         <Route path="/FundRaising" element={<FundRaising />} />
         <Route path="/monitor-sessions" element={<MonitoreSession />} />
         <Route path="/event-management" element={<EventManagement />} />

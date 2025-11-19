@@ -40,7 +40,7 @@ const menuItems = [
   { icon: Bot, label: "Explore Model", path: "/explore-model", hasChevron: true },
   { icon: DollarSign, label: "Manage Fundraising", path: "/fundraising", hasChevron: true },
   { icon: BarChart3, label: "TOT Sessions", path: "/monitor-sessions", hasChevron: true },
-  { icon: Settings, label: "Settings", path: "/settings", hasChevron: true },
+  { icon: Settings, label: "Settings", path: "/admin-setting", hasChevron: true },
   { icon: LogOut, label: "Log Out", action: "logout", hasChevron: false },
 ];
 
