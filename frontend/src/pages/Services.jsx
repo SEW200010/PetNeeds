@@ -11,6 +11,7 @@ import leadershipIcon from "../assets/Services_page/leadership.png";
 import skillIcon from "../assets/Services_page/skill.png";
 import impactIcon from "../assets/Services_page/impact.png";
 import { Link } from "react-router-dom";
+import women from "../assets/Services_page/women.png";
 
 const Services = () => {
   return (
@@ -56,7 +57,7 @@ const Services = () => {
 
           <div className="flex justify-center">
             <img
-              src="src/assets/Services_page/women.png"
+              src={women}
               alt="About Varppu Counselling"
               className="w-full max-w-sm md:max-w-md lg:max-w-lg h-auto rounded-lg shadow-lg"
             />

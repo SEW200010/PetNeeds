@@ -69,7 +69,7 @@ The "வார்ப்பு" (Varppu) Life Skills Development Programme, by th
         </div>
 
         <div className="text-center md:text-left">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">Welcome to <span className="text-emerald-600">Varppu counselling</span></h2>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">Welcome to <span className="text-emerald-600">Varppu</span></h2>
           
           <p className="mt-4 text-base sm:text-lg lg:text-xl text-center lg:text-left">
               We are dedicated to empowering individuals through<br className="hidden sm:block" />
