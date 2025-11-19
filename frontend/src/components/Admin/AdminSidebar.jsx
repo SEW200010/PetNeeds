@@ -41,6 +41,7 @@ const menuItems = [
   { icon: DollarSign, label: "Manage Fundraising", path: "/fundraising", hasChevron: true },
   { icon: BarChart3, label: "TOT Sessions", path: "/monitor-sessions", hasChevron: true },
   { icon: Settings, label: "Settings", path: "/settings", hasChevron: true },
+  { icon: LogOut, label: "Log Out", action: "logout", hasChevron: false },
 ];
 
 export default function AdminSidebar({ date, setDate, eventDates }) {
