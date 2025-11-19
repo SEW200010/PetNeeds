@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import UserImg from "@/assets/User/DefaultUser.png";
+import UserImg from "@/assets/User/default.png";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
@@ -55,7 +55,7 @@ export default function AdminSidebar({ date, setDate, eventDates }) {
     organization_unit: "",
     university_name:""
   });
-
+ const [events, setEvents] = useState([]);
   const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
@@ -80,6 +80,16 @@ export default function AdminSidebar({ date, setDate, eventDates }) {
           })
         )
         .catch((err) => console.error("Failed to fetch user info", err));
+
+         axios.get(`${API}/upcoming-events`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(res => {
+          const eventData = res.data.map(e => ({
+            date: new Date(e.date),
+            title: e.title || "Event"
+          }));
+          setEvents(eventData);
+        })
+        .catch(err => console.error("Failed to fetch events", err));
     } catch (err) {
       console.error("Failed to decode token", err);
     }
@@ -156,23 +166,113 @@ export default function AdminSidebar({ date, setDate, eventDates }) {
         })}
       </nav>
 
-      {/* Calendar Section */}
-      {setDate && (
-        <div className="mt-10 border border-gray-200 rounded-lg p-4">
-          <h2 className="text-lg font-bold text-gray-800 mb-3">📆 Upcoming Events</h2>
-          <Calendar
-            onChange={setDate}
-            value={date}
-            tileClassName={({ date: day, view }) =>
-              view === "month" &&
-              Array.isArray(eventDates) &&
-              eventDates.find((d) => d.toDateString() === day.toDateString())
-                ? "highlighted-day"
-                : null
+       {/* Calendar */}
+      <div className="mt-10 border border-gray-200 rounded-lg p-4">
+        <h2 className="text-lg  text-gray-800 mb-3"> Upcoming Events</h2>
+        <Calendar
+          onChange={setDate}
+          value={date}
+          formatShortWeekday={(locale, date) => {
+            const day = date.getDay();
+            const shortDays = ["S", "M", "T", "W", "T", "F", "S"];
+            return shortDays[day];
+          }}
+          tileClassName={({ date: day, view }) => {
+            if (view === "month") {
+              if (day.toDateString() === new Date().toDateString()) return "today-circle";
+              if (events.find(e => e.date.toDateString() === day.toDateString())) return "event-circle";
             }
-          />
-        </div>
-      )}
+          }}
+        />
+
+      </div>
+
+      {/* Calendar styles */}
+      <style>{`
+        .react-calendar {
+          border: none;
+          font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+          width: 100%;
+        }
+        .react-calendar__month-view__weekdays__weekday abbr {
+          text-decoration: none !important; /* remove underline */
+        }
+
+          /* Today */
+  .today-circle {
+    background-color: #bbdefb !important; /* light blue */
+    color: #0d47a1 !important;           /* dark blue text */
+  }
+
+  /* Event date */
+  .event-circle {
+    background-color: #1976d2 !important; /* primary blue */
+    color: white !important;
+  }
+
+  /* All day tiles */
+  .react-calendar__tile {
+    border: none;
+    border-radius: 50%;
+    height: 40px;
+    width: 40px;
+    line-height: 40px;
+    margin: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    transition: transform 0.2s, background 0.2s;
+  }
+
+        .react-calendar__navigation {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+        .react-calendar__navigation button {
+          background: none;
+          border: none;
+          color: #1976d2;
+          font-weight: 500;
+          cursor: pointer;
+          padding: 4px 8px;
+          border-radius: 4px;
+          transition: background 0.2s;
+        }
+        .react-calendar__navigation button:hover {
+          background-color: #e3f2fd;
+        }
+
+        /* Weekdays */
+        .react-calendar__month-view__weekdays {
+          display: flex;
+          justify-content: space-around;
+          border-bottom: 1px solid #e0e0e0;
+          margin-bottom: 4px;
+        }
+        .react-calendar__month-view__weekdays__weekday {
+          text-align: center;
+          text-transform: uppercase;
+          font-weight: 500;
+          color: #616161;
+          width: 40px;
+        }
+
+       
+        .react-calendar__tile:hover {
+          background-color: #e3f2fd;
+          cursor: pointer;
+          transform: scale(1.05);
+        }
+
+
+        .react-calendar__tile:disabled {
+          background-color: #f5f5f5;
+          color: #bdbdbd;
+        }
+      `}</style>
     </div>
   );
 
