@@ -1,66 +1,19 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import ScrollToTop from "./components/ScrollToTop";
 
 import Home from "./pages/Home";
 import Login from "./pages/login";
-import Aboutus from "./pages/Aboutus";
-import Team from "./pages/Team";
-import Services from "./pages/Services";
 import Register from "./pages/Register";
+import Product from "./pages/Product";
+import Profile from "./pages/Profile";
+import MyOrder from "./pages/MyOrder";
+import ScrollToTop from "./components/ScrollToTop";
 
-
-import User from "./pages/User/User";
-
-import Admin from "./pages/Admin/Admin";
-import FundRaising from "./pages/Admin/FundRaising";
-import MonitoreSession from "./pages/Admin/MonitorSession";
-import EventManagement from "./pages/Admin/EventManagement";
-import ViewEvent from "./pages/Admin/ViewEvent";
-import UserManagementDashboard from "./pages/Admin/UserManagementDashboard";
-import MonitorStudent from "./pages/Admin/MonitorStudent";
-import ExploreModel from "./pages/Admin/ExploreModel";
-
-import FeedbackPage from "./pages/Admin/FeedbackPage"; // ✅ Valid page component
-import BasicPage from "./pages/Admin/BasicPage";
-import Profile from "./pages/User/Profile";
-import AddEmailPage from "./pages/User/AddEmailPage";
-import ChangePasswordPage from "./pages/User/ChangePasswordPage";
-
-import ProfileEditPage from "./pages/User/ProfileEditPage";
-import UpcomingEvents from "./pages/User/UserEvent/UpcomingEvents";
-import OngoingEvents from "./pages/User/UserEvent/OngoingEvents";
-import EventDetailsPage from "./pages/User/UserEvent/EventDetailsPage";
-import CompletedEventsPage from "./pages/User/UserEvent/CompletedEventsPage";
-
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import ConfirmSubscription from "./components/ConfirmSubscription";
-
-//Coordinator Imports
-import CoordinatorDashboard from "./pages/Coordinator/CoordinatorDashboard"; // ✅ new import
-import Facilitator from "./pages/Coordinator/FacilitatorVerify";  // ✅ new import
-import FacultyInfo from "./pages/Coordinator/FacultyInfo";
-import ModuleManage from "./pages/Coordinator/ModuleManage";
-import CoordinatorReports from "./pages/Coordinator/CoordinatorReports";
-import Setting_coordinator from "./pages/Coordinator/Settings";
-
-// ✅ New import for Modules page
-import ModulesPage from "./pages/User/UserEvent/ModulesPage";
-import EventsAndUsers from "./pages/Coordinator/EventsAndUsers";
-
-// Facilitator Imports
-import FacilitatorDashboard from "./pages/Facilitator/FacilitatorDashboard";
-import MyAchievements from "./pages/Facilitator/MyAchievements";
-import Setting_facilitator from "./pages/Facilitator/Settings";
-import TOTSessions from "./pages/Facilitator/TOTSessions";
-
-// for student
-import MyEvents  from "./pages/User/UserEvent/MyEvents";  
-import FacilitatorEvents from "./pages/Facilitator/MyEvents";
-import Setting_student from "./pages/User/Settings";
-
-import Setting_admin from  "./pages/Admin/Settings"
-
+// Admin pages
+import Dashboard from "./pages/Admin/Dashboard";
+import AdminProduct from "./pages/Admin/AdminProduct";
+import AdminOrder from "./pages/Admin/AdminOrder";
+import AdminUser from "./pages/Admin/AdminUser";
+import AdminPerception from "./pages/Admin/AdminPerception";
 
 const App = () => {
   return (
@@ -69,75 +22,17 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-
-        <Route path="/Team" element={<Team />} />
-        <Route path="/Services" element={<Services />} />
-        <Route path="/Aboutus" element={<Aboutus />} />
         <Route path="/Register" element={<Register />} />
-        <Route path="/user-dashboard" element={<User />} />
-        <Route path="/admin-dashboard" element={<Admin />} />
-        <Route path= "/admin-setting"  element={<Setting_admin />} />
-        <Route path="/FundRaising" element={<FundRaising />} />
-        <Route path="/monitor-sessions" element={<MonitoreSession />} />
-        <Route path="/event-management" element={<EventManagement />} />
-        <Route path="/admin/EventManagement" element={<EventManagement />} />
-        <Route path="/admin/ViewEvent/:id" element={<ViewEvent />} />
-        <Route path="/admin/events/:id/feedback" element={<FeedbackPage />} />
-        <Route path="/admin/events/:id/basic" element={<BasicPage />} />
-        <Route path="/user-management" element={<UserManagementDashboard />} />
-        <Route path="/monitor-students" element={<MonitorStudent />} />
-        <Route path="/explore-model" element={<ExploreModel />} />
+        <Route path="/Profile" element={<Profile />} />
+        <Route path="/MyOrder" element={<MyOrder />} />
+        <Route path="/Product" element={<Product />} />
 
-
-        <Route path="/profile" element={<Profile />}/>
-        <Route path="/profile/add-email" element={<AddEmailPage />}/>
-        <Route path="/profile/change-password" element={<ChangePasswordPage />}/>
-        <Route path="/profile/profile-edit" element={<ProfileEditPage />}/>
-         <Route path="/upcoming-events" element={<UpcomingEvents />} />
-        <Route path="/ongoing-events" element={<OngoingEvents />} />
-        <Route path="/completed-events" element={<CompletedEventsPage />} />
-
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/confirm-subscription/:token" element={<ConfirmSubscription />} />
-
-        <Route path="/coordinator-dashboard" element={<CoordinatorDashboard />} /> {/* ✅ New Coordinator Route */}
-        <Route path="/event/:eventId" element={<EventDetailsPage />} />
-        <Route path="/modules/:eventId" element={<ModulesPage />} />
-        <Route path="/module-management" element={<ModuleManage />} /> {/* ✅ New Module Management Route */}
-        
-        
-        <Route path="/facilitator-verification" element={<Facilitator />} /> {/* ✅ New Facilitator Verification Route */}
-        <Route path="/facilitator-events" element={<FacilitatorEvents />} />
-
-        <Route path="/school/:id/events" element={<EventsAndUsers type="school" />} />
-        <Route path="/faculty/:id/events" element={<EventsAndUsers type="faculty" />} />
-        <Route path="/faculty-information" element={<FacultyInfo />} /> {/* ✅ New Faculty Information Route */}
-
-        <Route path="/reports" element={<CoordinatorReports />} />
- 
-        <Route path="/coordinator-setting" element={<Setting_coordinator/>}/>
-
-        <Route path="facilitator-dashboard" element={<FacilitatorDashboard/>}/>
-        <Route path="/my-achievements" element={<MyAchievements/>}/>
-        <Route path="/facilitator-setting" element={<Setting_facilitator/>}/>
-        <Route path="/tot-sessions" element={<TOTSessions/>}/>
-
-        <Route path="/my-events" element={<MyEvents />} />  {/* For Student's My Events page */}
-        <Route path="/student-setting" element={<Setting_student/>}/>
-  {/* For Faculty (university coordinators) */}
-  <Route
-    path="/faculty/:university_name/:faculty_name/events"
-    element={<EventsAndUsers  type="faculty" />}
-  />
-
-  {/* For School (school coordinators) */}
-  <Route
-    path="/school/:zone/:school_name/events"
-    element={<EventsAndUsers  type="school"  />}
-  />
-
-
+        {/* Admin Routes */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/admin-product" element={<AdminProduct />} />
+        <Route path="/admin-order" element={<AdminOrder />} />
+        <Route path="/admin-user" element={<AdminUser />} />
+        <Route path="/admin-perception" element={<AdminPerception />} />
       </Routes>
     </Router>
   );

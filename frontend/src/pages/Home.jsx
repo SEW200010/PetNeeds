@@ -1,20 +1,23 @@
 import Footer from "../components/Footer";
 import Header from "../components/Header";
-import UpcomingEvents from "../components/UpcomingEvents";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { FaArrowRight } from "react-icons/fa";
+import { GiSittingDog, GiCat, GiBirdTwitter, GiTropicalFish } from "react-icons/gi";
 import { Link } from "react-router-dom";
-import MovingGallery from "../components/MovingGallery";
-import img1 from "../assets/Home_images/image1.jpg";
-import img2 from "../assets/Home_images/image2.jpg";
-import img3 from "../assets/Home_images/image3.png";
+const img1 = "/Home_images/image1.png";
+const img2 = "/Home_images/image2.png";
+
 import icon1 from "../assets/Home_images/icon1.png";
 import icon2 from "../assets/Home_images/icon2.png";
 import icon3 from "../assets/Home_images/icon3.png";
+import icon5 from "../assets/Home_images/icon5.png";
 import icon4 from "../assets/Home_images/icon4.png";
-import imagesec from "../assets/Home_images/imagesec.jpg"
+import icon6 from "../assets/Home_images/icon6.png";
+import icon7 from "../assets/Home_images/icon7.png";
+import icon8 from "../assets/Home_images/icon8.png";
 
-const images = [img2, img1, img3,];
+
+const images = [img2,img1,];
 
 const Home = () => {
   const [currentImage, setCurrentImage] = useState(0);
@@ -33,8 +36,11 @@ const Home = () => {
       <main className="bg-gray-100">
 
         {/* Hero Section */}
-        <section className=" relative  h-[420px] sm:min-h-[500px] md:min-h-[620px] flex items-center justify-center text-center px-4 py-10 md:py-16 overflow-hidden ">
-          {/* Background Images */}
+              <img
+        src="/image1.jpg"
+        className="w-full h-auto mt-9"
+      />
+        <section className="relative min-h-[700px] md:min-h-[800px] flex items-center justify-center pb-20">
           {images.map((image, index) => (
             <div
               key={index}
@@ -47,123 +53,162 @@ const Home = () => {
           ))}
 
           {/* Overlay */}
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-black/40"/>
 
           {/* Text Container */}
-          <div className="relative z-10 mx-auto
-                  px-4
-                  max-w-md sm:max-w-3xl md:max-w-5xl lg:max-w-6xl xl:max-w-7xl">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-bold leading-tight">
-              Your Journey Begins Here
-            </h1>
+          <div className="relative z-10 w-full flex flex-col items-left text-left px-25">
+         <h1 className="lg:text-8xl text-6xl text-white leading-tight drop-shadow-lg mt-60" style={{ fontFamily: "'Fredoka', sans-serif" }}>
+          Everything Your Pet Needs</h1>
 
-            <p className="mt-3 text-lg sm:text-xl md:text-2xl text-[#25d6a4] font-semibold">
-              Empower. Lead. Transform.
+
+            <p className="text-white mt-8 lg:text-3xl text-lg leading-relaxed max-w-5xl">
+              Enjoy curated food, toys, and supplies tailored for your furry friends.
+              <br />
+              Keep them happy, healthy, and pampered with personalized recommendations delivered right to your door!
             </p>
+         
+           {/* Shop Now Button */}
+            <div className="mt-34 flex flex-wrap gap-5">
 
-            <p className="text-white mt-4 text-sm sm:text-base md:text-lg leading-relaxed">
-              The "வார்ப்பு" (Varppu) Life Skills Development Programme, launched by the University
-              of Jaffna, empowers Sri Lankan youth, especially in the Northern Province, through
-              educational training and activity-based learning. It addresses issues such as substance
-              abuse, peer pressure, and mental health challenges through the "Manohari" psychosocial
-              support system, fostering emotionally resilient and socially responsible young leaders.
-            </p>
+                <Link to="/Product">
+                  <button
+                  className="text-white bg-gradient-to-r from-pink-500 to-purple-600 px-14 py-6 text-2xl rounded-full hover:scale-110 transition"
+                >Shop Now
+                  </button>
+                </Link>
 
-            <Link to="/Aboutus">
-              <button
-                className="mt-6 text-white px-6 py-3 text-sm sm:text-base md:text-lg rounded-full hover:bg-green-600 hover:scale-110 transition mx-auto"
-                style={{ backgroundColor: "#27987A" }}
-              >
-                Explore about Us →
-              </button>
-            </Link>
-          </div>
-        </section>
-
-        {/* About Section */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-10 p-6 md:p-10 lg:p-20 bg-white items-center">
-
-          {/* Text Content */}
-          <div className="text-center md:text-left">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">
-              Welcome to <span className="text-[#27987A]">Varppu </span>
-            </h2>
-            <p className="mt-4 text-base sm:text-lg lg:text-xl text-center lg:text-left leading:relaxed">
-              The "வார்ப்பு" (Varppu) Life Skills Development Programme is a comprehensive initiative
-              launched by the University of Jaffna to address the social challenges faced by Sri Lankan
-              youth, particularly in the Northern Province. This community-centered initiative focuses
-              on educational training and activity-based learning to nurture responsible, resilient young
-              leaders who are capable of contributing to sustainable societal development.
-            </p>
-
-            <Link to="/Aboutus">
-              <button className="mt-6 inline-flex text-white px-6 py-3 text-sm sm:text-base md:text-lg flex rounded-full hover:bg-green-600 hover:scale-110 transition duration-300 mx-auto" style={{ backgroundColor: "#27987A" }}>
-                Explore about Us →
-              </button>
-            </Link>
-          </div>
-
-          {/* Image Section */}
-          <div className="flex justify-center">
-            <img
-              src={imagesec}
-              alt="About Varppu Counselling"
-              className="w-full max-w-sm md:max-w-md lg:max-w-lg h-auto rounded-lg shadow-lg"
-            />
-          </div>
-        </section>
-
-
-        {/* Upcoming Events */}
-        <section className="p-6 md:p-10 bg-gray-300">
-          <UpcomingEvents />
-        </section>
-
-        {/* Featured Events */}
-        <section className="p-6 md:p-10 bg-white relative">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center underline underline-offset-8 mb-4 md:mb-6">
-            Featured <span className="text-[#27987A]">Events</span>
-          </h2>
-          <div>
-            <MovingGallery />
-          </div>
-        </section>
-
-        {/* Impact Section */}
-        <section className="p-2 md:p-10 bg-white text-center">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center underline underline-offset-8 mb-4 md:mb-6">
-            Our <span className="text-[#27987A]">Impact at a Glance</span>
-          </h2>
-          <br />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
-            {[
-              { number: "20+", icon: icon1, label: "Events Conducted" },
-              { number: "15+", icon: icon2, label: "Student Mentored" },
-              { number: "10+", icon: icon3, label: "Years of Experience" },
-              { number: "10+", icon: icon4, label: "Areas Covered" },
-            ].map((item, index) => (
-              <div
-                key={index}
-                className="p-6 md:p-10 bg-[#CFE8DF] hover:scale-105 shadow-md rounded-2xl"
-              >
-                <h3 className="text-3xl md:text-5xl font-bold text-green-700">{item.number}</h3>
-                <div className="flex justify-center my-4">
-                  <img src={item.icon} alt="icon" className="w-15 h-15 object-contain" />
-                </div>
-                <p className="text-lg md:text-2xl font-bold text-green-700">{item.label}</p>
-                <p className="text-black">Total workshops & Sessions</p>
+                {/* Your Pet Button */}
+                <Link to="/Profile">
+                  <button
+                  className="text-white bg-gradient-to-r from-pink-500 to-purple-600 px-14 py-6 text-2xl rounded-full hover:scale-110 transition"
+                  >
+                    Your Pet
+                  </button>
+                </Link>
               </div>
-            ))}
+          </div>
+            <div className="relative flex justify-center items-center mt-20">
+            {/* Circle */}
+            <div className="relative flex justify-center items-center mt-20">
+            {/* Circle */}
+            <div
+            className="w-96 h-96 flex justify-center items-center bg-red-500"
+            style={{
+              clipPath:
+                'polygon(50% 0%, 65% 35%, 100% 35%, 70% 60%, 80% 95%, 50% 75%, 20% 95%, 30% 60%, 0% 35%, 35% 35%)'
+            }}
+          >
+            <div className="flex flex-col justify-center items-center text-center px-3">
+              <h1 className="text-white font-bold text-lg sm:text-xl md:text-2xl lg:text-3xl">
+                Free Delivery for<br></br> orders above <br></br>Rs 7500
+              </h1>
+            </div>
           </div>
 
-          <div className="flex justify-center mt-6">
-            <Link to="/Aboutus">
-              <button className="mt-6  text-white px-6 py-3 text-sm sm:text-base md:text-lg flex rounded-full hover:bg-green-600 hover:scale-110 transition duration-300 mx-auto" style={{ backgroundColor: "#27987A" }}>
-                Explore about Us →
-              </button>
-            </Link>
           </div>
-        </section>
+          </div>
+                  </section>
+          {/* Shop by Pet Type Section */}
+     <section className="p-2 md:p-10 bg-white text-center text-black">
+  <h2 className="text-2xl sm:text-3xl lg:text-6xl font-bold text-center mb-4 md:mb-6">
+    <span className="text-black">Collection</span>
+  </h2>
+  <br />
+  <div className="grid grid-cols-2 md:grid-cols-4 mt-6 justify-items-center">
+    {[
+      {icon: <GiSittingDog className="text-white" />,  label: "Dog"},
+      {icon: <GiCat className="text-white" />,         label: "Cat"},
+      {icon: <GiBirdTwitter className="text-white" />, label: "Bird"},
+      { icon: <GiTropicalFish className="text-white" />, label: "Fish" },
+
+    ].map((item, index) => {
+      const linkTo = `/Product?category=${item.label}`;
+      return (
+        <Link key={index} to={linkTo}>
+          <div
+            className="bg-black rounded-full flex flex-col items-center justify-center border- border-white shadow-md hover:scale-105 transition-transform cursor-pointer"
+            style={{ width: "290px", height: "290px" }} // reduced circle size
+          >
+            <div className="flex justify-center my-2">
+              {React.cloneElement(item.icon, { size: "8.5em" })} {/* smaller icon */}
+            </div>
+            <p className="text-white text-2xl sm:text-3xl lg:text-4xl text-base mt-2">{item.label}</p> {/* smaller text */}
+          </div>
+        </Link>
+      );
+    })}
+  </div>
+</section>
+       {/* Featured Product */}
+<section className="mt-8 p-2 md:p-10 bg-white text-center text-black">
+  <div className="flex flex-col items-center mb-4 md:mb-6 gap-4">
+    <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold">
+      Featured Products
+    </h2>               
+     <Link to="/Product">
+    <button className="text-white px-6 py-3 text-lg rounded-full hover:scale-110 transition bg-gradient-to-r from-pink-500 to-purple-600 flex items-center gap-2">
+      View All <FaArrowRight />
+    </button></Link>
+  </div>
+
+  <div className="grid grid-cols-2 sm:grid-cols-4 justify-items-center mt-6">
+    {[
+      { icon: icon1, label: "Dog.Food", info: "Premium dog food 5kg", price: "Rs.2500" },
+      { icon: icon2, label: "Dog.Toy", info: "Dog Chew Toys set", price: "Rs.1000" },
+      { icon: icon3, label: "Dog.Medicine", info: "Dog Joint Supplement", price: "Rs.1500" },
+      { icon: icon4, label: "Dog.Accessories", info: "Dog Collar", price: "Rs.1500" },
+    ].map((item, index) => (
+      <div
+        key={index}
+        className="bg-white hover:scale-105 shadow-md rounded-2xl border border-black h-96 flex flex-col items-center"
+      >
+        <div className="h-3/4 w-full">
+          <img src={item.icon} alt="icon" className="w-full h-full object-cover rounded-t-2xl" />
+        </div>
+        <div className="h-1/4 flex flex-col justify-center items-center p-4 text-center">
+          <p className="text-lg md:text-2xl font-bold">{item.label}</p>
+          <p className="text-md md:text-lg">{item.info}</p>
+          <p className="text-md md:text-lg">{item.price}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+{/* Recommended for you */}
+<section className="p-2 md:p-10 bg-white text-center text-black">
+  <div className="flex flex-col items-center mb-4 md:mb-6 gap-4">
+    <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold">Recommended for you</h2>
+         <Link to="/Product">
+    <button className="text-white px-6 py-3 text-lg rounded-full hover:scale-110 transition bg-gradient-to-r from-pink-500 to-purple-600 flex items-center gap-2">
+      View All <FaArrowRight />
+    </button></Link>
+  </div>
+
+  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 gap-6 justify-items-center mt-6">
+    {[
+      { icon: icon5, info1: "Royal Canin Maxi Adult", info2: "Supports bone & joint health", price: "Rs.7500" },
+      { icon: icon6, info1: "Me-O Tuna Dry Food", info2: "Taurine enriched for eye health", price: "Rs.3800" },
+      { icon: icon7, info1: "Petslife Fruit-Mix", info2: "Better balanced diet than seeds", price: "Rs.3200" },
+      { icon: icon8, info1: "Altech Coppens Feed", info2: "Pellet food for tropical fish", price: "Rs.2150" },
+    ].map((item, index) => (
+      <div
+        key={index}
+        className="bg-white hover:scale-105 shadow-md rounded-2xl border border-black h-96 flex flex-col items-center"
+      >
+        <div className="h-3/5 w-full">
+          <img src={item.icon} alt="icon" className="w-full h-full object-cover rounded-t-2xl" />
+        </div>
+        <div className="h-2/5 flex flex-col justify-center items-center p-4 text-center">
+          <p className="text-lg md:text-2xl font-bold">{item.info1}</p>
+          <p className="text-md md:text-lg">{item.info2}</p>
+          <p className="text-md md:text-lg">{item.price}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
 
       </main>
       <Footer />
