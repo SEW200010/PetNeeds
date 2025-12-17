@@ -1,13 +1,17 @@
-# Task: Implement Navigation for AdminView and UserView Buttons
+# Responsiveness Fixes for All Pages
 
-## Completed Tasks
-- [x] Analyzed the user request: "When i click adminview button the automaticaly display dashboard and when i click user dashboard display home page"
-- [x] Explored relevant files: Header.jsx, App.jsx, Dashboard.jsx, Home.jsx
-- [x] Identified that buttons are in Header.jsx and need to navigate to specific routes
-- [x] Added useNavigate hook to Header.jsx
-- [x] Modified AdminView button onClick to set isAdminView(true) and navigate("/dashboard")
-- [x] Modified UserView button onClick to set isAdminView(false) and navigate("/")
-- [x] Updated based on user feedback to ensure UserView navigates to home page
+## Pages to Fix:
+- [x] Login Page (frontend/src/pages/login.jsx) - Convert inline styles to Tailwind for better responsiveness
+- [x] Register Page (frontend/src/pages/register.jsx) - Build a proper responsive register form
+- [x] Home Page (frontend/src/pages/User/Home.jsx) - Already responsive, minor tweaks if needed
+- [x] Product Page (frontend/src/pages/User/Product.jsx) - Fix fixed widths and make grid responsive
+- [x] FilterCard (frontend/src/pages/User/FilterCard.jsx) - Check and fix responsiveness
+- [x] MyOrder (frontend/src/pages/User/MyOrder.jsx) - Check and fix
+- [x] Profile (frontend/src/pages/User/Profile.jsx) - Check and fix
+- [x] Admin Pages (Dashboard, AdminOrder, etc.) - Check and fix all admin pages
 
-## Summary
-The implementation is complete. Clicking "AdminView" now automatically navigates to the dashboard page, and clicking "UserView" navigates to the home page, while also toggling the view state appropriately.
+## General Improvements:
+- Use Tailwind CSS classes instead of inline styles where possible
+- Ensure mobile-first design
+- Test on different screen sizes
+- Fix any hardcoded widths/heights

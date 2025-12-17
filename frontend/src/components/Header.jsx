@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -14,6 +14,7 @@ import {
   Typography
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import { Link } from "react-router-dom";
 
 import Logo from "../assets/logoNew.png";
 
@@ -21,6 +22,7 @@ const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
   const [isAdminView, setIsAdminView] = useState(false);
+  const [user, setUser] = useState(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,9 +37,9 @@ const Header = () => {
       ]
     : [
         { title: "Home", path: "/" },
-        { title: "Product", path: "/Product" },
-        { title: "MyOrder", path: "/MyOrder" },
-        { title: "Profile", path: "/Profile" },
+        { title: "Product", path: "/product" },
+        { title: "MyOrder", path: "/myorder" },
+        { title: "Profile", path: "/profile" },
       ];
 
   useEffect(() => {
@@ -52,6 +54,23 @@ const Header = () => {
     const adminPaths = ['/dashboard', '/admin-product', '/admin-order', '/admin-user', '/admin-perception'];
     setIsAdminView(adminPaths.includes(location.pathname));
   }, [location.pathname]);
+
+  useEffect(() => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      setUser(storedUser);
+    } catch (error) {
+      console.error("Error parsing user from localStorage:", error);
+      setUser(null);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("orders");
+    setUser(null);
+    navigate("/login");
+  };
 
   return (
     <>
@@ -78,7 +97,7 @@ const Header = () => {
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 2,   // << Adds space between logo and brand text
+            gap: 2,
             textDecoration: "none",
             width: { xs: "auto", md: "200px" }
           }}
@@ -150,7 +169,7 @@ const Header = () => {
             })}
           </Box>
 
-          {/* RIGHT SECTION: LOGIN + MOBILE MENU */}
+          {/* RIGHT SECTION: LOGIN/LOGOUT + MOBILE MENU */}
           <Box
             sx={{
               width: { xs: "auto", md: "200px" },   // balance with left section
@@ -160,45 +179,44 @@ const Header = () => {
               gap: 2
             }}
           >
-            {/* Desktop View Toggle */}
-            <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
-              <Button
-                onClick={() => {
-                  setIsAdminView(true);
-                  navigate("/dashboard");
-                }}
-                sx={{
-                  backgroundColor: isAdminView ? "#25d6a4" : "#fbfcfcff",
-                  color: isAdminView ? "black" : "black",
-                  paddingX: 2,
-                  fontSize: "20px",
-                  fontWeight: "700",
-                  borderRadius: "20px",
-                  textTransform: "none",
-                  "&:hover": { backgroundColor: isAdminView ? "#37a391ff" : "white", transform: "scale(1.05)" }
-                }}
-              >
-                AdminView
-              </Button>
-              <Button
-                onClick={() => {
-                  setIsAdminView(false);
-                  navigate("/");
-                }}
-                sx={{
-                  backgroundColor: !isAdminView ? "#2fc39eff" : "#fbfcfcff",
-                  color: !isAdminView ? "black" : "black",
-                  paddingX: 2,
-                  fontSize: "20px",
-                  fontWeight: "700",
-                  borderRadius: "20px",
-                  textTransform: "none",
-                  "&:hover": { backgroundColor: !isAdminView ? "#1ca285ff" : "white", transform: "scale(1.05)" }
-                }}
-              >
-                UserView
-              </Button>
-            </Box>
+            {user ? (
+              <Link to="/login">
+             <Button
+             onClick={handleLogout}
+             sx={{
+               background: "#ffffff",
+               color: "black",
+               px: "46px",              // same as px-14
+               py: "10px",              // same as py-6
+               fontSize: "1.5rem",      // text-2xl
+               fontWeight: "bold",
+               textTransform: "none",
+               transition: "transform 0.3s ease",
+               "&:hover": {
+                 background: "#ffffff",
+                 transform: "scale(1.1)",
+               },
+             }}
+           >
+             Logout
+           </Button></Link>
+            ) : (
+              location.pathname !== "/" && (
+                <Button
+                  component={Link}
+                  to="/login"
+                  sx={{
+                    color: "white",
+                    fontWeight: "bold",
+                    fontSize: "18px",
+                    textTransform: "none",
+                    "&:hover": { color: "#b2b7b5ff", transform: "scale(1.1)" }
+                  }}
+                >
+                  Login
+                </Button>
+              )
+            )}
 
             {/* Mobile Menu Button */}
             <IconButton
@@ -238,18 +256,20 @@ const Header = () => {
             })}
 
             {/* Mobile Login */}
-            <ListItem disablePadding>
-              <ListItemButton component={Link} to="/login" onClick={() => setMobileOpen(false)}>
-                <ListItemText
-                  primary="Login"
-                  primaryTypographyProps={{
-                    color: "#25d6a4",
-                    textAlign: "center",
-                    fontWeight: "bold"
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
+            {location.pathname !== "/" && (
+              <ListItem disablePadding>
+                <ListItemButton component={Link} to="/login" onClick={() => setMobileOpen(false)}>
+                  <ListItemText
+                    primary="Login"
+                    primaryTypographyProps={{
+                      color: "#25d6a4",
+                      textAlign: "center",
+                      fontWeight: "bold"
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            )}
           </List>
         </Box>
       </Drawer>

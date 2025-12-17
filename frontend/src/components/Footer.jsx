@@ -13,9 +13,9 @@ const Footer = () => {
             <h3 className="text-xl font-semibold">Quick Links</h3>
             <ul className="mt-2 space-y-2">
               <li><Link to="/" className="hover:text-black">Home</Link></li>
-              <li><Link to="/Product" className="hover:text-black">Product</Link></li>
-              <li><Link to="/MyOrder" className="hover:text-black">MyOrder</Link></li>
-              <li><Link to="/Profile" className="hover:text-black hover:font-semibold">Profile</Link></li>
+              <li><Link to="/product" className="hover:text-black">Product</Link></li>
+              <li><Link to="/myorder" className="hover:text-black">MyOrder</Link></li>
+              <li><Link to="/profile" className="hover:text-black hover:font-semibold">Profile</Link></li>
 
             </ul>
           </div>
@@ -27,7 +27,7 @@ const Footer = () => {
                 <p>📧 support@petstore.com</p>
                 <p>📞 +1 (555) 123-4567</p>
                 <p className="mt-2">📍 123 Pet Street, Animal City</p>
-                <button className="mt-6 bg-[#ffffff] text-black px-6 py-3 font-bold rounded-full hover:scale-110 hover:border">Join the community</button>
+                <button className="mt-6 bg-[#ffffff] text-black px-6 py-3 font-bold  hover:scale-110 hover:border">Join the community</button>
                 </ul>
           </div>
 

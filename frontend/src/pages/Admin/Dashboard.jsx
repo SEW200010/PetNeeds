@@ -82,91 +82,94 @@ export default function AdminDashboard() {
   return (
     <div>
       <Header />
-
-      <div className=" bg-gradient-to-b min-h-screen p-50 from-pink-50 to-white p-6">
-        {/* Statistic cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-18 ">
-          {stats.map((s) => (
-            <div
-              key={s.id}
-              className={`rounded-xl h-[280px] w-full p-6 bg-gradient-to-r ${s.bg} shadow-lg text-white flex flex-col justify-between hover:scale-90`}
-            >
-
-              <div className="flex justify-between items-start">
-                <div className="text-4xl opacity-90">{s.title}</div>
-                <div className="opacity-80">{s.icon}</div>
+      <div className="bg-gradient-to-b min-h-screen from-pink-50 to-white p-6">
+        <div className="max-w-7xl mx-auto mt-12">
+          {/* Statistic cards */}
+          <h1 className="text-3xl font-bold text-purple-700 mb-8">Admin Dashboard</h1>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {stats.map((s) => (
+              <div
+                key={s.id}
+                className={`rounded-xl h-[280px] w-full p-6 bg-gradient-to-r ${s.bg} shadow-lg text-white flex flex-col justify-between hover:scale-90`}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="text-4xl opacity-90">{s.title}</div>
+                  <div className="opacity-80">{s.icon}</div>
+                </div>
+                <div className="mt-4 flex items-end justify-between">
+                  <div className="text-3xl font-bold">{s.value}</div>
+                  <div className="text-2s bg-white/20 px-3 py-1 rounded-full">{s.subtitle}</div>
+                </div>
               </div>
-              <div className="mt-4 flex items-end justify-between">
-                <div className="text-3xl font-bold">{s.value}</div>
-                <div className="text-2s bg-white/20 px-3 py-1 rounded-full">{s.subtitle}</div>
+            ))}
+          </div>
+
+          {/* Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="bg-black/10 rounded-xl shadow p-6">
+              <h3 className="text-xl font-medium text-purple-800 mb-4">Weekly Orders</h3>
+              <div style={{ height: 250 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={weeklyOrders}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="day" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="orders" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
-          ))}
-        </div>
 
-        {/* Charts */}
-        <div className="rounded-xl h-[480px] p-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <div className="bg-black/10 rounded-xl shadow p-6">
-            <h3 className="text-xl font-medium text-purple-800 mb-4">Weekly Orders</h3>
-            <div style={{ height: 250 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={weeklyOrders}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="day" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="orders" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="rounded-xl shadow p-6 bg-black/10">
+              <h3 className="text-xl font-medium text-purple-800 mb-4">Revenue Trend</h3>
+              <div style={{ height: 250 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={revenueTrend}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="day" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#E11D48"
+                      dot={{ r: 4 }}
+                      strokeWidth={2}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
 
-          <div className="rounded-xl shadow p-6 bg-black/10">
-            <h3 className="text-xl font-medium text-purple-800 mb-4">Revenue Trend</h3>
-            <div style={{ height: 250 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={revenueTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="day" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#E11D48"
-                    dot={{ r: 4 }}
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+          {/* Top selling products */}
+          <div className="w-full flex justify-center mb-8">
+            <div className="md:w-[100%] bg-black/10 p-14 rounded-xl shadow">
+              <h3 className="text-xl font-medium text-purple-800">Top Selling Products</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left table-auto">
+                  <thead>
+                    <tr className="text-lg text-gray-500 border-b">
+                      <th className="py-3">Rank</th>
+                      <th className="py-3">Product Name</th>
+                      <th className="py-3">Sales</th>
+                      <th className="py-3">Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {topProducts.map((p) => (
+                      <tr key={p.rank} className="hover:bg-gray-50">
+                        <td className="py-4 text-lg">{p.rank}</td>
+                        <td className="py-4 text-lg">{p.name}</td>
+                        <td className="py-4 text-lg">{p.sales}</td>
+                        <td className="py-4 text-lg text-green-600">{p.revenue}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        </div>
-
-        {/* Top selling products */}
-        <div className="bg-black/10 rounded-xl shadow p-18">
-          <h3 className="text-xl font-medium text-purple-800 mb-4">Top Selling Products</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left table-auto">
-              <thead>
-                <tr className="text-lg text-gray-500 border-b">
-                  <th className="py-3">Rank</th>
-                  <th className="py-3">Product Name</th>
-                  <th className="py-3">Sales</th>
-                  <th className="py-3">Revenue</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topProducts.map((p) => (
-                  <tr key={p.rank} className="border-b hover:bg-gray-50">
-                    <td className="py-4 text-lg">{p.rank}</td>
-                    <td className="py-4 text-lg">{p.name}</td>
-                    <td className="py-4 text-lg">{p.sales}</td>
-                    <td className="py-4 text-lg text-green-600">{p.revenue}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       </div>

@@ -1,12 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import Home from "./pages/Home";
+
 import Login from "./pages/login";
-import Register from "./pages/Register";
-import Product from "./pages/Product";
-import Profile from "./pages/Profile";
-import MyOrder from "./pages/MyOrder";
+import Home from "./pages/User/Home";
+import Register from "./pages/register";
+import Product from "./pages/User/Product";
+import Profile from "./pages/User/Profile";
+import MyOrder from "./pages/User/MyOrder";
 import ScrollToTop from "./components/ScrollToTop";
+import Header from "./components/Header";
 
 // Admin pages
 import Dashboard from "./pages/Admin/Dashboard";
@@ -22,10 +24,10 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/Register" element={<Register />} />
-        <Route path="/Profile" element={<Profile />} />
-        <Route path="/MyOrder" element={<MyOrder />} />
-        <Route path="/Product" element={<Product />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/myorder" element={<MyOrder />} />
+        <Route path="/product" element={<Product />} />
 
         {/* Admin Routes */}
         <Route path="/dashboard" element={<Dashboard />} />
