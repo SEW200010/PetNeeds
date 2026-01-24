@@ -40,6 +40,7 @@ const Header = () => {
         { title: "Product", path: "/product" },
         { title: "MyOrder", path: "/myorder" },
         { title: "Profile", path: "/profile" },
+        
       ];
 
   useEffect(() => {

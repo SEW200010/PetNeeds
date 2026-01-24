@@ -14,26 +14,31 @@ const Login = ({ onLogin = () => {} }) => {
     user: { username: "user", password: "user123" },
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (
-      username === credentials.admin.username &&
-      password === credentials.admin.password
-    ) {
-      localStorage.setItem("user", JSON.stringify({ role: "admin", username }));
-      onLogin("admin");
-      navigate("/dashboard");
-    } else if (
-      username === credentials.user.username &&
-      password === credentials.user.password
-    ) {
-      localStorage.setItem("user", JSON.stringify({ role: "user", username }));
-      onLogin("user");
-      navigate("/");
-    } else {
-      setError("Invalid username or password");
+    try {
+      const response = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.access_token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        onLogin(data.user.role);
+        navigate(data.user.role === "admin" ? "/dashboard" : "/");
+      } else {
+        setError(data.error || "Login failed");
+      }
+    } catch (error) {
+      setError("Network error. Please try again.");
     }
   };
 

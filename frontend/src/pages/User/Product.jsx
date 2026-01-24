@@ -3,66 +3,19 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import FilterCard from "./FilterCard";
-import image1 from "../../assets/Product/image1.png";
-import image2 from "../../assets/Product/image2.jpeg";
-import image3 from "../../assets/Product/image3.jpeg";
-import image4 from "../../assets/Product/image4.jpeg";
-import image5 from "../../assets/Product/image5.webp";
-import image6 from "../../assets/Product/image6.jpeg";
-import image7 from "../../assets/Product/image7.jpeg";
-import image8 from "../../assets/Product/image8.jpeg";
-import image9 from "../../assets/Product/image9.jpeg";
-import image10 from "../../assets/Product/image10.webp";
-import image11 from "../../assets/Product/image11.webp";
-import image12 from "../../assets/Product/image12.jpeg";
-import image13 from "../../assets/Product/image13.jpeg";
-import image14 from "../../assets/Product/image14.jpg";
-import image15 from "../../assets/Product/image15.jpg";
-import image16 from "../../assets/Product/image16.jpeg";
-import image17 from "../../assets/Product/image17.jpeg";
-import image18 from "../../assets/Product/image18.jpg";
-import image19 from "../../assets/Product/image19.jpeg";
-import image20 from "../../assets/Product/image20.jpeg";
-import image21 from "../../assets/Product/image21.jpeg";
-import image22 from "../../assets/Product/image22.jpeg";
-import image23 from "../../assets/Product/image23.jpeg";
-import image24 from "../../assets/Product/image24.png";
-
-
-
-  const products = [
-    { id: 1, name: "Premium Dog Food", price: "Rs.1000", image:image1, category: "Dog" },
-    { id: 2, name: "Dog Leash", price: "Rs.800", image:image2, category: "Dog" },
-    { id: 3, name: "Dog Chew Toy", price: "Rs.1200", image:image3, category: "Dog" },
-    { id: 4, name: "WaterCup", price: "Rs.500",image:image4, category: "Dog" },
-    { id: 5, name: "Comb", price: "Rs.300", image:image5, category: "Dog" },
-    { id: 6, name: "Premium puppy", price: "Rs.2500", image:image6, category: "Dog" },
-    { id: 7, name: "Proplan", price: "Rs.1800", image:image7, category: "Cat" },
-    { id: 8, name: "Bascket",price: "Rs.2000", image:image8, category: "Cat" },
-    { id: 9, name: "Bed", price: "Rs.3000", image:image9, category: "Cat" },
-    { id: 10, name: "Toy", price: "Rs.1200", image:image10, category: "Cat" },
-    { id: 11, name: "Toy", price: "Rs.1500", image:image11, category: "Cat" },
-    { id: 12, name: "Bonoat", price: "Rs.4100", image:image12, category: "Cat" },
-    { id: 13, name: "Gem Paharam", price: "Rs.2600", image:image13, category: "Bird" },
-    { id: 14, name: "Birds Care", price: "Rs.1300", image:image14, category: "Bird" },
-    { id: 15, name: "Bird Toy",price: "Rs.700", image:image15, category: "Bird" },
-    { id: 16, name: "Bird Toy Set", price: "Rs.800",image:image16, category: "Bird" },
-    { id: 17, name: "Peckish Complete", price: "Rs.3600", image:image17, category: "Bird" },
-    { id: 18, name: "Cracked Corne", price: "Rs.2300", image:image18, category: "Bird" },
-    { id: 19, name: "Fish Tank", price: "Rs.2000", image:image19, category: "Fish" },
-    { id: 20, name: "Aquarium Filter", price: "Rs.5000", image:image20, category: "Fish" },
-    { id: 21, name: "Fish Food", price: "Rs.1000", image:image21, category: "Fish" },
-    { id: 22, name: "Seeds", price: "Rs.1000", image:image22, category: "Fish" },
-    { id: 23, name: "Blue salt", price: "Rs.230", image:image23, category: "Fish" },
-    { id: 24, name: "Bettafix", price: "Rs.500", image:image24, category: "Fish" },
-
-  ];
 
 const Product = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const [petType, setPetType] = useState('All Pets');
   const [price, setPrice] = useState(5500);
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   useEffect(() => {
     const category = searchParams.get('category');
@@ -70,6 +23,21 @@ const Product = () => {
       setPetType(category);
     }
   }, [searchParams]);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/products');
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      const data = await response.json();
+      setProducts(data.products);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
@@ -94,6 +62,9 @@ const Product = () => {
     alert('Product added to order!');
   };
 
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+
   return (
     <div>
       <Header />
@@ -114,16 +85,20 @@ const Product = () => {
                                 key={product.id}
                                 className="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col items-center hover:scale-105 transition-transform"
                               >
-                                <img
-                                  src={product.image}
-                                  alt={product.name}
-                                  className="w-full h-48 object-cover"
-                                />
+                                <div className="w-full h-48 bg-gray-200 flex items-center justify-center overflow-hidden">
+                                  <img
+                                    src={product.image}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.target.src = '/placeholder-image.png'; // Fallback image
+                                      e.target.alt = 'Image not available';
+                                    }}
+                                  />
+                                </div>
 
                                 {/* CONTENT */}
                                 <div className="p-4 flex flex-col gap-2 w-full">
-
-
                                   {/* Name */}
                                   <h3 className="text-sm md:text-lg font-semibold text-center">
                                     {product.name}
@@ -136,7 +111,7 @@ const Product = () => {
                                     </p>
 
                                     <p className="text-blue-500 text-xs md:text-sm font-medium">
-                                      50 in stock
+                                      {product.stock} in stock
                                     </p>
                                   </div>
                                   {/* Quick Add Button */}

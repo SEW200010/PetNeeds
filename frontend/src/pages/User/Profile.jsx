@@ -38,18 +38,25 @@ const Profile = () => {
     const savedProfile = JSON.parse(localStorage.getItem(`profile_${uid}`));
     if (savedProfile) setProfile(savedProfile);
 
-    const savedPets = JSON.parse(localStorage.getItem(`pets_${uid}`));
-    if (savedPets) {
-      setPets(savedPets);
-    } else {
-      const mockPets = [
-        { _id: "1", name: "Buddy", breed: "Golden Retriever", age: "3", type: "Dog" },
-        { _id: "2", name: "Whiskers", breed: "Persian", age: "2", type: "Cat" }
-      ];
-      setPets(mockPets);
-      localStorage.setItem(`pets_${uid}`, JSON.stringify(mockPets));
-    }
+    fetchPets();
   }, []);
+
+  const fetchPets = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/user/pets', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPets(data.pets);
+      }
+    } catch (error) {
+      console.error('Failed to fetch pets:', error);
+    }
+  };
 
   /* ================= PROFILE IMAGE UPLOAD ================= */
   const handleImageUpload = (e) => {

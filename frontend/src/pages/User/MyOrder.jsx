@@ -119,18 +119,16 @@ const MyOrder = () => {
     }
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:5000/api/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          user_id: userId,
-          items: orders,
-          total: subtotal,
-          status: 'pending',
-          subscription: 'No',
-          prescription: '-',
+          products: orders,
+          total: subtotal.toString(),
         }),
       });
 
@@ -138,6 +136,7 @@ const MyOrder = () => {
         alert('Order placed successfully!');
         setOrders([]);
         localStorage.removeItem('orders');
+        loadOrders(); // Refresh orders
       } else {
         alert('Failed to place order. Please try again.');
       }
